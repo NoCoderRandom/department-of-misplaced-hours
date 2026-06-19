@@ -180,6 +180,30 @@ async function pressGamepadButton(page, index, hold = 120) {
   await page.waitForTimeout(170);
 }
 
+async function moveGamepadAxis(page, axisIndex, value, hold = 90) {
+  await page.evaluate(
+    ({ axis, nextValue }) => {
+      const pad = window.__qaGamepad;
+      if (!pad) {
+        throw new Error("QA gamepad was not installed.");
+      }
+      pad.axes[axis] = nextValue;
+      pad.timestamp = performance.now();
+    },
+    { axis: axisIndex, nextValue: value }
+  );
+  await page.waitForTimeout(hold);
+  await page.evaluate(
+    ({ axis }) => {
+      const pad = window.__qaGamepad;
+      pad.axes[axis] = 0;
+      pad.timestamp = performance.now();
+    },
+    { axis: axisIndex }
+  );
+  await page.waitForTimeout(170);
+}
+
 async function installQaGamepad(page) {
   await page.addInitScript(() => {
     const state = {
@@ -1686,6 +1710,13 @@ async function testGamepadNavigation(browser, issues) {
   await page.waitForTimeout(650);
   await expectCanvasPainted(page, "gamepad title");
 
+  await moveGamepadAxis(page, 0, 1);
+  await moveGamepadAxis(page, 0, 1);
+  await pressGamepadButton(page, 0);
+  await page.getByRole("dialog", { name: "Controls" }).waitFor({ state: "visible", timeout: 8_000 });
+  await pressGamepadButton(page, 1);
+  await page.locator(".game-modal-panel").waitFor({ state: "detached", timeout: 8_000 });
+  await moveGamepadAxis(page, 0, -1);
   await pressGamepadButton(page, 0);
   await page.getByRole("dialog", { name: "Midnight Orientation" }).waitFor({ state: "visible", timeout: 8_000 });
   await pressGamepadButton(page, 0);
@@ -1696,7 +1727,7 @@ async function testGamepadNavigation(browser, issues) {
     throw new Error(`Gamepad confirm did not complete intro: ${JSON.stringify(data)}`);
   }
 
-  await pressGamepadButton(page, 15);
+  await moveGamepadAxis(page, 0, 1);
   await pressGamepadButton(page, 0);
   data = await save(page);
   if (!data.inventory.includes("blankForm")) {
@@ -1710,6 +1741,22 @@ async function testGamepadNavigation(browser, issues) {
   if (!data.inventory.includes("rubberStamp")) {
     throw new Error(`Gamepad focus did not collect Rubber Stamp: ${JSON.stringify(data)}`);
   }
+
+  await pressGamepadButton(page, 5);
+  data = await save(page);
+  if (Math.abs(data.audioVolume - 0.84) > 0.001) {
+    throw new Error(`Gamepad bumper up did not persist expected volume: ${JSON.stringify(data)}`);
+  }
+  await pressGamepadButton(page, 4);
+  data = await save(page);
+  if (Math.abs(data.audioVolume - 0.72) > 0.001) {
+    throw new Error(`Gamepad bumper down did not persist expected volume: ${JSON.stringify(data)}`);
+  }
+
+  await pressGamepadButton(page, 3);
+  await page.getByRole("dialog", { name: "Hint" }).waitFor({ state: "visible", timeout: 8_000 });
+  await pressGamepadButton(page, 1);
+  await page.locator(".game-modal-panel").waitFor({ state: "detached", timeout: 8_000 });
 
   await pressGamepadButton(page, 9);
   await page.getByRole("dialog", { name: "Help" }).waitFor({ state: "visible", timeout: 8_000 });
@@ -2288,7 +2335,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone/rain/muted clue paths, hand-cursor hotspot/inventory behavior, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/object/modal navigation, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone/rain/muted clue paths, hand-cursor hotspot/inventory behavior, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;

@@ -82,5 +82,6 @@
 - [x] Sound toggles now preserve selected inventory instead of silently emptying the player's hand, with pointer and keyboard QA coverage.
 - [x] Canvas accessibility metadata, live smoke, and generated release README controls now stay synchronized for sound, volume, and controller cancel behavior.
 - [x] Vending reward recovery now survives Escape and reload before Take Them, and the opening stamp rejects wrong selected inventory instead of auto-solving.
+- [x] Controller QA now covers left-stick title/room navigation, title Controls, Y Hint, and bumper volume persistence instead of only D-pad/A/B modal flow.
 - [x] Deployment prepared with `.github/workflows/deploy-pages.yml`.
 - [x] Documentation written: `README.md`, `ASSETS.md`, `THIRD_PARTY_NOTICES.md`, `DESIGN_NOTES.md`, `PROGRESS.md`.
