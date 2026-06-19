@@ -106,5 +106,6 @@
 - [x] Static release checks now require no-JavaScript fallback copy in `dist/index.html`, catching broken static-host fallback text before browser smoke.
 - [x] Release and live smoke checks now require complete install manifest metadata, including description, categories, colors, and maskable icon purposes.
 - [x] Browser QA now guards late-game wrong-item feedback on the Black Mirror, Server Console, and Red Intercom hour gate so item misuse cannot silently solve final-act puzzles.
+- [x] Browser QA now reloads and continues after Auditor verification and after the server ledger unlocks, proving final-act saves cannot strand the player before choosing an ending.
 - [x] Deployment prepared with `.github/workflows/deploy-pages.yml`.
 - [x] Documentation written: `README.md`, `ASSETS.md`, `THIRD_PARTY_NOTICES.md`, `DESIGN_NOTES.md`, `PROGRESS.md`.

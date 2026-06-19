@@ -1136,6 +1136,23 @@ async function finishFinalAct(page, identityItem, endingItem) {
   );
   await button(page, "Outside the system.");
   await button(page, "Proceed");
+
+  let checkpoint = await reloadAndContinue(page, "after auditor verification");
+  if (
+    checkpoint.room !== "mirror" ||
+    !checkpoint.flags.identityVerified ||
+    !checkpoint.flags.hourPresented ||
+    !checkpoint.flags.hourVerified ||
+    !checkpoint.flags.mirrorShardInstalled ||
+    !checkpoint.flags.fuseInstalled
+  ) {
+    throw new Error(`Reload after auditor verification lost late-game progress: ${JSON.stringify(checkpoint)}`);
+  }
+  expectInventory(checkpoint, ["memoryCup"], "reload after auditor verification");
+  if (checkpoint.inventory.includes("mirrorShard") || checkpoint.inventory.includes("serverFuse")) {
+    throw new Error(`Reload after auditor verification restored installed items: ${JSON.stringify(checkpoint)}`);
+  }
+
   await click(page, 858, 438);
   await expectLeadingButtonOrderNot(page, ["Circle", "Triangle", "Eye", "Square"], "Server Console");
   for (const answer of ["Eye", "Circle", "Triangle", "Square"]) {
@@ -1146,6 +1163,23 @@ async function finishFinalAct(page, identityItem, endingItem) {
     await button(page, answer);
   }
   await button(page, "Continue");
+
+  checkpoint = await reloadAndContinue(page, "after server ledger");
+  if (
+    checkpoint.room !== "mirror" ||
+    !checkpoint.flags.serverSolved ||
+    !checkpoint.flags.identityVerified ||
+    !checkpoint.flags.hourVerified ||
+    !checkpoint.flags.mirrorShardInstalled ||
+    !checkpoint.flags.fuseInstalled
+  ) {
+    throw new Error(`Reload after server ledger lost final gate progress: ${JSON.stringify(checkpoint)}`);
+  }
+  expectInventory(checkpoint, ["memoryCup"], "reload after server ledger");
+  if (checkpoint.inventory.includes("mirrorShard") || checkpoint.inventory.includes("serverFuse")) {
+    throw new Error(`Reload after server ledger restored installed items: ${JSON.stringify(checkpoint)}`);
+  }
+
   await selectItem(page, endingItem);
   await click(page, 1080, 386);
   await page.waitForTimeout(350);
@@ -2822,7 +2856,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help Credits access with dialog semantics, puzzle-polish checks for Notes/objectives/hint answer reveal/Auditor feedback, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help Credits access with dialog semantics, puzzle-polish checks for Notes/objectives/hint answer reveal/Auditor feedback, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game and late-game reloads, phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;

@@ -60,7 +60,7 @@ Expected results:
 - `Tab` / `Shift+Tab` keyboard focus can cycle room objects and inventory, and `Enter` / `Space` can activate them; QA uses this path to solve the opening form/stamp/door chain.
 - Standard controller input can start from the title, cycle room objects/inventory with D-pad or left stick, select with `A`, close panels with `B`, and move focus between modal buttons.
 - Progress persists after reload through `localStorage`.
-- Mid-game reloads continue from the current route without losing key rewards.
+- Mid-game and late-game reloads continue from the current route without losing key rewards, final verification, or server unlock progress.
 - Map fast travel lists unlocked rooms and does not overlap Notes.
 - Hovering useful objects shows a hand cursor, focus bracket, and label, but no hotspot markers are visible at rest.
 - Known clues can be reviewed from relevant puzzle panels.
