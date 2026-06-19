@@ -11,6 +11,7 @@ const SAVE_KEY = "department-misplaced-hours-save-v1";
 const PREFERENCES_KEY = "department-misplaced-hours-preferences-v1";
 const GAME_W = 1200;
 const GAME_H = 800;
+const SOURCE_DOC_BASE = "https://github.com/NoCoderRandom/department-of-misplaced-hours/blob/main/";
 
 async function waitForServer(server) {
   const deadline = Date.now() + 30_000;
@@ -162,6 +163,31 @@ async function textVisible(page, text, timeout = 800) {
     return true;
   } catch {
     return false;
+  }
+}
+
+async function installWindowOpenCapture(page) {
+  await page.evaluate(() => {
+    window.__qaOpenedUrls = [];
+    window.open = (url, target, features) => {
+      window.__qaOpenedUrls.push({
+        url: String(url),
+        target: target === undefined ? "" : String(target),
+        features: features === undefined ? "" : String(features)
+      });
+      return null;
+    };
+  });
+}
+
+async function expectCreditDocButton(page, label, path) {
+  const before = await page.evaluate(() => window.__qaOpenedUrls?.length ?? 0);
+  await page.getByRole("button", { name: label }).click();
+  await page.waitForFunction((count) => (window.__qaOpenedUrls?.length ?? 0) === count + 1, before, { timeout: 4_000 });
+  const opened = await page.evaluate(() => window.__qaOpenedUrls.at(-1));
+  const expectedUrl = `${SOURCE_DOC_BASE}${path}`;
+  if (opened?.url !== expectedUrl || opened.target !== "_blank" || !opened.features.includes("noopener") || !opened.features.includes("noreferrer")) {
+    throw new Error(`Credits ${label} button opened wrong document target: ${JSON.stringify(opened)}, expected ${expectedUrl}.`);
   }
 }
 
@@ -710,6 +736,7 @@ async function testCreditsAccess(browser, issues) {
   await page.reload({ waitUntil: "networkidle" });
   await page.locator("canvas").waitFor({ state: "visible", timeout: 8_000 });
   await page.waitForTimeout(650);
+  await installWindowOpenCapture(page);
   await expectCanvasPainted(page, "credits title");
 
   await click(page, 600, 594);
@@ -720,6 +747,9 @@ async function testCreditsAccess(browser, issues) {
   for (const creditButton of ["Assets", "Notice", "3rd Party"]) {
     await page.getByRole("button", { name: creditButton }).waitFor({ state: "visible", timeout: 8_000 });
   }
+  await expectCreditDocButton(page, "Assets", "ASSETS.md");
+  await expectCreditDocButton(page, "Notice", "NOTICE.md");
+  await expectCreditDocButton(page, "3rd Party", "THIRD_PARTY_NOTICES.md");
   await button(page, "Close");
 
   await click(page, 600, 390, 300);
@@ -733,6 +763,7 @@ async function testCreditsAccess(browser, issues) {
   await expectDialogSemantics(page, "Help Credits", "Credits");
   await page.getByText("selected CC0 Kenney interface effects").waitFor({ state: "visible", timeout: 8_000 });
   await page.getByRole("button", { name: "3rd Party" }).waitFor({ state: "visible", timeout: 8_000 });
+  await expectCreditDocButton(page, "3rd Party", "THIRD_PARTY_NOTICES.md");
   await button(page, "Close");
   await page.close();
 }
@@ -3102,7 +3133,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help/ending Credits access with dialog semantics, puzzle-polish checks for Notes/objectives/side-room clue recall/hint answer reveal/Auditor feedback/Mirror identity wording, security override route, deduction route, audit ending, ending keyboard/gamepad controls after reload, spent-folder selection clearing, canvas paint and accessibility checks, mid-game and late-game reloads, phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts, all authored hand-cursor hotspot/live-status behavior plus inventory hover, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help/ending Credits access with dialog semantics and safe source-document URL targets, puzzle-polish checks for Notes/objectives/side-room clue recall/hint answer reveal/Auditor feedback/Mirror identity wording, security override route, deduction route, audit ending, ending keyboard/gamepad controls after reload, spent-folder selection clearing, canvas paint and accessibility checks, mid-game and late-game reloads, phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts, all authored hand-cursor hotspot/live-status behavior plus inventory hover, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;

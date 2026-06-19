@@ -139,7 +139,7 @@ This checks the public GitHub Pages build, verifies the deployed JS/CSS runtime 
 - `scripts/smoke-release-archives.mjs` - extracts standard/store ZIPs, serves the playable web roots, and browser-smoke-tests launch, no-JavaScript fallback, and touch-phone portrait orientation gating.
 - `scripts/smoke-live.mjs` - browser-smoke-tests the deployed public GitHub Pages URL, including deployed runtime chunk manifest/size budgets, install metadata, normal play, no-JavaScript fallback, and touch-phone portrait orientation gating.
 - `scripts/state-tests.mjs` - fast save/load, repair-invariant, reset-preference, and storage-failure regression tests.
-- `scripts/qa-playthrough.mjs` - automated browser QA for ship checks, including all authored hotspot cursor/status coverage, ending Credits/actions after reload, and late-game spent-item cleanup.
+- `scripts/qa-playthrough.mjs` - automated browser QA for ship checks, including all authored hotspot cursor/status coverage, Credits source-document URL targets, ending Credits/actions after reload, and late-game spent-item cleanup.
 - `ASSETS.md` - asset provenance and license notes.
 - `THIRD_PARTY_NOTICES.md` - bundled runtime and audio license notices.
 - `docs/ASSET_PROVENANCE.md` - release image hashes and optimization settings.
