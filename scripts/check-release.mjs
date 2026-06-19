@@ -109,6 +109,7 @@ async function assertStaticSiteMetadata() {
     'id="game-accessibility-summary"',
     "Interactive point-and-click mystery game canvas",
     "Tab and Shift+Tab",
+    "Arrow keys move between modal buttons",
     "The Department of Misplaced Hours"
   ]) {
     if (!html.includes(required)) {

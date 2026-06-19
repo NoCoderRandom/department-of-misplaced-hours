@@ -24,6 +24,7 @@
 - [x] Volume HUD hit targets enlarged and covered by QA so `+` / `-` reliably persist changes.
 - [x] Desktop keyboard shortcuts added for Map, Notes, Hint, Help, Sound, and volume; QA verifies shortcuts do not fire through modals.
 - [x] Keyboard focus added for room objects and inventory slots; QA solves the opening form/stamp/door chain with Tab and Enter.
+- [x] Standard controller/gamepad navigation added for title actions, room objects, inventory, panel shortcuts, and modal buttons; QA verifies mocked-controller title/object/modal flow.
 - [x] Large Text preference added through Help; QA verifies computed font-size increase, viewport fit, save persistence, reload/Continue restoration, Reset Shift survival, and fresh-shift inheritance.
 - [x] Reduced Motion preference added through Help; QA verifies static room atmosphere, body/UI state, browser/OS reduced-motion default, save persistence, Reset Shift survival, and fresh-shift inheritance.
 - [x] Reset, Escape panels, corrupt-save handling, malformed numeric save normalization, mobile fit, and muted accessibility clue path verified in browser.

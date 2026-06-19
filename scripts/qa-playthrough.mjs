@@ -105,6 +105,59 @@ async function pressTab(page, count = 1) {
   }
 }
 
+async function pressGamepadButton(page, index, hold = 120) {
+  await page.evaluate(
+    ({ buttonIndex }) => {
+      const pad = window.__qaGamepad;
+      if (!pad) {
+        throw new Error("QA gamepad was not installed.");
+      }
+      pad.buttons[buttonIndex].pressed = true;
+      pad.buttons[buttonIndex].value = 1;
+      pad.timestamp = performance.now();
+    },
+    { buttonIndex: index }
+  );
+  await page.waitForTimeout(hold);
+  await page.evaluate(
+    ({ buttonIndex }) => {
+      const pad = window.__qaGamepad;
+      pad.buttons[buttonIndex].pressed = false;
+      pad.buttons[buttonIndex].value = 0;
+      pad.timestamp = performance.now();
+    },
+    { buttonIndex: index }
+  );
+  await page.waitForTimeout(170);
+}
+
+async function installQaGamepad(page) {
+  await page.addInitScript(() => {
+    const state = {
+      buttons: Array.from({ length: 16 }, () => ({ pressed: false, value: 0 })),
+      axes: [0, 0, 0, 0],
+      timestamp: 0
+    };
+    const pad = {
+      id: "QA Standard Gamepad",
+      index: 0,
+      connected: true,
+      mapping: "standard",
+      buttons: state.buttons,
+      axes: state.axes,
+      timestamp: 0
+    };
+    Object.defineProperty(navigator, "getGamepads", {
+      configurable: true,
+      value: () => {
+        pad.timestamp = state.timestamp;
+        return [pad, null, null, null];
+      }
+    });
+    window.__qaGamepad = state;
+  });
+}
+
 async function expectCanvasPainted(page, label) {
   const metrics = await page.evaluate(
     ({ gameW, gameH }) => {
@@ -184,9 +237,10 @@ async function expectCanvasAccessibility(page, label) {
     attrs.role !== "application" ||
     attrs.label !== "The Department of Misplaced Hours playable game canvas" ||
     attrs.describedBy !== "game-accessibility-summary" ||
-    attrs.keyShortcuts !== "Tab Shift+Tab Enter Space M N H F1 S" ||
+    attrs.keyShortcuts !== "Tab Shift+Tab Enter Space ArrowLeft ArrowRight ArrowUp ArrowDown M N H F1 S" ||
     !attrs.summaryText.includes("Tab and Shift+Tab") ||
     !attrs.summaryText.includes("Enter or Space") ||
+    !attrs.summaryText.includes("Arrow keys move between modal buttons") ||
     !attrs.summaryText.includes("F1 for Help")
   ) {
     throw new Error(`${label} canvas accessibility attributes are incomplete: ${JSON.stringify(attrs)}`);
@@ -1425,6 +1479,65 @@ async function testKeyboardObjectInteraction(browser, issues) {
   await page.close();
 }
 
+async function testGamepadNavigation(browser, issues) {
+  const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
+  watchPage(page, issues, "gamepad-navigation");
+  await installQaGamepad(page);
+  await page.goto(APP_URL, { waitUntil: "networkidle" });
+  await clearGameStorage(page);
+  await page.reload({ waitUntil: "networkidle" });
+  await page.locator("canvas").waitFor({ state: "visible", timeout: 8_000 });
+  await page.waitForTimeout(650);
+  await expectCanvasPainted(page, "gamepad title");
+
+  await pressGamepadButton(page, 0);
+  await page.getByRole("dialog", { name: "Midnight Orientation" }).waitFor({ state: "visible", timeout: 8_000 });
+  await pressGamepadButton(page, 0);
+  await page.waitForFunction(() => !document.querySelector(".game-modal-panel"), null, { timeout: 8_000 });
+  await expectCanvasPainted(page, "gamepad reception");
+  let data = await save(page);
+  if (!data.inventory.includes("visitorBadge")) {
+    throw new Error(`Gamepad confirm did not complete intro: ${JSON.stringify(data)}`);
+  }
+
+  await pressGamepadButton(page, 15);
+  await pressGamepadButton(page, 0);
+  data = await save(page);
+  if (!data.inventory.includes("blankForm")) {
+    throw new Error(`Gamepad focus did not collect Blank Form: ${JSON.stringify(data)}`);
+  }
+
+  await pressGamepadButton(page, 15);
+  await pressGamepadButton(page, 15);
+  await pressGamepadButton(page, 0);
+  data = await save(page);
+  if (!data.inventory.includes("rubberStamp")) {
+    throw new Error(`Gamepad focus did not collect Rubber Stamp: ${JSON.stringify(data)}`);
+  }
+
+  await pressGamepadButton(page, 9);
+  await page.getByRole("dialog", { name: "Help" }).waitFor({ state: "visible", timeout: 8_000 });
+  await pressGamepadButton(page, 15);
+  const focusedHelpButton = await page.evaluate(() => document.activeElement?.textContent?.trim() ?? "");
+  if (focusedHelpButton !== "Reduced Motion") {
+    throw new Error(`Gamepad D-pad did not move modal focus to Reduced Motion: ${focusedHelpButton || "nothing"}`);
+  }
+  await pressGamepadButton(page, 1);
+  await page.locator(".game-modal-panel").waitFor({ state: "detached", timeout: 8_000 });
+
+  await pressGamepadButton(page, 8);
+  await page.getByRole("dialog", { name: "Floor Map" }).waitFor({ state: "visible", timeout: 8_000 });
+  await pressGamepadButton(page, 1);
+  await page.locator(".game-modal-panel").waitFor({ state: "detached", timeout: 8_000 });
+
+  await pressGamepadButton(page, 2);
+  await page.getByRole("dialog", { name: "Notes" }).waitFor({ state: "visible", timeout: 8_000 });
+  await pressGamepadButton(page, 1);
+  await page.locator(".game-modal-panel").waitFor({ state: "detached", timeout: 8_000 });
+
+  await page.close();
+}
+
 async function testSaveRepairAndArchiveGates(browser, issues) {
   const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
   watchPage(page, issues, "save-repair-gates");
@@ -1720,6 +1833,7 @@ async function run() {
     await testLargeTextPreference(browser, issues);
     await testSystemReducedMotionDefault(browser, issues);
     await testKeyboardObjectInteraction(browser, issues);
+    await testGamepadNavigation(browser, issues);
     await testSaveRepairAndArchiveGates(browser, issues);
     await testPanelEscapeAndReset(browser, issues);
     await testLateGameNotesScroll(browser, issues);
@@ -1728,7 +1842,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, canvas paint and accessibility checks, mid-game reloads, phone/rain/muted clue paths, audio controls, keyboard shortcuts, keyboard title start, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, canvas paint and accessibility checks, mid-game reloads, phone/rain/muted clue paths, audio controls, keyboard shortcuts, keyboard title start, controller title/object/modal navigation, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;

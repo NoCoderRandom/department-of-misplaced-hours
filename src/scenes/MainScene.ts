@@ -39,6 +39,15 @@ type KeyboardFocusTarget =
       kind: "inventory";
     } & InventoryFocusTarget);
 
+type TitleFocusTarget = {
+  label: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  action: () => void;
+};
+
 type SequenceButton = {
   label: string;
   value: string;
@@ -70,10 +79,15 @@ export class MainScene extends Phaser.Scene {
   private keyboardHotspots: Hotspot[] = [];
   private keyboardInventoryTargets: InventoryFocusTarget[] = [];
   private keyboardFocusIndex = -1;
+  private titleFocusTargets: TitleFocusTarget[] = [];
+  private titleFocusIndex = -1;
   private modalEscapeHandler?: ModalEscapeHandler;
   private lastShortcutKey = "";
   private lastShortcutAt = 0;
   private saveUnavailableWarned = false;
+  private gamepadButtonLatch: Record<string, boolean> = {};
+  private gamepadNavDirection = 0;
+  private gamepadNavAt = 0;
 
   constructor() {
     super("MainScene");
@@ -112,7 +126,7 @@ export class MainScene extends Phaser.Scene {
     this.game.canvas.setAttribute("role", "application");
     this.game.canvas.setAttribute("aria-label", "The Department of Misplaced Hours playable game canvas");
     this.game.canvas.setAttribute("aria-describedby", "game-accessibility-summary");
-    this.game.canvas.setAttribute("aria-keyshortcuts", "Tab Shift+Tab Enter Space M N H F1 S");
+    this.game.canvas.setAttribute("aria-keyshortcuts", "Tab Shift+Tab Enter Space ArrowLeft ArrowRight ArrowUp ArrowDown M N H F1 S");
     this.input.setDefaultCursor("default");
     this.input.keyboard?.on("keydown", this.handleKeyboardShortcut, this);
     this.audio.setAssetPlayer((key, volume) => {
@@ -134,6 +148,7 @@ export class MainScene extends Phaser.Scene {
 
   update(): void {
     this.warnIfSaveUnavailable();
+    this.pollGamepadControls();
   }
 
   private warnIfSaveUnavailable(): void {
@@ -156,8 +171,14 @@ export class MainScene extends Phaser.Scene {
     const key = event.key.toLowerCase();
     const code = event.code.toLowerCase();
     if (this.titleActive) {
-      if (key === "enter") {
+      if (key === "tab") {
         event.preventDefault();
+        this.cycleTitleFocus(event.shiftKey ? -1 : 1);
+      } else if (key === "enter" || event.key === " ") {
+        event.preventDefault();
+        if (this.activateTitleFocus()) {
+          return;
+        }
         if (GameState.hasSave()) {
           this.confirmStartNewShift();
           return;
@@ -242,6 +263,131 @@ export class MainScene extends Phaser.Scene {
     this.lastShortcutKey = shortcutKey;
     this.lastShortcutAt = now;
     return true;
+  }
+
+  private pollGamepadControls(): void {
+    const getGamepads = navigator.getGamepads?.bind(navigator);
+    if (!getGamepads || this.loadFailed) {
+      return;
+    }
+
+    const pad = getGamepads().find((candidate): candidate is Gamepad => Boolean(candidate?.connected));
+    if (!pad) {
+      this.gamepadButtonLatch = {};
+      this.gamepadNavDirection = 0;
+      return;
+    }
+
+    const now = performance.now();
+    const justPressed = (key: string, index: number) => {
+      const button = pad.buttons[index];
+      const pressed = Boolean(button?.pressed || (button?.value ?? 0) > 0.55);
+      const wasPressed = this.gamepadButtonLatch[key] === true;
+      this.gamepadButtonLatch[key] = pressed;
+      return pressed && !wasPressed;
+    };
+
+    const navDirection = this.gamepadNavigationDirection(pad);
+    if (navDirection === 0) {
+      this.gamepadNavDirection = 0;
+    } else if (navDirection !== this.gamepadNavDirection || now - this.gamepadNavAt > 240) {
+      this.gamepadNavDirection = navDirection;
+      this.gamepadNavAt = now;
+      this.handleGamepadNavigate(navDirection as 1 | -1);
+    }
+
+    if (justPressed("confirm", 0)) {
+      this.handleGamepadConfirm();
+    }
+    if (justPressed("cancel", 1)) {
+      this.handleGamepadCancel();
+    }
+    if (justPressed("map", 8)) {
+      this.handleGamepadPanelShortcut(() => this.showMap());
+    }
+    if (justPressed("notes", 2)) {
+      this.handleGamepadPanelShortcut(() => this.showNotes());
+    }
+    if (justPressed("hint", 3)) {
+      this.handleGamepadPanelShortcut(() => this.showHint());
+    }
+    if (justPressed("help", 9)) {
+      this.handleGamepadPanelShortcut(() => this.showHelp());
+    }
+    if (justPressed("volume-down", 4)) {
+      this.handleGamepadPanelShortcut(() => this.adjustVolume(-0.12));
+    }
+    if (justPressed("volume-up", 5)) {
+      this.handleGamepadPanelShortcut(() => this.adjustVolume(0.12));
+    }
+  }
+
+  private gamepadNavigationDirection(pad: Gamepad): 1 | -1 | 0 {
+    const axisX = pad.axes[0] ?? 0;
+    const axisY = pad.axes[1] ?? 0;
+    const left = Boolean(pad.buttons[14]?.pressed) || axisX < -0.58 || axisY < -0.58;
+    const right = Boolean(pad.buttons[15]?.pressed) || Boolean(pad.buttons[13]?.pressed) || axisX > 0.58 || axisY > 0.58;
+    const up = Boolean(pad.buttons[12]?.pressed);
+
+    if (left || up) {
+      return -1;
+    }
+    if (right) {
+      return 1;
+    }
+    return 0;
+  }
+
+  private handleGamepadNavigate(direction: 1 | -1): void {
+    if (this.domOverlay) {
+      this.focusModalButton(direction);
+      return;
+    }
+    if (this.titleActive) {
+      this.cycleTitleFocus(direction);
+      return;
+    }
+    if (this.roomTitle) {
+      this.cycleKeyboardFocus(direction);
+    }
+  }
+
+  private handleGamepadConfirm(): void {
+    if (this.domOverlay) {
+      this.activateFocusedModalButton();
+      return;
+    }
+    if (this.titleActive) {
+      this.activateTitleFocusOrDefault();
+      return;
+    }
+    if (this.roomTitle && this.keyboardFocusIndex < 0) {
+      this.cycleKeyboardFocus(1);
+      return;
+    }
+    this.activateKeyboardFocus();
+  }
+
+  private handleGamepadCancel(): void {
+    if (this.domOverlay) {
+      this.audio.click();
+      this.closeOverlay();
+      return;
+    }
+    if (!this.titleActive && this.roomTitle && this.selectedItem) {
+      const item = ITEMS[this.selectedItem];
+      this.selectedItem = undefined;
+      this.createHudRefresh();
+      this.say(`Put away ${item.name}.`);
+    }
+  }
+
+  private handleGamepadPanelShortcut(action: () => void): void {
+    if (this.domOverlay || this.loadFailed || this.titleActive || !this.roomTitle) {
+      return;
+    }
+    this.audio.click();
+    action();
   }
 
   private showLoadingScreen(): void {
@@ -386,26 +532,51 @@ export class MainScene extends Phaser.Scene {
       )
       .setOrigin(0.5);
 
-    this.makeButton(600, 390, 300, 56, "Start New Shift", () => {
-      if (GameState.hasSave()) {
-        this.confirmStartNewShift();
-        return;
+    const hasSave = GameState.hasSave();
+    this.titleFocusTargets = [
+      {
+        label: "Start New Shift",
+        x: 600,
+        y: 390,
+        w: 300,
+        h: 56,
+        action: () => {
+          if (GameState.hasSave()) {
+            this.confirmStartNewShift();
+            return;
+          }
+          this.startNewShift();
+        }
+      },
+      ...(hasSave
+        ? [
+            {
+              label: "Continue Shift",
+              x: 600,
+              y: 462,
+              w: 300,
+              h: 52,
+              action: () => this.continueShift()
+            }
+          ]
+        : []),
+      {
+        label: "Controls",
+        x: 600,
+        y: 534,
+        w: 300,
+        h: 48,
+        action: () => {
+          this.showMessage(
+            "Controls",
+            "Move the cursor around the room. When it becomes a hand and the status line names something, click to inspect it. Select an inventory item first to try using it on the room.\n\nKeyboard: Tab cycles targets, Enter or Space activates. Controller: D-pad or stick cycles focus, A selects, B closes panels.",
+            [{ label: "Close", action: () => this.closeOverlay() }]
+          );
+        }
       }
-      this.startNewShift();
-    });
-
-    if (GameState.hasSave()) {
-      this.makeButton(600, 462, 300, 52, "Continue Shift", () => {
-        this.continueShift();
-      });
-    }
-
-    this.makeButton(600, 534, 300, 48, "Controls", () => {
-      this.showMessage(
-        "Controls",
-        "Move the cursor around the room. When it becomes a hand and the status line names something, click to inspect it. Select an inventory item first to try using it on the room.",
-        [{ label: "Close", action: () => this.closeOverlay() }]
-      );
+    ];
+    this.titleFocusTargets.forEach((target) => {
+      this.makeButton(target.x, target.y, target.w, target.h, target.label, target.action);
     });
 
     this.add
@@ -553,6 +724,8 @@ export class MainScene extends Phaser.Scene {
     this.keyboardHotspots = [];
     this.keyboardInventoryTargets = [];
     this.keyboardFocusIndex = -1;
+    this.titleFocusTargets = [];
+    this.titleFocusIndex = -1;
   }
 
   private createHud(): void {
@@ -884,6 +1057,58 @@ export class MainScene extends Phaser.Scene {
       action: () => this.toggleInventoryItem(target.itemId)
     });
     this.setHover(`${target.label}: ${ITEMS[target.itemId].description}`);
+  }
+
+  private cycleTitleFocus(direction: 1 | -1): void {
+    if (this.titleFocusTargets.length === 0) {
+      this.titleFocusIndex = -1;
+      this.hideHotspotFocus();
+      return;
+    }
+
+    if (this.titleFocusIndex < 0 || this.titleFocusIndex >= this.titleFocusTargets.length) {
+      this.titleFocusIndex = direction > 0 ? 0 : this.titleFocusTargets.length - 1;
+    } else {
+      this.titleFocusIndex = (this.titleFocusIndex + direction + this.titleFocusTargets.length) % this.titleFocusTargets.length;
+    }
+    this.showTitleFocus(this.titleFocusTargets[this.titleFocusIndex], true);
+  }
+
+  private activateTitleFocusOrDefault(): void {
+    if (this.titleFocusTargets.length === 0) {
+      return;
+    }
+    if (this.titleFocusIndex < 0 || this.titleFocusIndex >= this.titleFocusTargets.length) {
+      this.titleFocusIndex = 0;
+      this.showTitleFocus(this.titleFocusTargets[this.titleFocusIndex], false);
+    }
+    this.activateTitleFocus();
+  }
+
+  private activateTitleFocus(): boolean {
+    const target = this.titleFocusTargets[this.titleFocusIndex];
+    if (!target) {
+      return false;
+    }
+    this.audio.click();
+    this.hideHotspotFocus();
+    target.action();
+    return true;
+  }
+
+  private showTitleFocus(target: TitleFocusTarget, playSound: boolean): void {
+    if (playSound) {
+      this.audio.hover();
+    }
+    this.showHotspotFocus({
+      id: `title-${target.label}`,
+      label: target.label,
+      x: target.x,
+      y: target.y,
+      w: target.w,
+      h: target.h,
+      action: target.action
+    });
   }
 
   private showHotspotFocus(spot: Hotspot): void {
@@ -2147,6 +2372,11 @@ export class MainScene extends Phaser.Scene {
         this.closeOverlay();
         return;
       }
+      if (["ArrowLeft", "ArrowUp", "ArrowRight", "ArrowDown"].includes(event.key)) {
+        event.preventDefault();
+        this.focusModalButton(event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 1);
+        return;
+      }
       if (event.key !== "Tab") {
         return;
       }
@@ -2173,6 +2403,35 @@ export class MainScene extends Phaser.Scene {
         : undefined;
       (preferred ?? actions.querySelector<HTMLButtonElement>("button"))?.focus();
     }, 0);
+  }
+
+  private modalButtons(): HTMLButtonElement[] {
+    if (!this.domOverlay) {
+      return [];
+    }
+    return [...this.domOverlay.querySelectorAll<HTMLButtonElement>(".game-modal-button:not([disabled])")];
+  }
+
+  private focusModalButton(direction: 1 | -1): void {
+    const buttons = this.modalButtons();
+    if (buttons.length === 0) {
+      return;
+    }
+    const currentIndex = buttons.findIndex((button) => button === document.activeElement);
+    const nextIndex =
+      currentIndex < 0 ? (direction > 0 ? 0 : buttons.length - 1) : (currentIndex + direction + buttons.length) % buttons.length;
+    this.audio.hover();
+    buttons[nextIndex].focus();
+  }
+
+  private activateFocusedModalButton(): void {
+    const buttons = this.modalButtons();
+    if (buttons.length === 0) {
+      return;
+    }
+    const active = document.activeElement instanceof HTMLButtonElement && buttons.includes(document.activeElement) ? document.activeElement : buttons[0];
+    active.focus();
+    active.click();
   }
 
   private closeOverlay(): void {
@@ -2374,7 +2633,7 @@ export class MainScene extends Phaser.Scene {
   private showHelp(): void {
     this.showMessage(
       "Help",
-      "Hand cursor means clickable. Select inventory, then click a room object to use it. Tab cycles targets; Enter or Space activates. Map fast-travels after rooms unlock.",
+      "Hand cursor marks useful objects. Select inventory, then click an object. Tab/D-pad moves focus; Enter/Space/A activates; B/Escape closes panels. Map fast-travels.",
       [
         { label: this.state.largeText ? "Normal Text" : "Large Text", action: () => this.toggleLargeText() },
         { label: this.state.reducedMotion ? "Full Motion" : "Reduced Motion", action: () => this.toggleReducedMotion() },

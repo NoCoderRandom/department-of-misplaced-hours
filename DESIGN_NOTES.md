@@ -80,6 +80,7 @@ The soundscape mixes procedural Web Audio ambience with CC0 Kenney UI/SFX files.
 - `scripts/package-release.mjs` creates verified standard and store ZIP archives containing only the built game and release documentation, plus SHA-256 checksum files. It uses a deterministic Node-based ZIP writer, stages to temporary release paths, validates both ZIPs against an exact archive manifest, smoke-tests the pending archives through `scripts/smoke-release-archives.mjs`, transactionally promotes final ZIPs, checksums, and expanded release folders only after smoke passes, and re-checks the promoted final ZIP checksums before reporting success.
 - Hover focus uses temporary object-local brackets/labels instead of permanent hotspot markers, preserving the art while reducing pixel-hunt uncertainty.
 - Keyboard focus uses the same temporary bracket/status feedback, so room objects and inventory can be cycled and activated without pointer coordinates.
+- Standard controller/gamepad input reuses the same focus targets: D-pad or left stick cycles title actions, room objects, inventory, and modal buttons; A selects; B closes panels; face/menu buttons open common panels.
 - Help includes Large Text and Reduced Motion preferences that scale dialogue, document, puzzle, and action-button text while allowing ambient animation to be replaced by static atmosphere layers. First launch also honors browser/OS reduced-motion settings unless the player overrides them in Help.
 - Puzzle modals can offer contextual clue review so players do not need to close a keypad/order puzzle just to reread known evidence.
 - Dense puzzle panels use compact mobile button grids with a short-screen layout, and visual audit fails on hidden body text, overflowing button labels, focus trap failures, or Escape regressions in normal and Large Text modes.
@@ -96,7 +97,6 @@ The soundscape mixes procedural Web Audio ambience with CC0 Kenney UI/SFX files.
 
 ## Future Improvements
 
-- Add gamepad navigation for room hotspots, inventory, and modal panels.
 - Add more branching dialogue and a third ending.
 - Split Phaser into a separate vendor chunk if bundle-size warning becomes important.
 - Expand Playwright coverage with more negative-use interactions and save/load checkpoints.

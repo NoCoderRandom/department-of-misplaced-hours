@@ -466,6 +466,7 @@ await writeFile(
     "- Move the cursor around the room. It changes to a hand and the status line names usable objects.",
     "- Click inventory items at the bottom, then click room objects to try using them.",
     "- Keyboard object mode: Tab / Shift+Tab cycles room objects and inventory; Enter / Space activates the focused target.",
+    "- Controller mode: D-pad or left stick cycles title actions, room objects, inventory, and modal buttons; A selects; B closes panels.",
     "- Use Map, Notes, Hint, Help, Sound, - and + from the top bar.",
     "- Help includes Large Text for bigger dialogue, document, and puzzle panels, plus Reduced Motion for static atmosphere. Browser/OS reduced-motion settings are honored on first launch.",
     "- Keyboard shortcuts: M Map, N Notes, H Hint, F1 Help, S Sound, [ and ] volume.",

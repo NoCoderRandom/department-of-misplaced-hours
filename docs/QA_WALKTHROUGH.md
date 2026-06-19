@@ -49,6 +49,7 @@ Expected results:
 - Keyboard shortcuts open Map, Notes, Hint, Help, Sound, and volume controls, and do not fire through open panels.
 - Pressing `Enter` on the title starts a new shift, so the first action is not mouse-only.
 - `Tab` / `Shift+Tab` keyboard focus can cycle room objects and inventory, and `Enter` / `Space` can activate them; QA uses this path to solve the opening form/stamp/door chain.
+- Standard controller input can start from the title, cycle room objects/inventory with D-pad or left stick, select with `A`, close panels with `B`, and move focus between modal buttons.
 - Progress persists after reload through `localStorage`.
 - Mid-game reloads continue from the current route without losing key rewards.
 - Map fast travel lists unlocked rooms and does not overlap Notes.
