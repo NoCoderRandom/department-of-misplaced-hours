@@ -508,6 +508,7 @@ await writeFile(
     "## Play",
     "",
     "Serve the `dist/` folder as the web root with any static web server, then open the served URL in a desktop browser. Do not upload the outer ZIP folder as the web root; upload or serve the contents of `dist/`.",
+    "Do not double-click `dist/index.html` from `file://`; browsers can block module and asset loading outside a static server.",
     "",
     `The build has no backend. GitHub Pages, Netlify, and similar static hosts are suitable. For itch.io or stores that expect \`index.html\` at the archive root, upload the separate \`${storeName}.zip\` artifact.`,
     "",
@@ -519,7 +520,7 @@ await writeFile(
     "- Click inventory items at the bottom, then click room objects to try using them.",
     "- Press Escape, right-click the game, or press controller B to put away a selected inventory item.",
     "- Ordered-choice puzzles include Undo; Backspace and Delete remove the last entry while the panel is focused.",
-    "- Keyboard object mode: Tab / Shift+Tab cycles room objects and inventory; Enter / Space activates the focused target.",
+    "- Keyboard focus: Tab / Shift+Tab cycles title actions, ending actions, room objects, and inventory when those targets are present; Enter / Space activates the focused target.",
     "- Screen readers receive hidden live status updates when keyboard focus moves between room objects, inventory, title actions, and ending actions.",
     "- Controller mode: D-pad or left stick cycles title actions, ending actions, room objects, inventory, and modal buttons; A selects; B cancels selected items or closes panels.",
     "- Use Map, Notes, Hint, Help, Sound, - and + from the top bar.",
@@ -546,9 +547,11 @@ const stagedReadme = await readFile(join(tempStageDir, "README.md"), "utf8");
 for (const required of [
   "B cancels selected items or closes panels",
   "Press Escape, right-click the game, or press controller B",
+  "Do not double-click `dist/index.html` from `file://`",
   "On touch screens, first tap names a room object and second tap activates it",
   "Portrait phones show a Rotate Device prompt",
   "Screen readers receive hidden live status updates when keyboard focus moves between room objects, inventory, title actions, and ending actions",
+  "Keyboard focus: Tab / Shift+Tab cycles title actions, ending actions, room objects, and inventory",
   "D-pad or left stick cycles title actions, ending actions, room objects, inventory, and modal buttons",
   "Ordered-choice puzzles include Undo",
   "Credits are available from the title screen, Help, and ending screen, with source-document buttons",
@@ -565,6 +568,7 @@ await writeFile(
     "The Department of Misplaced Hours",
     "",
     "Serve the dist folder as a static web root, then open the served URL in a desktop browser.",
+    "Do not double-click dist/index.html from file://; browsers can block module and asset loading outside a static server.",
     "Deploying the dist folder to GitHub Pages, Netlify, or similar static hosting is supported.",
     "For itch.io or stores that expect index.html at the ZIP root, upload the separate store ZIP instead.",
     "",
@@ -634,6 +638,7 @@ await writeFile(
     "This is the store-ready static HTML build. Upload this ZIP directly to itch.io or another HTML game host that expects index.html at the archive root.",
     "",
     "Open index.html through a static web host. The build has no backend, and browser localStorage stores progress and preferences.",
+    "For local testing, serve the extracted folder instead of double-clicking index.html from file://.",
     "",
     "Portrait phones show a Rotate Device prompt so dense clues, buttons, and files stay readable in landscape.",
     "",
@@ -645,7 +650,8 @@ for (const required of [
   "Portrait phones show a Rotate Device prompt",
   "Credits are available from the title screen, Help, and ending screen",
   "source repository docs",
-  "legal/ folder"
+  "legal/ folder",
+  "serve the extracted folder instead of double-clicking index.html from file://"
 ]) {
   if (!stagedStoreReadme.includes(required)) {
     throw new Error(`Generated store README is missing required release text: ${required}`);
@@ -657,7 +663,8 @@ await writeFile(
     "The Department of Misplaced Hours",
     "",
     "Upload this ZIP as an HTML/static web game, or serve this folder as a static web root.",
-    "The playable entry point is index.html at the archive root."
+    "The playable entry point is index.html at the archive root.",
+    "For local testing, use a static server instead of file:// double-click launch."
   ].join("\n")
 );
 await assertLfOnlyFiles(

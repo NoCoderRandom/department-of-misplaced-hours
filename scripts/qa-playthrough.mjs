@@ -402,6 +402,7 @@ async function expectCanvasAccessibility(page, label) {
     attrs.describedBy !== "game-accessibility-summary" ||
     attrs.keyShortcuts !== "Tab Shift+Tab Enter Space Escape ArrowLeft ArrowRight ArrowUp ArrowDown M N H F1 S BracketLeft BracketRight Minus Equal" ||
     !attrs.summaryText.includes("Tab and Shift+Tab") ||
+    !attrs.summaryText.includes("ending actions") ||
     !attrs.summaryText.includes("Enter or Space") ||
     !attrs.summaryText.includes("Arrow keys move between modal buttons") ||
     !attrs.summaryText.includes("Escape closes panels or puts away a selected inventory item") ||
@@ -738,6 +739,8 @@ async function testCreditsAccess(browser, issues) {
   await page.waitForTimeout(650);
   await installWindowOpenCapture(page);
   await expectCanvasPainted(page, "credits title");
+  await page.keyboard.press("Tab");
+  await expectLiveStatus(page, "Start New Shift", "title keyboard focus");
 
   await click(page, 600, 594);
   await page.getByRole("dialog", { name: "Credits" }).waitFor({ state: "visible", timeout: 8_000 });
@@ -1328,6 +1331,7 @@ async function playSecurityOverrideRoute(page) {
   }
   await page.keyboard.press("Tab");
   await page.keyboard.press("Tab");
+  await expectLiveStatus(page, "Credits", "ending keyboard focus");
   await page.keyboard.press("Enter");
   await page.getByRole("dialog", { name: "Credits" }).waitFor({ state: "visible", timeout: 8_000 });
   await expectDialogSemantics(page, "ending keyboard Credits", "Credits");
@@ -1355,7 +1359,6 @@ async function playSecurityOverrideRoute(page) {
 
 async function playDeductionRoute(page) {
   await solveIntroAndClock(page);
-  await getWarrant(page);
   await mapTo(page, "Archive");
   await click(page, 610, 646);
   await button(page, "Close");
@@ -1383,6 +1386,9 @@ async function playDeductionRoute(page) {
   const data = await save(page);
   if (data.ending !== "filed") {
     throw new Error(`Deduction route did not save filed ending: ${JSON.stringify(data)}`);
+  }
+  if (data.inventory.includes("auditWarrant") || data.flags.evidenceSafeOpened || data.flags.identityVerifiedByWarrant) {
+    throw new Error(`Deduction route unexpectedly acquired warrant authority: ${JSON.stringify(data)}`);
   }
   for (const flag of ["archiveTableSeen", "breakBoardSeen", "selfFileReviewed", "identityVerified", "hourVerified", "serverSolved"]) {
     if (!data.flags[flag]) {
@@ -2432,6 +2438,7 @@ async function testEndingReloadControls(browser, issues) {
 
   await keyboardPage.keyboard.press("Tab");
   await keyboardPage.keyboard.press("Tab");
+  await expectLiveStatus(keyboardPage, "Credits", "reloaded ending keyboard focus");
   await keyboardPage.keyboard.press("Enter");
   await keyboardPage.getByRole("dialog", { name: "Credits" }).waitFor({ state: "visible", timeout: 8_000 });
   await expectDialogSemantics(keyboardPage, "reloaded ending keyboard Credits", "Credits");
@@ -2940,7 +2947,24 @@ async function testSaveRepairAndArchiveGates(browser, issues) {
   });
   await selectItem(page, "auditWarrant");
   await click(page, 356, 420);
-  await page.getByText("The warrant has authority, but the archive wants a witness.").waitFor({ state: "visible", timeout: 8_000 });
+  await page.getByText("Inspect the Security Office monitors, incident board, or log first").waitFor({ state: "visible", timeout: 8_000 });
+  await button(page, "Close");
+
+  await continueSaved(page, {
+    room: "archive",
+    inventory: ["auditWarrant"],
+    flags: { formStamped: true, clockUnlocked: true, clockSolved: true, incidentBoardSeen: true },
+    audioVolume: 0.72,
+    muted: false
+  });
+  await selectItem(page, "auditWarrant");
+  await click(page, 356, 420);
+  await page.getByText("cite the security evidence as a witness").waitFor({ state: "visible", timeout: 8_000 });
+  await button(page, "Continue");
+  const archiveData = await save(page);
+  if (!archiveData.flags.archiveSolved) {
+    throw new Error(`Incident-board warrant evidence did not unlock archive override: ${JSON.stringify(archiveData)}`);
+  }
 
   await page.close();
 }
@@ -3133,7 +3157,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help/ending Credits access with dialog semantics and safe source-document URL targets, puzzle-polish checks for Notes/objectives/side-room clue recall/hint answer reveal/Auditor feedback/Mirror identity wording, security override route, deduction route, audit ending, ending keyboard/gamepad controls after reload, spent-folder selection clearing, canvas paint and accessibility checks, mid-game and late-game reloads, phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts, all authored hand-cursor hotspot/live-status behavior plus inventory hover, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help/ending Credits access with dialog semantics and safe source-document URL targets, puzzle-polish checks for Notes/objectives/side-room clue recall/hint answer reveal/Auditor feedback/Mirror identity wording, security override route, deduction route, audit ending, ending keyboard/gamepad controls after reload, title/ending focus live status, spent-folder selection clearing, canvas paint and accessibility checks, mid-game and late-game reloads, phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts, all authored hand-cursor hotspot/live-status behavior plus inventory hover, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;

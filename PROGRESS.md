@@ -117,6 +117,9 @@
 - [x] Credits source-document buttons now have browser QA coverage for exact GitHub URLs and safe new-window features.
 - [x] Release archive smoke and live GitHub Pages smoke now also verify Credits source-document targets.
 - [x] Generated standard/store release README copy now names ending controls and Credits source-document behavior, with packager assertions to prevent stale release docs.
+- [x] Accessibility summary and shipped release launch notes now clarify ending-action keyboard focus and static-host/server launch requirements instead of implying `file://` double-click support.
+- [x] Archive security override now accepts any inspected Security evidence that can issue the Audit Warrant, with QA coverage for the incident-board route.
+- [x] The archive deduction route can now reach Mirror Office through the Missing-Person File without ever acquiring the Audit Warrant, and save repair preserves that warrantless route.
 - [x] Hotspot cursor QA now sweeps every authored room hotspot for hand cursor and live target status feedback.
 - [x] Deployment prepared with `.github/workflows/deploy-pages.yml`.
 - [x] Documentation written: `README.md`, `ASSETS.md`, `THIRD_PARTY_NOTICES.md`, `DESIGN_NOTES.md`, `PROGRESS.md`.

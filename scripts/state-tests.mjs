@@ -149,6 +149,36 @@ const { GameState } = await loadGameState();
 {
   const storage = createStorage();
   installWindow(storage);
+  seed(storage, SAVE_KEY, {
+    room: "mirror",
+    inventory: ["selfFile", "memoryCup", "serverFuse", "mirrorShard"],
+    flags: {
+      formStamped: true,
+      clockUnlocked: true,
+      clockSolved: true,
+      archiveSolved: true,
+      glassCaseCollected: true,
+      vendingSolved: true,
+      identityVerified: true
+    },
+    audioVolume: 0.72,
+    muted: false,
+    largeText: false,
+    reducedMotion: false
+  });
+  const state = new GameState();
+  assert.equal(state.load(), true, "load accepts warrantless mirror route save");
+  assert.equal(state.room, "mirror", "warrantless mirror route stays in mirror room");
+  assert.equal(state.inventory.has("auditWarrant"), false, "warrantless mirror route repair does not invent audit warrant");
+  assert.equal(state.flags.evidenceSafeOpened, undefined, "warrantless mirror route repair does not invent safe opening");
+  for (const item of ["stampedForm", "misfiledFolder", "selfFile", "memoryCup", "serverFuse", "mirrorShard"]) {
+    assert.equal(state.inventory.has(item), true, `warrantless mirror route preserves or restores ${item}`);
+  }
+}
+
+{
+  const storage = createStorage();
+  installWindow(storage);
   const state = new GameState();
   state.room = "mirror";
   state.add("memoryCup");

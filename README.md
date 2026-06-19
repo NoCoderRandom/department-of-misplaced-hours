@@ -5,12 +5,13 @@ A surreal point-and-click mystery puzzle game for the browser. You play a night-
 **Play now:** https://nocoderrandom.github.io/department-of-misplaced-hours/
 
 The game is built as a static web app with Phaser 3, TypeScript, and Vite. It has no backend and is ready for GitHub Pages.
+Use a static host or local dev/preview server to play it; opening the built `index.html` directly from `file://` is not supported.
 
 ## Features
 
 - Seven playable rooms: Reception Desk, Clock Hall, Security Office, Interrogation Booth, Records Archive, Break Room, and Mirror Office.
 - Inventory-based interaction with more than a dozen collectible or usable objects, now shown with compact pictogram icons.
-- Multiple progression routes, including a Security Office audit-warrant path, an archive deduction path, an archive security-override path, an audio/visual vending code, physical final-act item use with clueful recovery feedback, optional Auditor consultation, and three ending actions.
+- Multiple progression routes, including a Security Office audit-warrant path, a warrantless archive case-file path, an archive security-override path, an audio/visual vending code, physical final-act item use with clueful recovery feedback, optional Auditor consultation, and three ending actions.
 - Three endings.
 - Local save/load through `localStorage`, with audio, readability, and motion preferences preserved separately from progress resets.
 - Mouse, keyboard, touch, and standard gamepad/controller navigation for title actions, room objects, inventory, and modal buttons, with live target announcements and a phone portrait rotate prompt.
@@ -48,6 +49,7 @@ npm run build
 ```
 
 The production files are written to `dist/`.
+Serve `dist/` through a static server or host for testing; do not rely on double-clicking `dist/index.html` from the filesystem.
 
 ## Verify Release
 
@@ -110,7 +112,7 @@ This checks the public GitHub Pages build, verifies the deployed JS/CSS runtime 
 - Use **Credits** on the title screen, in Help, or on the ending screen for asset/license pointers.
 - Use **Sound**, **-**, and **+** for audio controls.
 - Keyboard: `M` Map, `N` Notes, `H` Hint, `F1` Help, `S` Sound, `[` / `]` volume.
-- Keyboard object mode: `Tab` / `Shift+Tab` cycles room objects and inventory; `Enter` / `Space` activates the focused target.
+- Keyboard focus: `Tab` / `Shift+Tab` cycles title actions, ending actions, room objects, and inventory when those targets are present; `Enter` / `Space` activates the focused target.
 - Controller: D-pad or left stick cycles title actions, ending actions, room objects, inventory, and modal buttons; `A` selects; `B` cancels a selected item or closes panels; `Back/View` opens Map, `X` opens Notes, `Y` opens Hint, `Start/Menu` opens Help, and bumpers adjust volume.
 - The game canvas has an accessible name, screen-reader summary for its keyboard controls, and hidden live status updates for current targets/status.
 - Dialog panels expose visible titles and body text through `aria-labelledby` and `aria-describedby`.

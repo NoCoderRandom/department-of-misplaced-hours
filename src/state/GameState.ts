@@ -294,8 +294,24 @@ export class GameState {
       }
     };
 
+    const hasPersonalMirrorAuthority = () =>
+      this.flag("glassCaseCollected") ||
+      this.inventory.has("selfFile") ||
+      this.inventory.has("misfiledFolder") ||
+      this.inventory.has("mirrorShard");
+
     const ensureMirrorEntry = () => {
-      ensureAuditWarrant();
+      const preserveWarrantlessRoute =
+        hasPersonalMirrorAuthority() &&
+        !this.flag("identityVerifiedByWarrant") &&
+        this.ending !== "audited" &&
+        !this.has("auditWarrant") &&
+        !this.flag("evidenceSafeOpened");
+      if (!preserveWarrantlessRoute) {
+        ensureAuditWarrant();
+      } else {
+        ensureInnerFloorAccess();
+      }
       ensureArchiveRecords();
       ensureVendingRewards();
     };

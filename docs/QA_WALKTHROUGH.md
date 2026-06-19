@@ -21,11 +21,11 @@ This is the intended complete path through the game.
 17. Take the `Time Token` from the Coin Drawer.
 18. Visit Break Room, inspect Cork Board for category order, and pick up the `Paper Cup`.
 19. Return to Records Archive and solve Index Drawers: `Triangle`, `Circle`, `Eye`, `Square`.
-20. Alternate archive route: after viewing Security monitors, use `Audit Warrant` on Index Drawers to perform a security override.
+20. Alternate archive route: after inspecting Security evidence, use `Audit Warrant` on Index Drawers to perform a security override.
 21. Open Glass Case, take `Misfiled Folder`, `Mirror Shard`, and `Your Missing-Person File`, then read the file beat that explains why your own record matters.
 22. Return to Break Room and use Memory Vending with code `731`.
 23. Receive `Cup of Missing Hour` and `Server Fuse`.
-24. Enter Mirror Office.
+24. Enter Mirror Office with either `Audit Warrant` authority or `Your Missing-Person File` authority.
 25. Use `Mirror Shard` on Black Mirror to reveal server sequence: `Circle`, `Triangle`, `Eye`, `Square`.
 26. Use `Server Fuse` on Server Console to power it.
 27. Use `Your Missing-Person File` or `Audit Warrant` on Red Intercom.
@@ -57,7 +57,7 @@ Expected results:
 - Credits can be opened from the title screen and from Help before finishing the game, and the Credits panel remains readable in normal and Large Text layouts.
 - Early Notes keep clock clues generic until relevant evidence is read, and mid-game objectives can point toward the archive deduction route as well as Security.
 - Final hints give a non-spoiler nudge first; exact answers appear only after pressing Show Answer.
-- `Tab` / `Shift+Tab` keyboard focus can cycle room objects and inventory, and `Enter` / `Space` can activate them; QA uses this path to solve the opening form/stamp/door chain.
+- `Tab` / `Shift+Tab` keyboard focus can cycle title actions, ending actions, room objects, and inventory, and `Enter` / `Space` can activate them; QA uses this path to solve the opening form/stamp/door chain and ending reload actions.
 - Standard controller input can start from the title, cycle room objects/inventory with D-pad or left stick, select with `A`, close panels with `B`, and move focus between modal buttons.
 - Progress persists after reload through `localStorage`.
 - Mid-game and late-game reloads continue from the current route without losing key rewards, final verification, or server unlock progress.

@@ -245,6 +245,7 @@ async function assertCanvasAccessibility(page) {
     attrs.describedBy !== "game-accessibility-summary" ||
     attrs.keyShortcuts !== "Tab Shift+Tab Enter Space Escape ArrowLeft ArrowRight ArrowUp ArrowDown M N H F1 S BracketLeft BracketRight Minus Equal" ||
     !attrs.summaryText.includes("Tab and Shift+Tab") ||
+    !attrs.summaryText.includes("ending actions") ||
     !attrs.summaryText.includes("Enter or Space") ||
     !attrs.summaryText.includes("Arrow keys move between modal buttons") ||
     !attrs.summaryText.includes("Escape closes panels or puts away a selected inventory item") ||
@@ -282,6 +283,7 @@ async function assertLiveHtml(url) {
     'name="referrer" content="no-referrer"',
     "Interactive point-and-click mystery game canvas",
     "Tab and Shift+Tab",
+    "ending actions",
     "game-live-status",
     "orientation-gate",
     "Rotate Device",

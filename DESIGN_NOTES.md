@@ -41,7 +41,7 @@ Reference links:
 
 - **Reception Desk:** introduces paperwork, inventory use, the future phone, and the first locked door.
 - **Clock Hall:** emotion-order clock puzzle and navigation hub.
-- **Security Office:** audit authority path, security footage, evidence safe, alternate archive override, and Mirror Office foreshadowing.
+- **Security Office:** audit authority path, security evidence, evidence safe, alternate archive override, and Mirror Office foreshadowing.
 - **Interrogation Booth:** alternate vending clue path, rain cipher, and missing-hour story beat.
 - **Records Archive:** split-clue symbol sorting, glass-case unlock, file/shard pickup.
 - **Break Room:** cork-board clue, paper cup, vending machine, and audio-code puzzle.
@@ -55,7 +55,7 @@ Reference links:
 4. **Interrogation/Rain Cipher:** use the tape recorder or rain window as alternate clues for the vending code.
 5. **Archive Sorting Puzzle:** combine the archive table's symbol/category mapping with the break-room category order, or use monitored evidence plus the Audit Warrant as a security override.
 6. **Vending Puzzle:** combine Time Token, Paper Cup, and a clue path to dispense the missing hour and fuse.
-7. **Final Ritual:** after the glass-case file beat, use Mirror Shard on mirror, Server Fuse on console, Missing-Person File or Audit Warrant and Cup of Missing Hour on intercom, then answer the Auditor.
+7. **Final Ritual:** after the glass-case file beat, enter Mirror Office through either Audit Warrant authority or Missing-Person File authority, then use Mirror Shard on mirror, Server Fuse on console, Missing-Person File or Audit Warrant and Cup of Missing Hour on intercom, then answer the Auditor.
 8. **Mirror Server Puzzle:** use the mirror shard to reveal the visual order: circle, triangle, eye, square.
 9. **Ending Choice:** use the file on the exit ledger slot, the cup on the bright hour crack, or the Audit Warrant on the exit seal.
 
@@ -83,9 +83,9 @@ The soundscape mixes procedural Web Audio ambience with CC0 Kenney UI/SFX files.
 - `scripts/package-release.mjs` creates verified standard and store ZIP archives containing only the built game and release documentation, plus SHA-256 checksum files. It normalizes shipped text files to LF, guards generated release README controls/Credits copy, uses a deterministic Node-based ZIP writer, stages to temporary release paths, validates both ZIPs against an exact archive manifest, smoke-tests the pending archives through `scripts/smoke-release-archives.mjs`, transactionally promotes final ZIPs, checksums, and expanded release folders only after smoke passes, and re-checks the promoted final ZIP checksums before reporting success.
 - Hover focus uses temporary object-local brackets/labels instead of permanent hotspot markers, preserving the art while reducing pixel-hunt uncertainty.
 - Touch input uses first-tap hotspot preview and second-tap activation, so touch players get the missing hover affordance without permanent hotspot markers. Selected inventory bypasses the preview and uses immediately.
-- Keyboard focus uses the same temporary bracket/status feedback plus a hidden live status region, so room objects and inventory can be cycled and activated without pointer coordinates.
+- Keyboard focus uses the same temporary bracket/status feedback plus a hidden live status region, so title actions, ending actions, room objects, and inventory can be cycled and activated without pointer coordinates.
 - Browser QA now sweeps every authored room hotspot for hand-cursor feedback and live target status, rather than sampling one hotspot per room.
-- Standard controller/gamepad input reuses the same focus targets: D-pad or left stick cycles title actions, room objects, inventory, and modal buttons; A selects; B cancels selected items or closes panels; face/menu buttons open common panels.
+- Standard controller/gamepad input reuses the same focus targets: D-pad or left stick cycles title actions, ending actions, room objects, inventory, and modal buttons; A selects; B cancels selected items or closes panels; face/menu buttons open common panels.
 - Help includes Large Text and Reduced Motion preferences that scale dialogue, document, puzzle, action-button, HUD, and inventory text while allowing ambient animation to be replaced by static atmosphere layers. First launch also honors browser/OS reduced-motion settings unless the player overrides them in Help.
 - Credits are reachable from title, Help, and endings, giving in-game pointers and direct source-document buttons for the shipped asset/license documents instead of hiding attribution only in repository files. QA intercepts those document buttons and verifies the exact repository URL, `_blank` target, and `noopener,noreferrer` features without depending on external network availability.
 - Ending actions reuse the keyboard/controller focus path from the title screen, so saved ending screens remain operable without a mouse after reload.
@@ -94,7 +94,7 @@ The soundscape mixes procedural Web Audio ambience with CC0 Kenney UI/SFX files.
 - Ordered-choice puzzle modals include Undo plus Backspace/Delete support so one misclick does not force a failed submission or full reset.
 - The phone/tape audio clue is copied into Notes after discovery, preserving fair recall while still requiring the player to find the clue first.
 - Optional side-room flavor can also clarify puzzle red herrings: the Handless Clock reminds players that grouped clues are counted, and the Microwave establishes that impossible hours cannot be filed there.
-- Notes avoid revealing clock-solution detail before the related documents are read, and objectives acknowledge the archive-deduction route instead of forcing a single warrant-first reading.
+- Notes avoid revealing clock-solution detail before the related documents are read, and objectives acknowledge the warrantless archive case-file route instead of forcing a single warrant-first reading.
 - Hints keep exact solutions behind an explicit Show Answer step, so stuck players can still recover without accidental spoilers.
 - Keypad puzzles accept typed number keys in addition to pointer/controller modal buttons.
 - If the player presents the missing hour at the red intercom but closes the Auditor prompt, the intercom resumes verification instead of asking for the same item again.

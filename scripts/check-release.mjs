@@ -152,6 +152,7 @@ async function assertStaticSiteMetadata() {
     'id="orientation-gate"',
     "Interactive point-and-click mystery game canvas",
     "Tab and Shift+Tab",
+    "ending actions",
     "Arrow keys move between modal buttons",
     "Escape closes panels or puts away a selected inventory item",
     "F1 opens Help",

@@ -773,7 +773,7 @@ export class MainScene extends Phaser.Scene {
   private validLoadedRoom(roomId: RoomId): RoomId {
     const canUseInnerRooms = this.state.flag("clockSolved");
     const canUseMirror =
-      canUseInnerRooms && this.state.has("auditWarrant") && this.state.flag("glassCaseCollected") && this.state.flag("vendingSolved");
+      canUseInnerRooms && this.hasMirrorOfficeAuthority() && this.state.flag("glassCaseCollected") && this.state.flag("vendingSolved");
 
     if (roomId === "mirror" && !canUseMirror) {
       return canUseInnerRooms ? "security" : this.state.flag("clockUnlocked") ? "clock" : "reception";
@@ -1283,6 +1283,7 @@ export class MainScene extends Phaser.Scene {
       h: target.h,
       action: target.action
     });
+    this.setHover(target.label);
   }
 
   private showHotspotFocus(spot: Hotspot): void {
@@ -1583,7 +1584,7 @@ export class MainScene extends Phaser.Scene {
         this.state.save();
         this.showMessage(
           "Clock Hall",
-          "The clocks exhale in sequence. Security wakes, an elevator sighs open, and the break-room stairs remember that they exist. A notice beside the Mirror Office route blinks: WARRANT REQUIRED.",
+          "The clocks exhale in sequence. Security wakes, an elevator sighs open, and the break-room stairs remember that they exist. A notice beside the Mirror Office route blinks: WARRANT OR CASE FILE REQUIRED.",
           [{ label: "Continue", action: () => this.closeOverlayAndRefresh() }]
         );
       }
@@ -1659,6 +1660,14 @@ export class MainScene extends Phaser.Scene {
     );
   }
 
+  private hasSecurityEvidence(): boolean {
+    return this.state.flag("securityFootageSeen") || this.state.flag("incidentBoardSeen") || this.state.flag("securityLogSeen");
+  }
+
+  private hasMirrorOfficeAuthority(): boolean {
+    return this.state.has("auditWarrant") || this.state.has("selfFile") || this.state.flag("glassCaseCollected");
+  }
+
   private keyCabinet(): void {
     if (this.state.has("securityKey")) {
       this.showMessage("Key Cabinet", "Only blank hooks remain. The evidence key is already making your pocket heavier.");
@@ -1714,7 +1723,7 @@ export class MainScene extends Phaser.Scene {
       this.showMessage("Evidence Safe", "The safe has no keypad, only an old lock with teeth. It wants the evidence key from the cabinet.");
       return;
     }
-    if (!this.state.flag("securityFootageSeen") && !this.state.flag("incidentBoardSeen") && !this.state.flag("securityLogSeen")) {
+    if (!this.hasSecurityEvidence()) {
       this.audio.fail();
       this.showMessage(
         "Evidence Safe",
@@ -1756,7 +1765,7 @@ export class MainScene extends Phaser.Scene {
     this.state.save();
     this.showDocument(
       "Security Log",
-      "00:00 - Clerk appears in Reception before being hired.\n00:07 - Clock Hall rearranges emotional access order.\n00:13 - Archive drawers self-sort when observed.\n00:24 - Vending machine accepts future debt.\n00:31 - Mirror Office requests warrant, identity, hour, and power."
+      "00:00 - Clerk appears in Reception before being hired.\n00:07 - Clock Hall rearranges emotional access order.\n00:13 - Archive drawers self-sort when observed.\n00:24 - Vending machine accepts future debt.\n00:31 - Mirror Office requests warrant or case file, identity, hour, and power."
     );
   }
 
@@ -1826,23 +1835,23 @@ export class MainScene extends Phaser.Scene {
       );
       return;
     }
-    if (this.selectedItem === "auditWarrant" && this.state.flag("securityFootageSeen")) {
+    if (this.selectedItem === "auditWarrant" && this.hasSecurityEvidence()) {
       this.state.setFlag("archiveSolved");
       this.selectedItem = undefined;
       this.audio.stinger();
       this.state.save();
       this.showMessage(
         "Security Override",
-        "You press the Audit Warrant against the drawer labels and cite the camera footage as a witness. The archive accepts the shortcut and unlocks the glass case.",
+        "You press the Audit Warrant against the drawer labels and cite the security evidence as a witness. The archive accepts the shortcut and unlocks the glass case.",
         [{ label: "Continue", action: () => this.closeOverlayAndRefresh() }]
       );
       return;
     }
-    if (this.selectedItem === "auditWarrant" && !this.state.flag("securityFootageSeen")) {
+    if (this.selectedItem === "auditWarrant" && !this.hasSecurityEvidence()) {
       this.audio.fail();
       this.showMessage(
         "Security Override",
-        "The warrant has authority, but the archive wants a witness. Inspect the Security Office monitor bank first, then use the Audit Warrant here."
+        "The warrant has authority, but the archive wants a witness. Inspect the Security Office monitors, incident board, or log first, then use the Audit Warrant here."
       );
       return;
     }
@@ -1865,7 +1874,7 @@ export class MainScene extends Phaser.Scene {
     }
     this.showSequencePuzzle(
       "Index Drawers",
-      "Sort the four symbol files by category. The archive table maps symbols to meanings; the break-room board gives the official category order. Security footage can also justify an override if you have a warrant.",
+      "Sort the four symbol files by category. The archive table maps symbols to meanings; the break-room board gives the official category order. Security evidence can also justify an override if you have a warrant.",
       [
         { label: "Eye", value: "eye" },
         { label: "Triangle", value: "triangle" },
@@ -2057,20 +2066,21 @@ export class MainScene extends Phaser.Scene {
   }
 
   private goMirror(): void {
-    if (!this.state.has("auditWarrant")) {
+    if (!this.hasMirrorOfficeAuthority()) {
       this.audio.fail();
       this.showMessage(
         "Mirror Office",
-        "The office beyond the break room is under audit lock, just like the Clock Hall notice warned. Security can issue the warrant."
+        "The office beyond the break room is under audit lock, just like the Clock Hall notice warned. Security can issue the warrant, or the archive can produce the case file with your name on it."
       );
       return;
     }
     const missing = this.missingMirrorRequirements();
     if (missing.length > 0) {
       this.audio.fail();
+      const authority = this.state.has("auditWarrant") ? "Your warrant is valid" : "Your file matches the lock";
       this.showMessage(
         "Mirror Office",
-        `The office beyond the break room is visible only in reflection. Your warrant is valid, but you still need ${this.formatRequirementList(missing)}.`
+        `The office beyond the break room is visible only in reflection. ${authority}, but you still need ${this.formatRequirementList(missing)}.`
       );
       return;
     }
@@ -2683,8 +2693,8 @@ export class MainScene extends Phaser.Scene {
       if (this.state.flag("breakBoardSeen")) {
         lines.push("Break Board: Apology, Appetite, Witness, Rest.");
       }
-      if (this.state.flag("securityFootageSeen")) {
-        lines.push("Security Footage: the cameras can support an Audit Warrant override, but they do not replace the table and break-room deduction.");
+      if (this.hasSecurityEvidence()) {
+        lines.push("Security Evidence: monitors, incident notes, or logs can support an Audit Warrant override, but they do not replace the table and break-room deduction.");
       }
       if (lines.length === 0) {
         lines.push("You have not found enough drawer evidence yet. Look for category mapping, category order, or a warrant-backed security override.");
@@ -2934,7 +2944,7 @@ export class MainScene extends Phaser.Scene {
   private showMap(): void {
     const canUseInnerRooms = this.state.flag("clockSolved");
     const canUseMirror =
-      canUseInnerRooms && this.state.has("auditWarrant") && this.state.flag("glassCaseCollected") && this.state.flag("vendingSolved");
+      canUseInnerRooms && this.hasMirrorOfficeAuthority() && this.state.flag("glassCaseCollected") && this.state.flag("vendingSolved");
     const destinations: ButtonSpec[] = [
       {
         label: "Reception",
@@ -3002,12 +3012,12 @@ export class MainScene extends Phaser.Scene {
     const mirrorMissing = this.missingMirrorRequirements();
     const lockSummary = canUseMirror
       ? "Mirror Office is cleared for travel."
-      : this.state.has("auditWarrant")
+      : this.hasMirrorOfficeAuthority()
         ? mirrorMissing.length > 0
           ? `Mirror Office still needs ${this.formatRequirementList(mirrorMissing)}.`
           : "Mirror Office access is waiting for the inner floor route to stabilize."
         : canUseInnerRooms
-          ? "Security can issue the warrant after you inspect evidence."
+          ? "Security can issue the warrant, or the archive can produce your case file."
           : "Stamp the paperwork and solve the clocks to open the inner floor.";
     this.showMessage("Floor Map", `${lockSummary}\n\nUnlocked rooms can be reached from here without walking every hallway again.`, destinations);
   }
@@ -3030,7 +3040,7 @@ export class MainScene extends Phaser.Scene {
       security: [
         "Security is about authorization and evidence, not another number code.",
         "Inspect the monitors, incident board, or log. Then use your Visitor Badge or Stamped Form on the key cabinet, and the Security Key on the safe.",
-        "The Audit Warrant opens the path toward Mirror Office. Monitor footage can also witness an archive override if you use the warrant there."
+        "The Audit Warrant opens the official path toward Mirror Office. Your missing-person file can open the personal path after the archive and vending chain. Security evidence can also witness an archive override if you use the warrant there."
       ],
       interrogation: [
         "The booth gives an alternate clue for the vending code.",
@@ -3042,10 +3052,10 @@ export class MainScene extends Phaser.Scene {
       ],
       archive: [
         "The archive drawers want category order, then symbols.",
-        "The archive table maps symbols to categories. The break-room board gives category order. Security monitor footage can support a warrant override.",
+        "The archive table maps symbols to categories. The break-room board gives category order. Any inspected Security evidence can support a warrant override.",
         {
-          nudge: "Match each category in the break-room order to its symbol on the archive table. The warrant route needs camera evidence first.",
-          answer: "Triangle, Circle, Eye, Square unlocks the glass case. Or use an Audit Warrant after viewing the security footage."
+          nudge: "Match each category in the break-room order to its symbol on the archive table. The warrant route needs Security evidence first.",
+          answer: "Triangle, Circle, Eye, Square unlocks the glass case. Or use an Audit Warrant after inspecting Security evidence."
         }
       ],
       break: [
@@ -3148,10 +3158,13 @@ export class MainScene extends Phaser.Scene {
       this.state.flag("formStamped") ? "Form 11-H has been stamped." : "Reception paperwork still needs official red ink.",
       clockNote,
       this.state.has("securityKey") ? "Security key collected from the cabinet." : "",
-      this.state.has("auditWarrant") ? "Audit Warrant acquired: Mirror Office access is authorized." : "",
-      this.state.flag("securityFootageSeen") ? "Security footage can witness an Audit Warrant archive override." : "",
+      this.state.has("auditWarrant") ? "Audit Warrant acquired: official Mirror Office access is authorized." : "",
+      !this.state.has("auditWarrant") && this.state.has("selfFile")
+        ? "Your Missing-Person File can satisfy the Mirror Office audit lock after you recover the missing hour."
+        : "",
+      this.hasSecurityEvidence() ? "Security evidence can witness an Audit Warrant archive override." : "",
       this.state.flag("incidentBoardSeen") ? "Incident board ties your missing hour to the vending machine and Mirror Office audit." : "",
-      this.state.flag("securityLogSeen") ? "Security log says Mirror Office wants warrant, identity, hour, and power." : "",
+      this.state.flag("securityLogSeen") ? "Security log says Mirror Office wants warrant or case file, identity, hour, and power." : "",
       this.state.flag("archiveTableSeen") ? "Archive table: Triangle=Apology, Circle=Appetite, Eye=Witness, Square=Rest." : "",
       this.state.flag("breakBoardSeen") ? "Break board order: Apology, Appetite, Witness, Rest." : "",
       this.state.flag("rainCipherSeen")
@@ -3186,17 +3199,17 @@ export class MainScene extends Phaser.Scene {
     if (!this.state.flag("clockSolved")) {
       return "Use the stamped form on the circle door and solve the mood clocks.";
     }
-    if (!this.state.has("auditWarrant")) {
+    if (!this.hasMirrorOfficeAuthority()) {
       if (!this.state.flag("archiveSolved") && this.state.flag("archiveTableSeen") && this.state.flag("breakBoardSeen")) {
-        return "You can solve the archive drawers from the table and break-room clues, while Security can issue a warrant for the final office.";
+        return "You can solve the archive drawers from the table and break-room clues, while Security can issue a warrant for the official route.";
       }
       if (!this.state.flag("archiveSolved")) {
-        return "Explore the inner floor: Security can issue a warrant, and the Archive can be solved from office clues.";
+        return "Explore the inner floor: Security can issue a warrant, and the Archive can reveal your case file.";
       }
-      return "Security can issue the warrant needed for Mirror Office. Inspect evidence, prove authority, then open the safe.";
+      return "Use the archive records or Security warrant to satisfy the Mirror Office lock.";
     }
     if (!this.state.flag("archiveSolved")) {
-      return "Unlock the archive glass case with the table and break-room clues, or inspect security footage and use the Audit Warrant.";
+      return "Unlock the archive glass case with the table and break-room clues, or inspect Security evidence and use the Audit Warrant.";
     }
     if (!this.state.flag("glassCaseCollected")) {
       return "Open the glass case and collect the records inside.";
@@ -3265,7 +3278,7 @@ export class MainScene extends Phaser.Scene {
     }
     if (roomId === "security") {
       return this.state.has("auditWarrant")
-        ? "warrant issued; monitors active."
+        ? "warrant issued; evidence recorded."
         : this.state.has("securityKey")
           ? "inspect evidence, then open the safe."
           : "inspect evidence and prove authority.";
