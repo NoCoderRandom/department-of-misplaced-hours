@@ -59,6 +59,7 @@ Expected results:
 - The Phaser canvas is painted with varied room art on title, room, reload, map, and ending states.
 - Filed, Escaped, and Audit endings each save a distinct ending id.
 - Wrong puzzle entries recover cleanly and allow another attempt.
+- Using wrong inventory items on major locks gives explicit feedback and does not grant rewards, open gates, or trigger endings.
 - Major puzzle and Auditor answer buttons do not appear in solution order, so gates cannot be solved by simply clicking top-to-bottom.
 - Closing a reward modal before pressing `Take` does not grant that reward.
 - Invalid or partially corrupted saves repair implied rewards or move the player back to a valid room.

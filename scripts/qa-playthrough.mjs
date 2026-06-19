@@ -1565,6 +1565,119 @@ async function testAuditEndingFromLateSave(browser, issues) {
   await page.close();
 }
 
+async function testWrongItemFeedback(browser, issues) {
+  const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
+  watchPage(page, issues, "wrong-item-feedback");
+
+  await continueSaved(page, {
+    room: "reception",
+    inventory: ["visitorBadge"],
+    flags: { introSeen: true },
+    audioVolume: 0.72,
+    muted: false
+  });
+  await selectItem(page, "visitorBadge");
+  await click(page, 360, 374);
+  await page.getByText("Visitor Badge is selected, but the circular seal only accepts the Stamped Form.").waitFor({
+    state: "visible",
+    timeout: 8_000
+  });
+  let data = await save(page);
+  if (data.flags.clockUnlocked) {
+    throw new Error(`Wrong item opened the Circle Door: ${JSON.stringify(data)}`);
+  }
+  await button(page, "Close");
+
+  await continueSaved(page, {
+    room: "security",
+    inventory: ["visitorBadge", "stampedForm", "rainCipher"],
+    flags: { introSeen: true, formStamped: true, clockUnlocked: true, clockSolved: true },
+    audioVolume: 0.72,
+    muted: false
+  });
+  await selectItem(page, "rainCipher");
+  await click(page, 696, 352);
+  await page.getByText("Rain Cipher is selected, but the reader wants a Visitor Badge or a Stamped Form.").waitFor({
+    state: "visible",
+    timeout: 8_000
+  });
+  data = await save(page);
+  if (data.inventory.includes("securityKey")) {
+    throw new Error(`Wrong item granted the Security Key: ${JSON.stringify(data)}`);
+  }
+  await button(page, "Close");
+
+  await selectItem(page, "visitorBadge");
+  await click(page, 522, 392);
+  await page.getByText("Visitor Badge is selected, but the old lock only fits the Security Key.").waitFor({
+    state: "visible",
+    timeout: 8_000
+  });
+  data = await save(page);
+  if (data.inventory.includes("auditWarrant") || data.flags.evidenceSafeOpened) {
+    throw new Error(`Wrong item opened the Evidence Safe: ${JSON.stringify(data)}`);
+  }
+  await button(page, "Close");
+
+  await continueSaved(page, {
+    room: "archive",
+    inventory: ["stampedForm", "rainCipher"],
+    flags: { formStamped: true, clockUnlocked: true, clockSolved: true },
+    audioVolume: 0.72,
+    muted: false
+  });
+  await selectItem(page, "rainCipher");
+  await click(page, 356, 420);
+  await page.getByText("Rain Cipher is selected, but the drawers only accept a warrant-backed security override.").waitFor({
+    state: "visible",
+    timeout: 8_000
+  });
+  data = await save(page);
+  if (data.flags.archiveSolved) {
+    throw new Error(`Wrong item solved the archive drawers: ${JSON.stringify(data)}`);
+  }
+  await button(page, "Close");
+
+  await continueSaved(page, {
+    room: "mirror",
+    inventory: ["memoryCup"],
+    flags: { mirrorShardInstalled: true },
+    audioVolume: 0.72,
+    muted: false
+  });
+  await selectItem(page, "memoryCup");
+  await click(page, 612, 596);
+  await page.getByText("Cup of Missing Hour is selected, but the Auditor accepts a Missing-Person File or the Audit Warrant for identity.").waitFor({
+    state: "visible",
+    timeout: 8_000
+  });
+  data = await save(page);
+  if (data.flags.identityVerified) {
+    throw new Error(`Wrong item verified identity at the intercom: ${JSON.stringify(data)}`);
+  }
+  await button(page, "Close");
+
+  await continueSaved(page, {
+    room: "mirror",
+    inventory: ["rainCipher"],
+    flags: { serverSolved: true },
+    audioVolume: 0.72,
+    muted: false
+  });
+  await selectItem(page, "rainCipher");
+  await click(page, 1080, 386);
+  await page.getByText("Rain Cipher is selected, but the final mechanisms respond only to Your Missing-Person File").waitFor({
+    state: "visible",
+    timeout: 8_000
+  });
+  data = await save(page);
+  if (data.ending) {
+    throw new Error(`Wrong item triggered an ending: ${JSON.stringify(data)}`);
+  }
+
+  await page.close();
+}
+
 async function testSaveRepairAndArchiveGates(browser, issues) {
   const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
   watchPage(page, issues, "save-repair-gates");
@@ -1862,6 +1975,7 @@ async function run() {
     await testKeyboardObjectInteraction(browser, issues);
     await testGamepadNavigation(browser, issues);
     await testAuditEndingFromLateSave(browser, issues);
+    await testWrongItemFeedback(browser, issues);
     await testSaveRepairAndArchiveGates(browser, issues);
     await testPanelEscapeAndReset(browser, issues);
     await testLateGameNotesScroll(browser, issues);
@@ -1870,7 +1984,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone/rain/muted clue paths, audio controls, keyboard shortcuts, keyboard title start, controller title/object/modal navigation, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone/rain/muted clue paths, audio controls, keyboard shortcuts, keyboard title start, controller title/object/modal navigation, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;

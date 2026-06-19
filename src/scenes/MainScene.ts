@@ -1281,7 +1281,7 @@ export class MainScene extends Phaser.Scene {
       this.showMessage("Stamp", "The desk has the appetite of a stamp pad, but you need the stamp itself.");
       return;
     }
-      if (!this.state.has("stampedForm")) {
+    if (!this.state.has("stampedForm")) {
       this.state.remove("blankForm");
       this.state.remove("rubberStamp");
       this.state.add("stampedForm");
@@ -1295,6 +1295,16 @@ export class MainScene extends Phaser.Scene {
         [{ label: "Accept", action: () => this.closeOverlayAndRefresh() }]
       );
     }
+  }
+
+  private rejectSelectedItem(target: string, body: string, allowedItems: ItemId[] = []): boolean {
+    if (!this.selectedItem || allowedItems.includes(this.selectedItem)) {
+      return false;
+    }
+    const item = ITEMS[this.selectedItem];
+    this.audio.fail();
+    this.showMessage(target, `${item.name} is selected, but ${body}`);
+    return true;
   }
 
   private badgeDrawer(): void {
@@ -1331,6 +1341,9 @@ export class MainScene extends Phaser.Scene {
       this.audio.success();
       this.state.save();
       this.showRoom("clock");
+      return;
+    }
+    if (this.rejectSelectedItem("Circle Door", "the circular seal only accepts the Stamped Form.", ["stampedForm"])) {
       return;
     }
 
@@ -1490,6 +1503,14 @@ export class MainScene extends Phaser.Scene {
       );
       return;
     }
+    if (
+      this.rejectSelectedItem("Key Cabinet", "the reader wants a Visitor Badge or a Stamped Form.", [
+        "visitorBadge",
+        "stampedForm"
+      ])
+    ) {
+      return;
+    }
     this.audio.fail();
     this.showMessage(
       "Key Cabinet",
@@ -1506,6 +1527,9 @@ export class MainScene extends Phaser.Scene {
       return;
     }
     if (this.selectedItem !== "securityKey") {
+      if (this.rejectSelectedItem("Evidence Safe", "the old lock only fits the Security Key.", ["securityKey"])) {
+        return;
+      }
       this.audio.fail();
       this.showMessage("Evidence Safe", "The safe has no keypad, only an old lock with teeth. It wants the evidence key from the cabinet.");
       return;
@@ -1637,6 +1661,15 @@ export class MainScene extends Phaser.Scene {
         "Security Override",
         "The warrant has authority, but the archive wants a witness. Inspect the Security Office monitor bank first, then use the Audit Warrant here."
       );
+      return;
+    }
+    if (
+      this.rejectSelectedItem(
+        "Index Drawers",
+        "the drawers only accept a warrant-backed security override. Otherwise solve the symbol order from the room clues.",
+        ["auditWarrant"]
+      )
+    ) {
       return;
     }
     if (!this.state.flag("archiveTableSeen") || !this.state.flag("breakBoardSeen")) {
@@ -1885,6 +1918,9 @@ export class MainScene extends Phaser.Scene {
         );
         return;
       }
+      if (this.rejectSelectedItem("Black Mirror", "the shard-shaped gap expects the Mirror Shard.", ["mirrorShard"])) {
+        return;
+      }
       this.audio.fail();
       this.showMessage("Black Mirror", "The mirror reflects a locked version of the room. A shard-shaped gap shines near its corner.");
       return;
@@ -1908,6 +1944,9 @@ export class MainScene extends Phaser.Scene {
           "You seat the fuse in the empty cradle. The console wakes, prints your employee number in static, then asks for identity verification.",
           [{ label: "Continue", action: () => this.closeOverlayAndRefresh() }]
         );
+        return;
+      }
+      if (this.rejectSelectedItem("Server Console", "the empty cradle expects the Server Fuse.", ["serverFuse"])) {
         return;
       }
       this.audio.fail();
@@ -1978,6 +2017,14 @@ export class MainScene extends Phaser.Scene {
         );
         return;
       }
+      if (
+        this.rejectSelectedItem("Red Intercom", "the Auditor accepts a Missing-Person File or the Audit Warrant for identity.", [
+          "selfFile",
+          "auditWarrant"
+        ])
+      ) {
+        return;
+      }
       this.audio.fail();
       this.showMessage("Red Intercom", "The intercom asks for proof that you are allowed to correct the person being processed. Use your Missing-Person File or the Audit Warrant here.");
       return;
@@ -1993,6 +2040,9 @@ export class MainScene extends Phaser.Scene {
           "You hold the Cup of Missing Hour to the grille. Steam passes through the holes and speaks in your childhood voice. The Auditor clears its throat and begins the final verification.",
           [{ label: "Answer", action: () => this.dialogueQuestion(0) }]
         );
+        return;
+      }
+      if (this.rejectSelectedItem("Red Intercom", "the Auditor wants the Cup of Missing Hour now.", ["memoryCup"])) {
         return;
       }
       this.audio.fail();
@@ -2082,6 +2132,15 @@ export class MainScene extends Phaser.Scene {
     }
     if (this.selectedItem === "auditWarrant") {
       this.finish("audited");
+      return;
+    }
+    if (
+      this.rejectSelectedItem(
+        "Exit Door",
+        "the final mechanisms respond only to Your Missing-Person File, the Cup of Missing Hour, or the Audit Warrant.",
+        ["selfFile", "memoryCup", "auditWarrant"]
+      )
+    ) {
       return;
     }
     this.showMessage(
