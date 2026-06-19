@@ -57,7 +57,7 @@ Reference links:
 6. **Vending Puzzle:** combine Time Token, Paper Cup, and a clue path to dispense the missing hour and fuse.
 7. **Final Ritual:** after the glass-case file beat, use Mirror Shard on mirror, Server Fuse on console, Missing-Person File or Audit Warrant and Cup of Missing Hour on intercom, then answer the Auditor.
 8. **Mirror Server Puzzle:** use the mirror shard to reveal the visual order: circle, triangle, eye, square.
-9. **Ending Choice:** use the file on the exit ledger slot or the cup on the bright hour crack.
+9. **Ending Choice:** use the file on the exit ledger slot, the cup on the bright hour crack, or the Audit Warrant on the exit seal.
 
 ## Art Direction
 
@@ -75,7 +75,7 @@ The soundscape mixes procedural Web Audio ambience with CC0 Kenney UI/SFX files.
 - `localStorage` stores room, inventory, flags, and ending in the progress save, with volume, mute, Large Text, and Reduced Motion mirrored to a separate preferences key so Reset Shift does not erase player settings.
 - Web Audio keeps the audio legally clean and lightweight.
 - Selected Kenney CC0 OGG files improve tactile feedback without licensing friction.
-- `scripts/qa-playthrough.mjs` can run quick development QA or production-preview QA; the release gate verifies the built `dist/` through asset-load failure recovery, optional audio fallback, intro badge recovery, both main routes, canvas paint checks, mid-game reloads, phone/rain/muted clue paths, audio controls, keyboard shortcuts, keyboard title start, protected Start New behavior, clue-gated Mood Clocks, large-text and reduced-motion preference persistence/layout/reset survival, system reduced-motion migration for legacy saves, keyboard object/inventory interaction, failed-puzzle recovery, reward Escape checks for rain/glass/vending take prompts, save repair, invalid-room save recovery, corrupt/unavailable storage recovery with player warning, Recover Position, archive gates, pre-file vending story gate, malformed save normalization, scaled desktop/mobile interaction, modal focus/Escape behavior, reset behavior, late-game Notes scrolling, answer-order anti-spoiler checks, downstream save repair, and desktop/mobile visual readability screenshots.
+- `scripts/qa-playthrough.mjs` can run quick development QA or production-preview QA; the release gate verifies the built `dist/` through asset-load failure recovery, optional audio fallback, intro badge recovery, both main routes plus the third audit ending, canvas paint checks, mid-game reloads, phone/rain/muted clue paths, audio controls, keyboard shortcuts, keyboard title start, protected Start New behavior, clue-gated Mood Clocks, large-text and reduced-motion preference persistence/layout/reset survival, system reduced-motion migration for legacy saves, keyboard object/inventory interaction, failed-puzzle recovery, reward Escape checks for rain/glass/vending take prompts, save repair, invalid-room save recovery, corrupt/unavailable storage recovery with player warning, Recover Position, archive gates, pre-file vending story gate, malformed save normalization, scaled desktop/mobile interaction, modal focus/Escape behavior, reset behavior, late-game Notes scrolling, answer-order anti-spoiler checks, downstream save repair, and desktop/mobile visual readability screenshots.
 - `scripts/check-release.mjs` validates the exact expected build asset manifest, blocks extra `dist/` files, sourcemaps, PNG payload regressions, oversized `dist/`, and accidental package contents such as source, temp files, backups, prompts, or duplicate public assets.
 - `scripts/package-release.mjs` creates verified standard and store ZIP archives containing only the built game and release documentation, plus SHA-256 checksum files. It uses a deterministic Node-based ZIP writer, stages to temporary release paths, validates both ZIPs against an exact archive manifest, smoke-tests the pending archives through `scripts/smoke-release-archives.mjs`, transactionally promotes final ZIPs, checksums, and expanded release folders only after smoke passes, and re-checks the promoted final ZIP checksums before reporting success.
 - Hover focus uses temporary object-local brackets/labels instead of permanent hotspot markers, preserving the art while reducing pixel-hunt uncertainty.
@@ -91,12 +91,12 @@ The soundscape mixes procedural Web Audio ambience with CC0 Kenney UI/SFX files.
 ## Known Limitations
 
 - The Phaser dependency makes the JavaScript chunk large, though acceptable for a small static game.
-- The game is designed around mouse/touch interaction, with keyboard focus for room objects/inventory and shortcuts for common desktop panels and audio controls.
+- The game is designed around mouse/touch interaction, with keyboard and controller focus for room objects/inventory plus shortcuts for common desktop panels and audio controls.
 - Procedural audio cannot be perfectly identical across browsers.
 - Background art is static; room animation is layered through particles, rain streaks, scanline movement, flicker, and UI feedback.
 
 ## Future Improvements
 
-- Add more branching dialogue and a third ending.
+- Add more branching dialogue beyond the ending choice.
 - Split Phaser into a separate vendor chunk if bundle-size warning becomes important.
 - Expand Playwright coverage with more negative-use interactions and save/load checkpoints.

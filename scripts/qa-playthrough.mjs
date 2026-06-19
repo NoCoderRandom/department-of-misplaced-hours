@@ -1538,6 +1538,33 @@ async function testGamepadNavigation(browser, issues) {
   await page.close();
 }
 
+async function testAuditEndingFromLateSave(browser, issues) {
+  const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
+  watchPage(page, issues, "audit-ending");
+
+  const repaired = await continueSaved(page, {
+    room: "mirror",
+    inventory: ["auditWarrant"],
+    flags: { serverSolved: true },
+    audioVolume: 0.72,
+    muted: false
+  });
+  if (repaired.room !== "mirror" || !repaired.flags.serverSolved || !repaired.inventory.includes("auditWarrant")) {
+    throw new Error(`Audit ending setup did not repair to a valid late-game state: ${JSON.stringify(repaired)}`);
+  }
+
+  await selectItem(page, "auditWarrant");
+  await click(page, 1080, 386);
+  await page.waitForTimeout(350);
+  await expectCanvasPainted(page, "audit ending");
+  const data = await save(page);
+  if (data.ending !== "audited") {
+    throw new Error(`Audit ending was not saved: ${JSON.stringify(data)}`);
+  }
+
+  await page.close();
+}
+
 async function testSaveRepairAndArchiveGates(browser, issues) {
   const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
   watchPage(page, issues, "save-repair-gates");
@@ -1834,6 +1861,7 @@ async function run() {
     await testSystemReducedMotionDefault(browser, issues);
     await testKeyboardObjectInteraction(browser, issues);
     await testGamepadNavigation(browser, issues);
+    await testAuditEndingFromLateSave(browser, issues);
     await testSaveRepairAndArchiveGates(browser, issues);
     await testPanelEscapeAndReset(browser, issues);
     await testLateGameNotesScroll(browser, issues);
@@ -1842,7 +1870,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, canvas paint and accessibility checks, mid-game reloads, phone/rain/muted clue paths, audio controls, keyboard shortcuts, keyboard title start, controller title/object/modal navigation, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone/rain/muted clue paths, audio controls, keyboard shortcuts, keyboard title start, controller title/object/modal navigation, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;

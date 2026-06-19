@@ -224,8 +224,9 @@ export class AudioDirector {
     this.tone(310, 0.045, 0.028, "square");
   }
 
-  ending(kind: "filed" | "escaped"): void {
-    const sequence = kind === "filed" ? [220, 185, 146, 110] : [196, 247, 330, 392, 494];
+  ending(kind: "filed" | "escaped" | "audited"): void {
+    const sequence =
+      kind === "filed" ? [220, 185, 146, 110] : kind === "audited" ? [164, 220, 330, 247, 392] : [196, 247, 330, 392, 494];
     sequence.forEach((freq, i) => {
       window.setTimeout(() => this.tone(freq, 0.42, 0.055, "triangle"), i * 260);
     });

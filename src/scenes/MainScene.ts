@@ -2080,9 +2080,13 @@ export class MainScene extends Phaser.Scene {
       this.finish("escaped");
       return;
     }
+    if (this.selectedItem === "auditWarrant") {
+      this.finish("audited");
+      return;
+    }
     this.showMessage(
       "Exit Door",
-      "The exit splits into two mechanisms: a ledger slot that wants paperwork, and a bright crack in the wall that drinks steam. Choose what you trust enough to place there.",
+      "The exit splits into three mechanisms: a ledger slot that wants paperwork, a bright crack in the wall that drinks steam, and an audit seal waiting for official authority. Choose what you trust enough to place there.",
       [{ label: "Step Back", action: () => this.closeOverlay() }]
     );
   }
@@ -2102,11 +2106,13 @@ export class MainScene extends Phaser.Scene {
     this.add.rectangle(GAME_W / 2, GAME_H / 2, GAME_W, GAME_H, 0x050705, 0.36);
     this.addVignette();
 
-    const title = ending === "filed" ? "Filed Ending" : "Escaped Ending";
+    const title = ending === "filed" ? "Filed Ending" : ending === "audited" ? "Audit Ending" : "Escaped Ending";
     const body =
       ending === "filed"
         ? "You file yourself under SELF, cross-reference the missing hour, and become beautifully easy to find. By morning, your desk is clean. The badge drawer is warm."
-        : "You pour the missing hour into the ledger. Every clock in the department stutters. You leave with a pocket full of incomplete memories and the useful certainty that some systems deserve bad paperwork.";
+        : ending === "audited"
+          ? "You press the Audit Warrant into the exit seal and cite the Department for mishandling a person as paperwork. By dawn, the building is still there, but every door now needs your signature."
+          : "You pour the missing hour into the ledger. Every clock in the department stutters. You leave with a pocket full of incomplete memories and the useful certainty that some systems deserve bad paperwork.";
     const titleFontSize = this.state.largeText ? "58px" : "52px";
     const bodyFontSize = this.state.largeText ? "32px" : "28px";
 
@@ -2620,7 +2626,7 @@ export class MainScene extends Phaser.Scene {
       mirror: [
         "You need authorization, power, identity, the missing hour, and the reflected sequence.",
         "Use the shard on the black mirror and the fuse on the server console. Use the file or Audit Warrant on the intercom, then the Cup of Missing Hour.",
-        "Final order: install fuse, verify file, verify hour, read mirror, run console. At the exit, use the file for one ending or the cup for the other."
+        "Final order: install fuse, verify file, verify hour, read mirror, run console. At the exit, file, hour, and warrant each lead somewhere different."
       ]
     };
     const pool = hints[this.state.room];
@@ -2742,7 +2748,7 @@ export class MainScene extends Phaser.Scene {
     if (!this.state.flag("serverSolved")) {
       return "Run the server sequence reflected in the black mirror.";
     }
-    return "Choose what to trust at the exit: paperwork or the missing hour.";
+    return "Choose what to trust at the exit: your file, the missing hour, or the Audit Warrant.";
   }
 
   private toggleMute(): void {

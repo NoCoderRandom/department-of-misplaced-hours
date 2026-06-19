@@ -34,6 +34,7 @@ This is the intended complete path through the game.
 30. Solve Server Console: `Circle`, `Triangle`, `Eye`, `Square`.
 31. For Filed Ending, use `Your Missing-Person File` on Exit Door.
 32. For Escaped Ending, use `Cup of Missing Hour` on Exit Door.
+33. For Audit Ending, use `Audit Warrant` on Exit Door.
 
 Expected results:
 
@@ -56,6 +57,7 @@ Expected results:
 - Hovering useful objects shows a focus bracket and label, but no hotspot markers are visible at rest.
 - Known clues can be reviewed from relevant puzzle panels.
 - The Phaser canvas is painted with varied room art on title, room, reload, map, and ending states.
+- Filed, Escaped, and Audit endings each save a distinct ending id.
 - Wrong puzzle entries recover cleanly and allow another attempt.
 - Major puzzle and Auditor answer buttons do not appear in solution order, so gates cannot be solved by simply clicking top-to-bottom.
 - Closing a reward modal before pressing `Take` does not grant that reward.

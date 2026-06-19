@@ -14,7 +14,7 @@
 - [x] Visual polish implemented: generated backgrounds, hidden hand-cursor hotspots, status-line interaction feedback, particles, scanline/rain movement, vignettes, modal panels.
 - [x] Save/load implemented through `localStorage`.
 - [x] Hint and help panels implemented.
-- [x] Two endings implemented.
+- [x] Three endings implemented: Filed, Escaped, and Audit.
 - [x] Build tested with `npm run build`.
 - [x] Automated QA added with `npm run qa` and combined release gate `npm run verify`.
 - [x] Dependency audit checked and resolved.

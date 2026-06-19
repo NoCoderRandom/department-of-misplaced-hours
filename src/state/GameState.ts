@@ -16,7 +16,7 @@ export type ItemId =
   | "auditWarrant"
   | "selfFile";
 
-export type EndingId = "filed" | "escaped";
+export type EndingId = "filed" | "escaped" | "audited";
 
 export interface SaveData {
   room: RoomId;
@@ -55,7 +55,7 @@ const ITEM_IDS: ItemId[] = [
   "auditWarrant",
   "selfFile"
 ];
-const ENDING_IDS: EndingId[] = ["filed", "escaped"];
+const ENDING_IDS: EndingId[] = ["filed", "escaped", "audited"];
 
 function isRoomId(value: unknown): value is RoomId {
   return typeof value === "string" && ROOM_IDS.includes(value as RoomId);
