@@ -43,6 +43,7 @@ Expected results:
 - The game canvas has a keyboard-focusable accessible name, keyboard shortcut metadata, and a screen-reader summary for keyboard controls.
 - Keyboard target changes update the hidden live status so screen-reader players hear the current room object.
 - Touch-phone portrait view shows a rotate prompt instead of asking players to use a tiny canvas.
+- Live GitHub Pages smoke also verifies the touch-phone portrait prompt and that landscape view clears it.
 - Dialogs expose their visible title and body through accessible name/description relationships.
 - A missing required asset shows a readable in-canvas asset-load failure screen and DOM alert text naming the failed asset instead of hanging behind the boot overlay.
 - A missing optional UI sound does not block boot or play; procedural audio fallback keeps the game usable.

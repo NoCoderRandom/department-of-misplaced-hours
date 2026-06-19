@@ -325,6 +325,39 @@ async function smokeNoScript(browser, url) {
   }
 }
 
+async function smokeOrientationGate(browser, url) {
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 1,
+    hasTouch: true,
+    isMobile: true
+  });
+  const page = await context.newPage();
+  const issues = [];
+  watchPage(page, issues, "live-orientation");
+  try {
+    await page.goto(url, { waitUntil: "networkidle", timeout: 60_000 });
+    await page.locator("canvas").waitFor({ state: "visible", timeout: 30_000 });
+    await page.locator("#orientation-gate").waitFor({ state: "visible", timeout: 30_000 });
+    const gateText = ((await page.locator("#orientation-gate").textContent()) ?? "").replace(/\s+/g, " ").trim();
+    for (const required of ["Rotate Device", "Landscape mode"]) {
+      if (!gateText.includes(required)) {
+        throw new Error(`Live phone portrait orientation gate is missing required text: ${required}`);
+      }
+    }
+    await page.setViewportSize({ width: 844, height: 390 });
+    await page.waitForFunction(() => getComputedStyle(document.getElementById("orientation-gate")).display === "none", null, {
+      timeout: 30_000
+    });
+    if (issues.length > 0) {
+      throw new Error(`Live orientation-gate browser issues:\n${issues.join("\n")}`);
+    }
+    return { gateText };
+  } finally {
+    await context.close();
+  }
+}
+
 const rawUrl = option("url", process.env.LIVE_GAME_URL ?? defaultUrl);
 const retries = Number.parseInt(option("retries", process.env.LIVE_SMOKE_RETRIES ?? "6"), 10);
 const delayMs = Number.parseInt(option("delay-ms", process.env.LIVE_SMOKE_DELAY_MS ?? "10000"), 10);
@@ -340,7 +373,8 @@ for (let attempt = 1; attempt <= retries; attempt += 1) {
     browser = await chromium.launch({ headless: true });
     const playable = await smokePlayable(browser, url);
     const noScript = await smokeNoScript(browser, url);
-    console.log(JSON.stringify({ ok: true, url: rawUrl, attempts: attempt, playable, noScript }, null, 2));
+    const orientation = await smokeOrientationGate(browser, url);
+    console.log(JSON.stringify({ ok: true, url: rawUrl, attempts: attempt, playable, noScript, orientation }, null, 2));
     await browser.close();
     passed = true;
     break;

@@ -101,5 +101,6 @@
 - [x] Fast state regression tests now cover save/load normalization, repair invariants, reset preference preservation, and storage failure handling before browser QA runs.
 - [x] Mobile QA now verifies the rendered canvas stays fully visible and keeps the intended aspect ratio, catching cropped or distorted phone layouts.
 - [x] Accessibility/mobile polish now includes live keyboard target announcements and a touch-phone portrait rotate gate, both covered by QA.
+- [x] Live GitHub Pages smoke now verifies the touch-phone portrait rotate gate and landscape recovery on the deployed build.
 - [x] Deployment prepared with `.github/workflows/deploy-pages.yml`.
 - [x] Documentation written: `README.md`, `ASSETS.md`, `THIRD_PARTY_NOTICES.md`, `DESIGN_NOTES.md`, `PROGRESS.md`.
