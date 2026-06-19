@@ -1059,7 +1059,13 @@ async function solveIntroAndClock(page, options = {}) {
     await button(page, "Close");
     await click(page, 638, 32);
     await page.getByRole("dialog", { name: "Notes" }).waitFor({ state: "visible", timeout: 8_000 });
-    await page.getByText("Future phone / tape groups: 7, 3, 1.").waitFor({ state: "visible", timeout: 8_000 });
+    const notesText = await page.locator(".game-modal-body").innerText();
+    if (!notesText.includes("Future phone / tape clue heard: three click groups.")) {
+      throw new Error(`Phone clue Notes did not retain non-spoiler recall text: ${notesText}`);
+    }
+    if (notesText.includes("Future phone / tape groups: 7, 3, 1.")) {
+      throw new Error(`Unmuted phone clue Notes revealed the exact vending code: ${notesText}`);
+    }
     await button(page, "Close");
   }
   await click(page, 226, 650);
@@ -1167,9 +1173,13 @@ async function solveVending(page, exerciseRewardEscape = false) {
   const clueState = await save(page);
   if (clueState.flags.heardPhone && !clueState.flags.rainCipherSeen) {
     await button(page, "Review Clue");
-    await page
-      .getByText("Future Phone / Tape Recorder: seven clicks, then three clicks, then one click.")
-      .waitFor({ state: "visible", timeout: 8_000 });
+    const reviewText = await page.locator(".game-modal-body").innerText();
+    if (!reviewText.includes("Future Phone / Tape Recorder: three click groups.")) {
+      throw new Error(`Phone clue review did not retain non-spoiler recall text: ${reviewText}`);
+    }
+    if (reviewText.includes("seven clicks, then three clicks, then one click")) {
+      throw new Error(`Unmuted phone clue review revealed exact click counts: ${reviewText}`);
+    }
     await button(page, "Back");
   }
   for (const digit of ["1", "2", "3"]) {
@@ -1187,6 +1197,7 @@ async function solveVending(page, exerciseRewardEscape = false) {
     await page.keyboard.press(digit);
     await page.waitForTimeout(120);
   }
+  await page.getByText("IMPOSSIBLE HOURS SURVIVE ONLY OUTSIDE THE SYSTEM").waitFor({ state: "visible", timeout: 8_000 });
   if (exerciseRewardEscape) {
     await page.keyboard.press("Escape");
     await page.waitForTimeout(200);
@@ -3165,7 +3176,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help/ending Credits access with dialog semantics and safe source-document URL targets, puzzle-polish checks for Notes/objectives/side-room clue recall/hint answer reveal/Auditor feedback/Mirror identity wording, security override route, deduction route, audit ending, ending keyboard/gamepad controls after reload, title/ending focus live status, spent-folder selection clearing, canvas paint and accessibility checks, mid-game and late-game reloads, phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts, all authored hand-cursor hotspot/live-status behavior plus inventory hover, touch first-tap hotspot preview and timeout clearing, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help/ending Credits access with dialog semantics and safe source-document URL targets, puzzle-polish checks for Notes/objectives/side-room clue recall/hint answer reveal/Auditor feedback/Mirror identity wording, security override route, deduction route, audit ending, ending keyboard/gamepad controls after reload, title/ending focus live status, spent-folder selection clearing, canvas paint and accessibility checks, mid-game and late-game reloads, non-spoiler phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts and required outside-system cup clue, all authored hand-cursor hotspot/live-status behavior plus inventory hover, touch first-tap hotspot preview and timeout clearing, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;

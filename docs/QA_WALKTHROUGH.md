@@ -77,7 +77,7 @@ Expected results:
 - Invalid or partially corrupted saves repair implied rewards or move the player back to a valid room.
 - Corrupt save data clears cleanly, removes stale Continue behavior from the title screen, and blocked browser storage still allows a new game.
 - Help > Recover Position repairs progress without deleting inventory or the save.
-- The vending code can be solved through either phone/tape audio or the rain cipher visual clue.
+- The vending code can be solved through either phone/tape audio or the rain cipher visual clue; unmuted phone/tape recall stays non-spoiler unless the player uses Hint > Show Answer.
 - Late-game Notes remain inside the panel and scroll when needed.
 - Panels close with `Escape`.
 - Modal button focus stays trapped inside panels, and `Escape` still closes panels if focus leaves the button.

@@ -2051,7 +2051,7 @@ export class MainScene extends Phaser.Scene {
         ? "You have engaged with the audio clue. Accessibility transcript: the groups count seven, three, one."
         : this.state.flag("vendingFailed")
           ? "The keypad clears wrong guesses. Recheck the phone or tape clicks, the rain clue, Notes, or Hint before trying again."
-          : "Enter the number counted from the future phone. If you miss it, replay the phone or tape recorder.";
+          : "Enter the numbers counted from the future phone's three click groups. If you miss them, replay the phone or tape recorder.";
 
     this.showKeypadPuzzle("Memory Vending", cluePath, "731", () => {
       this.state.setFlag("vendingDispensed");
@@ -2063,7 +2063,7 @@ export class MainScene extends Phaser.Scene {
   private showVendingReward(): void {
     this.showMessage(
       "Memory Dispensed",
-      "The machine accepts the token, the cup, and several facts about your childhood. It dispenses a steaming missing hour and a server fuse taped to the bottom.",
+      "The machine accepts the token, the cup, and several facts about your childhood. It dispenses a steaming missing hour and a server fuse taped to the bottom. A warning on the cup reads: DO NOT FILE. IMPOSSIBLE HOURS SURVIVE ONLY OUTSIDE THE SYSTEM.",
       [
         {
           label: "Take Them",
@@ -2733,12 +2733,12 @@ export class MainScene extends Phaser.Scene {
         body = "Rain Cipher: seven thin trails, three heavy trails, one lonely drop.";
       } else if (this.state.flag("rainCipherSeen")) {
         body = "Rain memory: seven thin trails, three heavy trails, one lonely drop. Taking the note only keeps the clue in inventory.";
-      } else if (this.state.muted) {
+      } else if (this.state.muted && this.state.flag("heardPhone")) {
         body = "Accessibility transcript: the phone/tape clue clicks in groups of seven, three, and one.";
       } else if (this.state.flag("vendingFailed")) {
         body = "Wrong guesses clear the keypad. Recheck the phone/tape clicks, the rain clue, Notes, or Hint before trying again.";
       } else if (this.state.flag("heardPhone")) {
-        body = "Future Phone / Tape Recorder: seven clicks, then three clicks, then one click.";
+        body = "Future Phone / Tape Recorder: three click groups. Count each group in order, or replay the phone or tape recorder before entering the code.";
       } else {
         body = "The vending keypad needs a three-digit clue. The future phone, tape recorder, or rain window can provide it.";
       }
@@ -3198,7 +3198,9 @@ export class MainScene extends Phaser.Scene {
       this.state.flag("rainCipherSeen")
         ? "Rain cipher / phone groups: 7, 3, 1."
         : this.state.flag("heardPhone")
-          ? "Future phone / tape groups: 7, 3, 1."
+          ? this.state.muted
+            ? "Accessibility transcript: future phone / tape groups are 7, 3, 1."
+            : "Future phone / tape clue heard: three click groups. Count each group in order; replay the phone or tape recorder if needed."
           : "",
       this.state.flag("handlessClockSeen") ? "Handless clock note: click groups are counted, not read as clock time." : "",
       this.state.flag("microwaveSeen") ? "Microwave note: it warms memories, but it is not a place to file an impossible hour." : "",

@@ -121,6 +121,7 @@
 - [x] Archive security override now accepts any inspected Security evidence that can issue the Audit Warrant, with QA coverage for the incident-board route.
 - [x] The archive deduction route can now reach Mirror Office through the Missing-Person File without ever acquiring the Audit Warrant, and save repair preserves that warrantless route.
 - [x] Touch first-tap hotspot previews now expire cleanly instead of leaving stale focus/status, with browser QA coverage for timeout re-priming.
+- [x] Unmuted phone/tape clue recall now avoids handing out the exact vending code in Notes or Review Clue; exact digits remain available through rain, muted transcripts, or Hint answer, and the vending reward now positively clues the final outside-system answer.
 - [x] Hotspot cursor QA now sweeps every authored room hotspot for hand cursor and live target status feedback.
 - [x] Deployment prepared with `.github/workflows/deploy-pages.yml`.
 - [x] Documentation written: `README.md`, `ASSETS.md`, `THIRD_PARTY_NOTICES.md`, `DESIGN_NOTES.md`, `PROGRESS.md`.
