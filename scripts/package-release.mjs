@@ -71,6 +71,7 @@ const requiredDistFiles = [
   "dist/assets/audio/ui/KENNEY_INTERFACE_SOUNDS_LICENSE.txt",
   "dist/assets/audio/ui/KENNEY_UI_AUDIO_LICENSE.txt"
 ];
+const releaseTextDistFiles = requiredDistFiles.filter((file) => file.endsWith(".txt"));
 const forbiddenArchivePatterns = [
   /^src\//,
   /^scripts\//,
@@ -225,6 +226,35 @@ async function assertDistFresh() {
     throw new Error(
       `Production build is stale: ${newestInputPath} is newer than dist/index.html. Run npm run release so the build, QA, and packaging happen together.`
     );
+  }
+}
+
+function normalizeLf(text) {
+  return text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+}
+
+async function copyTextFileLf(sourcePath, destinationPath) {
+  await writeFile(destinationPath, normalizeLf(await readFile(sourcePath, "utf8")));
+}
+
+async function normalizeTextFileLf(path) {
+  const original = await readFile(path, "utf8");
+  const normalized = normalizeLf(original);
+  if (normalized !== original) {
+    await writeFile(path, normalized);
+  }
+}
+
+async function assertLfOnlyFiles(root, files, label) {
+  const crlfFiles = [];
+  for (const file of files) {
+    const text = await readFile(join(root, file), "utf8");
+    if (text.includes("\r")) {
+      crlfFiles.push(file);
+    }
+  }
+  if (crlfFiles.length > 0) {
+    throw new Error(`${label} contains non-normalized text files:\n${crlfFiles.join("\n")}`);
   }
 }
 
@@ -445,9 +475,12 @@ await rm(tempStoreShaPath, { force: true });
 await mkdir(tempStageDir, { recursive: true });
 await mkdir(join(tempStageDir, "docs"), { recursive: true });
 await cp("dist", join(tempStageDir, "dist"), { recursive: true });
+for (const file of releaseTextDistFiles) {
+  await normalizeTextFileLf(join(tempStageDir, file));
+}
 
 for (const doc of docs) {
-  await cp(doc, join(tempStageDir, doc));
+  await copyTextFileLf(doc, join(tempStageDir, doc));
 }
 
 await writeFile(
@@ -522,6 +555,11 @@ await writeFile(
     "This release archive intentionally contains the built game and release documentation only."
   ].join("\n")
 );
+await assertLfOnlyFiles(
+  tempStageDir,
+  [...releaseTextDistFiles, "README.md", "PLAY.txt", "ASSETS.md", "NOTICE.md", "THIRD_PARTY_NOTICES.md", "docs/ASSET_PROVENANCE.md"],
+  "Standard release staging"
+);
 
 await writeZip(tempStageDir, tempArchivePath);
 const listing = (await listZipEntries(tempArchivePath)).map((entry) => entry.trim().replaceAll("\\", "/")).filter(Boolean);
@@ -564,9 +602,12 @@ const hash = await sha256(tempArchivePath);
 await writeFile(tempShaPath, `${hash}  ${releaseName}.zip\n`);
 
 await cp("dist", tempStoreStageDir, { recursive: true });
+for (const file of releaseTextDistFiles) {
+  await normalizeTextFileLf(join(tempStoreStageDir, file.replace(/^dist\//, "")));
+}
 await mkdir(join(tempStoreStageDir, "legal"), { recursive: true });
 for (const doc of docs) {
-  await cp(doc, join(tempStoreStageDir, "legal", doc.replace(/^docs\//, "")));
+  await copyTextFileLf(doc, join(tempStoreStageDir, "legal", doc.replace(/^docs\//, "")));
 }
 await writeFile(
   join(tempStoreStageDir, "README.txt"),
@@ -590,6 +631,19 @@ await writeFile(
     "Upload this ZIP as an HTML/static web game, or serve this folder as a static web root.",
     "The playable entry point is index.html at the archive root."
   ].join("\n")
+);
+await assertLfOnlyFiles(
+  tempStoreStageDir,
+  [
+    ...releaseTextDistFiles.map((file) => file.replace(/^dist\//, "")),
+    "README.txt",
+    "PLAY.txt",
+    "legal/ASSETS.md",
+    "legal/NOTICE.md",
+    "legal/THIRD_PARTY_NOTICES.md",
+    "legal/ASSET_PROVENANCE.md"
+  ],
+  "Store release staging"
 );
 await writeZip(tempStoreStageDir, tempStoreArchivePath);
 const storeListing = (await listZipEntries(tempStoreArchivePath)).map((entry) => entry.trim().replaceAll("\\", "/")).filter(Boolean);
