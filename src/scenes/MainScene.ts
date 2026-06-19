@@ -92,6 +92,14 @@ export class MainScene extends Phaser.Scene {
     event.preventDefault();
     this.cancelSelectedItem();
   };
+  private handleDocumentCancelKey = (event: KeyboardEvent): void => {
+    if (event.key !== "Escape" || event.defaultPrevented) {
+      return;
+    }
+    if (this.cancelSelectedItem()) {
+      event.preventDefault();
+    }
+  };
 
   constructor() {
     super("MainScene");
@@ -136,8 +144,11 @@ export class MainScene extends Phaser.Scene {
     );
     this.game.canvas.removeEventListener("contextmenu", this.handleCanvasContextMenu);
     this.game.canvas.addEventListener("contextmenu", this.handleCanvasContextMenu);
+    document.removeEventListener("keydown", this.handleDocumentCancelKey);
+    document.addEventListener("keydown", this.handleDocumentCancelKey);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.game.canvas.removeEventListener("contextmenu", this.handleCanvasContextMenu);
+      document.removeEventListener("keydown", this.handleDocumentCancelKey);
     });
     this.input.setDefaultCursor("default");
     this.input.keyboard?.on("keydown", this.handleKeyboardShortcut, this);
