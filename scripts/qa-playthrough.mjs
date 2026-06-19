@@ -1811,6 +1811,48 @@ async function testWrongItemFeedback(browser, issues) {
   await page.close();
 }
 
+async function testAuditorConsultation(browser, issues) {
+  const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
+  watchPage(page, issues, "auditor-consultation");
+
+  await continueSaved(page, {
+    room: "mirror",
+    inventory: ["auditWarrant", "memoryCup", "selfFile"],
+    flags: { serverSolved: true },
+    audioVolume: 0.72,
+    muted: false
+  });
+
+  await click(page, 612, 596);
+  await page.getByText("One sanctioned question").waitFor({ state: "visible", timeout: 8_000 });
+  await button(page, "Ask About File");
+  await page.getByText("still inside the building's idea of mercy").waitFor({ state: "visible", timeout: 8_000 });
+  await button(page, "Ask More");
+  await button(page, "Ask About Hour");
+  await page.getByText("Freedom is rarely complete documentation").waitFor({ state: "visible", timeout: 8_000 });
+  await button(page, "Ask More");
+  await button(page, "Ask Warrant");
+  await page.getByText("make the Department answer").waitFor({ state: "visible", timeout: 8_000 });
+  await button(page, "Leave");
+
+  const data = await save(page);
+  for (const flag of ["auditorFileAsked", "auditorHourAsked", "auditorWarrantAsked"]) {
+    if (!data.flags[flag]) {
+      throw new Error(`Auditor consultation did not persist ${flag}: ${JSON.stringify(data)}`);
+    }
+  }
+  if (data.ending) {
+    throw new Error(`Auditor consultation unexpectedly triggered an ending: ${JSON.stringify(data)}`);
+  }
+
+  await click(page, 638, 32);
+  await page.getByText("the file ending makes you findable").waitFor({ state: "visible", timeout: 8_000 });
+  await page.getByText("the hour ending breaks the ledger").waitFor({ state: "visible", timeout: 8_000 });
+  await page.getByText("the warrant ending turns the correction outward").waitFor({ state: "visible", timeout: 8_000 });
+
+  await page.close();
+}
+
 async function testSaveRepairAndArchiveGates(browser, issues) {
   const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
   watchPage(page, issues, "save-repair-gates");
@@ -2110,6 +2152,7 @@ async function run() {
     await testGamepadNavigation(browser, issues);
     await testAuditEndingFromLateSave(browser, issues);
     await testWrongItemFeedback(browser, issues);
+    await testAuditorConsultation(browser, issues);
     await testSaveRepairAndArchiveGates(browser, issues);
     await testPanelEscapeAndReset(browser, issues);
     await testLateGameNotesScroll(browser, issues);
@@ -2118,7 +2161,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone/rain/muted clue paths, hand-cursor hotspot/inventory behavior, audio controls, keyboard shortcuts, keyboard title start, controller title/object/modal navigation, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone/rain/muted clue paths, hand-cursor hotspot/inventory behavior, audio controls, keyboard shortcuts, keyboard title start, controller title/object/modal navigation, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;

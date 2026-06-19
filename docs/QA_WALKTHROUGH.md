@@ -58,6 +58,7 @@ Expected results:
 - Known clues can be reviewed from relevant puzzle panels.
 - The Phaser canvas is painted with varied room art on title, room, reload, map, and ending states.
 - Filed, Escaped, and Audit endings each save a distinct ending id.
+- After final verification, the Red Intercom offers optional Auditor questions about the file, hour, and warrant choices, and Notes remember those answers.
 - Wrong puzzle entries recover cleanly and allow another attempt.
 - Using wrong inventory items on major locks gives explicit feedback and does not grant rewards, open gates, or trigger endings.
 - Major puzzle and Auditor answer buttons do not appear in solution order, so gates cannot be solved by simply clicking top-to-bottom.

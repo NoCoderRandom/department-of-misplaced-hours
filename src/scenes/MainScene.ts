@@ -2057,7 +2057,51 @@ export class MainScene extends Phaser.Scene {
       this.showMessage("Red Intercom", "The Auditor has your identity. Now it wants the missing hour itself.");
       return;
     }
-    this.showMessage("Red Intercom", "The Auditor hums softly. Your file and missing hour remain verified.");
+    this.auditorConsultation();
+  }
+
+  private auditorConsultation(): void {
+    this.showMessage(
+      "The Auditor",
+      "The intercom keeps the line open after verification. 'One sanctioned question may become three, provided each is filed as hesitation.'",
+      [
+        {
+          label: "Ask About File",
+          action: () =>
+            this.auditorAnswer(
+              "auditorFileAsked",
+              "The Auditor shuffles pages behind the wall. 'File yourself under SELF and the Department can find you again. You become recoverable, legible, and still inside the building's idea of mercy.'"
+            )
+        },
+        {
+          label: "Ask About Hour",
+          action: () =>
+            this.auditorAnswer(
+              "auditorHourAsked",
+              "The cup ticks once. 'Carry the missing hour out and the ledger loses its grip. You leave with an absence in your pocket. Freedom is rarely complete documentation.'"
+            )
+        },
+        {
+          label: "Ask Warrant",
+          action: () =>
+            this.auditorAnswer(
+              "auditorWarrantAsked",
+              "The warrant crackles like a small courtroom. 'Invoke audit authority and the correction turns outward. You stop being the case and make the Department answer for the filing system.'"
+            )
+        },
+        { label: "Leave", action: () => this.closeOverlay() }
+      ]
+    );
+  }
+
+  private auditorAnswer(flag: string, body: string): void {
+    this.state.setFlag(flag);
+    this.audio.paper();
+    this.state.save();
+    this.showMessage("The Auditor", body, [
+      { label: "Ask More", action: () => this.auditorConsultation() },
+      { label: "Leave", action: () => this.closeOverlayAndRefresh() }
+    ]);
   }
 
   private dialogueQuestion(index: number): void {
@@ -2777,7 +2821,10 @@ export class MainScene extends Phaser.Scene {
         : this.state.flag("identityVerified")
           ? "Intercom accepted your Missing-Person File."
           : "",
-      this.state.flag("hourVerified") ? "Intercom accepted the Cup of Missing Hour." : ""
+      this.state.flag("hourVerified") ? "Intercom accepted the Cup of Missing Hour." : "",
+      this.state.flag("auditorFileAsked") ? "Auditor note: the file ending makes you findable, but still legible to the Department." : "",
+      this.state.flag("auditorHourAsked") ? "Auditor note: the hour ending breaks the ledger's grip, but does not promise complete memory." : "",
+      this.state.flag("auditorWarrantAsked") ? "Auditor note: the warrant ending turns the correction outward and audits the Department itself." : ""
     ].filter(Boolean);
     this.showDocument("Notes", notes.join("\n\n"));
   }

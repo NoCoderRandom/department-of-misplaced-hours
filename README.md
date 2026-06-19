@@ -10,7 +10,7 @@ The game is built as a static web app with Phaser 3, TypeScript, and Vite. It ha
 
 - Seven playable rooms: Reception Desk, Clock Hall, Security Office, Interrogation Booth, Records Archive, Break Room, and Mirror Office.
 - Inventory-based interaction with more than a dozen collectible or usable objects, now shown with compact pictogram icons.
-- Multiple progression routes, including a Security Office audit-warrant path, an archive deduction path, an archive security-override path, an audio/visual vending code, physical final-act item use, and three ending actions.
+- Multiple progression routes, including a Security Office audit-warrant path, an archive deduction path, an archive security-override path, an audio/visual vending code, physical final-act item use, optional Auditor consultation, and three ending actions.
 - Three endings.
 - Local save/load through `localStorage`, with audio, readability, and motion preferences preserved separately from progress resets.
 - Mouse, keyboard, and standard gamepad/controller navigation for title actions, room objects, inventory, and modal buttons.
@@ -54,7 +54,7 @@ The production files are written to `dist/`.
 npm run verify
 ```
 
-This runs TypeScript, production build, exact release content checks, automated browser QA against the production preview, and a visual readability audit. The QA covers asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, three endings, canvas paint and accessibility attributes, mid-game reloads, phone/rain/muted clue paths, hand-cursor hotspot/inventory behavior, audio controls, keyboard shortcuts, controller title/object/modal navigation, large-text and reduced-motion preference persistence, reset survival, protected Start New behavior, clue-gated Mood Clocks, wrong-item feedback, failed-puzzle recovery, reward Escape checks including rain/glass/vending take prompts, save repair, invalid-room save recovery, corrupt/unavailable storage recovery, Recover Position, malformed save handling, scaled/mobile canvas interaction, modal focus/Escape behavior, late-game Notes scrolling, and answer-order anti-spoiler checks.
+This runs TypeScript, production build, exact release content checks, automated browser QA against the production preview, and a visual readability audit. The QA covers asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, three endings, canvas paint and accessibility attributes, mid-game reloads, phone/rain/muted clue paths, hand-cursor hotspot/inventory behavior, audio controls, keyboard shortcuts, controller title/object/modal navigation, large-text and reduced-motion preference persistence, reset survival, protected Start New behavior, clue-gated Mood Clocks, wrong-item feedback, Auditor consultation notes, failed-puzzle recovery, reward Escape checks including rain/glass/vending take prompts, save repair, invalid-room save recovery, corrupt/unavailable storage recovery, Recover Position, malformed save handling, scaled/mobile canvas interaction, modal focus/Escape behavior, late-game Notes scrolling, and answer-order anti-spoiler checks.
 
 ## Preview Production Build
 
