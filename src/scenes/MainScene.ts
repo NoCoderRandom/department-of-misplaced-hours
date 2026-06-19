@@ -88,6 +88,10 @@ export class MainScene extends Phaser.Scene {
   private gamepadButtonLatch: Record<string, boolean> = {};
   private gamepadNavDirection = 0;
   private gamepadNavAt = 0;
+  private handleCanvasContextMenu = (event: MouseEvent): void => {
+    event.preventDefault();
+    this.cancelSelectedItem();
+  };
 
   constructor() {
     super("MainScene");
@@ -126,7 +130,15 @@ export class MainScene extends Phaser.Scene {
     this.game.canvas.setAttribute("role", "application");
     this.game.canvas.setAttribute("aria-label", "The Department of Misplaced Hours playable game canvas");
     this.game.canvas.setAttribute("aria-describedby", "game-accessibility-summary");
-    this.game.canvas.setAttribute("aria-keyshortcuts", "Tab Shift+Tab Enter Space ArrowLeft ArrowRight ArrowUp ArrowDown M N H F1 S");
+    this.game.canvas.setAttribute(
+      "aria-keyshortcuts",
+      "Tab Shift+Tab Enter Space Escape ArrowLeft ArrowRight ArrowUp ArrowDown M N H F1 S"
+    );
+    this.game.canvas.removeEventListener("contextmenu", this.handleCanvasContextMenu);
+    this.game.canvas.addEventListener("contextmenu", this.handleCanvasContextMenu);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.game.canvas.removeEventListener("contextmenu", this.handleCanvasContextMenu);
+    });
     this.input.setDefaultCursor("default");
     this.input.keyboard?.on("keydown", this.handleKeyboardShortcut, this);
     this.audio.setAssetPlayer((key, volume) => {
@@ -200,6 +212,10 @@ export class MainScene extends Phaser.Scene {
       this.cycleKeyboardFocus(event.shiftKey ? -1 : 1);
     } else if (key === "enter" || event.key === " ") {
       if (this.activateKeyboardFocus()) {
+        event.preventDefault();
+      }
+    } else if (event.key === "Escape") {
+      if (this.cancelSelectedItem()) {
         event.preventDefault();
       }
     } else if (key === "m" || code === "keym") {
@@ -374,12 +390,7 @@ export class MainScene extends Phaser.Scene {
       this.closeOverlay();
       return;
     }
-    if (!this.titleActive && this.roomTitle && this.selectedItem) {
-      const item = ITEMS[this.selectedItem];
-      this.selectedItem = undefined;
-      this.createHudRefresh();
-      this.say(`Put away ${item.name}.`);
-    }
+    this.cancelSelectedItem();
   }
 
   private handleGamepadPanelShortcut(action: () => void): void {
@@ -569,7 +580,7 @@ export class MainScene extends Phaser.Scene {
         action: () => {
           this.showMessage(
             "Controls",
-            "Move the cursor around the room. When it becomes a hand and the status line names something, click to inspect it. Select an inventory item first to try using it on the room.\n\nKeyboard: Tab cycles targets, Enter or Space activates. Controller: D-pad or stick cycles focus, A selects, B closes panels.",
+            "Move the cursor around the room. When it becomes a hand and the status line names something, click to inspect it. Select an inventory item first to try using it on the room. Right-click, Escape, or controller B puts the item away.\n\nKeyboard: Tab cycles targets, Enter or Space activates. Controller: D-pad or stick cycles focus, A selects, B cancels selected items or closes panels.",
             [{ label: "Close", action: () => this.closeOverlay() }]
           );
         }
@@ -852,6 +863,17 @@ export class MainScene extends Phaser.Scene {
     this.selectedItem = this.selectedItem === itemId ? undefined : itemId;
     this.createHudRefresh();
     this.say(this.selectedItem ? `Selected ${item.name}.` : `Put away ${item.name}.`);
+  }
+
+  private cancelSelectedItem(): boolean {
+    if (this.domOverlay || this.loadFailed || this.titleActive || !this.roomTitle || !this.selectedItem) {
+      return false;
+    }
+    const item = ITEMS[this.selectedItem];
+    this.selectedItem = undefined;
+    this.createHudRefresh();
+    this.say(`Put away ${item.name}.`);
+    return true;
   }
 
   private createItemIcon(
@@ -2751,7 +2773,7 @@ export class MainScene extends Phaser.Scene {
   private showHelp(): void {
     this.showMessage(
       "Help",
-      "Hand cursor marks useful objects. Select inventory, then click an object. Tab/D-pad moves focus; Enter/Space/A activates; B/Escape closes panels. Map fast-travels.",
+      "Hand cursor marks useful objects. Select inventory, then click an object. Right-click, Escape, or controller B puts it away. Tab/D-pad moves focus; Enter/Space/A activates. Map fast-travels.",
       [
         { label: this.state.largeText ? "Normal Text" : "Large Text", action: () => this.toggleLargeText() },
         { label: this.state.reducedMotion ? "Full Motion" : "Reduced Motion", action: () => this.toggleReducedMotion() },

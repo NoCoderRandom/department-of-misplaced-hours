@@ -78,5 +78,6 @@
 - [x] Vending flow now requires the glass-case file beat before dispensing the missing hour, accepts seen rain-clue knowledge consistently, and avoids revealing the exact code after one wrong unmuted guess.
 - [x] Storage-disabled play now shows a one-time save warning, and legacy saves preserve OS reduced-motion defaults during migration.
 - [x] Direct release packaging now refuses stale production builds if source/public build inputs are newer than `dist/index.html`; the normal `npm run release` path rebuilds, verifies, and packages together.
+- [x] Selected inventory can now be put away with Escape, right-click, or controller B, with QA proving the next object click is empty-handed rather than wrong-item use.
 - [x] Deployment prepared with `.github/workflows/deploy-pages.yml`.
 - [x] Documentation written: `README.md`, `ASSETS.md`, `THIRD_PARTY_NOTICES.md`, `DESIGN_NOTES.md`, `PROGRESS.md`.

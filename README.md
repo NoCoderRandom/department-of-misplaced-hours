@@ -54,7 +54,7 @@ The production files are written to `dist/`.
 npm run verify
 ```
 
-This runs TypeScript, production build, exact release content checks, automated browser QA against the production preview, and a visual readability audit. The QA covers asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, three endings, canvas paint and accessibility attributes, mid-game reloads, phone/rain/muted clue paths, hand-cursor hotspot/inventory behavior, audio controls, keyboard shortcuts, controller title/object/modal navigation, large-text and reduced-motion preference persistence, reset survival, protected Start New behavior, clue-gated Mood Clocks, wrong-item feedback, Auditor consultation notes, ending-screen visual checks, failed-puzzle recovery, reward Escape checks including rain/glass/vending take prompts, save repair, invalid-room save recovery, corrupt/unavailable storage recovery, Recover Position, malformed save handling, scaled/mobile canvas interaction, modal focus/Escape behavior, late-game Notes scrolling, and answer-order anti-spoiler checks.
+This runs TypeScript, production build, exact release content checks, automated browser QA against the production preview, and a visual readability audit. The QA covers asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, three endings, canvas paint and accessibility attributes, mid-game reloads, phone/rain/muted clue paths, hand-cursor hotspot/inventory behavior, audio controls, keyboard shortcuts, selected-item cancel by Escape/right-click/controller B, controller title/object/modal navigation, large-text and reduced-motion preference persistence, reset survival, protected Start New behavior, clue-gated Mood Clocks, wrong-item feedback, Auditor consultation notes, ending-screen visual checks, failed-puzzle recovery, reward Escape checks including rain/glass/vending take prompts, save repair, invalid-room save recovery, corrupt/unavailable storage recovery, Recover Position, malformed save handling, scaled/mobile canvas interaction, modal focus/Escape behavior, late-game Notes scrolling, and answer-order anti-spoiler checks.
 
 ## Preview Production Build
 
@@ -93,9 +93,10 @@ This checks the public GitHub Pages build, verifies the HTML fallback copy, stat
 - Move the cursor around the room; it becomes a hand and the status line names useful objects.
 - Hovering a useful object shows an object-local focus bracket and label; there are no always-visible hotspot markers on the art.
 - Click an inventory item to select it, then click a room object to try using it there.
+- Press `Escape`, right-click the game, or press controller `B` to put away a selected inventory item.
 - Completed one-shot inventory tools dim after their main use.
 - Puzzle panels include clue review buttons once relevant evidence is known.
-- Press `Escape` to close the current panel.
+- Press `Escape` to close the current panel or put away the selected inventory item when no panel is open.
 - Use **Notes** to review discovered clues.
 - Use **Map** for unlocked-room fast travel.
 - Use **Hint** if stuck.
@@ -105,7 +106,7 @@ This checks the public GitHub Pages build, verifies the HTML fallback copy, stat
 - Use **Sound**, **-**, and **+** for audio controls.
 - Keyboard: `M` Map, `N` Notes, `H` Hint, `F1` Help, `S` Sound, `[` / `]` volume.
 - Keyboard object mode: `Tab` / `Shift+Tab` cycles room objects and inventory; `Enter` / `Space` activates the focused target.
-- Controller: D-pad or left stick cycles title actions, room objects, inventory, and modal buttons; `A` selects; `B` closes panels; `Back/View` opens Map, `X` opens Notes, `Y` opens Hint, `Start/Menu` opens Help, and bumpers adjust volume.
+- Controller: D-pad or left stick cycles title actions, room objects, inventory, and modal buttons; `A` selects; `B` cancels a selected item or closes panels; `Back/View` opens Map, `X` opens Notes, `Y` opens Hint, `Start/Menu` opens Help, and bumpers adjust volume.
 - The game canvas has an accessible name and screen-reader summary for its keyboard controls.
 - Progress saves automatically after meaningful actions when browser storage is available. Audio, Large Text, and Reduced Motion preferences survive Reset Shift.
 - If the browser blocks localStorage, the game warns that the current session is playable but progress will not survive closing or reloading the page.

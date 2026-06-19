@@ -267,10 +267,11 @@ async function expectCanvasAccessibility(page, label) {
     attrs.role !== "application" ||
     attrs.label !== "The Department of Misplaced Hours playable game canvas" ||
     attrs.describedBy !== "game-accessibility-summary" ||
-    attrs.keyShortcuts !== "Tab Shift+Tab Enter Space ArrowLeft ArrowRight ArrowUp ArrowDown M N H F1 S" ||
+    attrs.keyShortcuts !== "Tab Shift+Tab Enter Space Escape ArrowLeft ArrowRight ArrowUp ArrowDown M N H F1 S" ||
     !attrs.summaryText.includes("Tab and Shift+Tab") ||
     !attrs.summaryText.includes("Enter or Space") ||
     !attrs.summaryText.includes("Arrow keys move between modal buttons") ||
+    !attrs.summaryText.includes("Escape closes panels or puts away a selected inventory item") ||
     !attrs.summaryText.includes("F1 for Help")
   ) {
     throw new Error(`${label} canvas accessibility attributes are incomplete: ${JSON.stringify(attrs)}`);
@@ -1811,6 +1812,49 @@ async function testWrongItemFeedback(browser, issues) {
   await page.close();
 }
 
+async function expectCircleDoorNeedsStampedForm(page, label) {
+  await click(page, 360, 374);
+  await page.getByText("Select the Stamped Form").waitFor({ state: "visible", timeout: 8_000 });
+  const data = await save(page);
+  if (data.flags.clockUnlocked) {
+    throw new Error(`${label} unexpectedly opened the Circle Door: ${JSON.stringify(data)}`);
+  }
+  await button(page, "Close");
+}
+
+async function testSelectedItemCancel(browser, issues) {
+  const setup = {
+    room: "reception",
+    inventory: ["visitorBadge", "stampedForm"],
+    flags: { introSeen: true, formStamped: true },
+    audioVolume: 0.72,
+    muted: false
+  };
+
+  const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
+  watchPage(page, issues, "selected-item-cancel");
+  await continueSaved(page, setup);
+
+  await selectItem(page, "visitorBadge");
+  await page.keyboard.press("Escape");
+  await expectCircleDoorNeedsStampedForm(page, "Escape selected-item cancel");
+
+  await selectItem(page, "visitorBadge");
+  await page.mouse.click(900, 500, { button: "right" });
+  await expectCircleDoorNeedsStampedForm(page, "Right-click selected-item cancel");
+
+  await page.close();
+
+  const gamepadPage = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
+  watchPage(gamepadPage, issues, "selected-item-gamepad-cancel");
+  await installQaGamepad(gamepadPage);
+  await continueSaved(gamepadPage, setup);
+  await selectItem(gamepadPage, "visitorBadge");
+  await pressGamepadButton(gamepadPage, 1);
+  await expectCircleDoorNeedsStampedForm(gamepadPage, "Controller B selected-item cancel");
+  await gamepadPage.close();
+}
+
 async function testAuditorConsultation(browser, issues) {
   const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
   watchPage(page, issues, "auditor-consultation");
@@ -2152,6 +2196,7 @@ async function run() {
     await testGamepadNavigation(browser, issues);
     await testAuditEndingFromLateSave(browser, issues);
     await testWrongItemFeedback(browser, issues);
+    await testSelectedItemCancel(browser, issues);
     await testAuditorConsultation(browser, issues);
     await testSaveRepairAndArchiveGates(browser, issues);
     await testPanelEscapeAndReset(browser, issues);
@@ -2161,7 +2206,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone/rain/muted clue paths, hand-cursor hotspot/inventory behavior, audio controls, keyboard shortcuts, keyboard title start, controller title/object/modal navigation, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone/rain/muted clue paths, hand-cursor hotspot/inventory behavior, audio controls, keyboard shortcuts, keyboard title start, controller title/object/modal navigation, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;
