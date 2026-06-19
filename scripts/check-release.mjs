@@ -25,6 +25,9 @@ const requiredThirdPartyNoticeTerms = [
 const requiredDistFiles = [
   "dist/index.html",
   "dist/favicon.svg",
+  "dist/site.webmanifest",
+  "dist/robots.txt",
+  "dist/sitemap.xml",
   "dist/assets/images/title-department.webp",
   "dist/assets/images/reception.webp",
   "dist/assets/images/clock-hall.webp",
@@ -88,6 +91,56 @@ async function referencedBuildAssets() {
   return [...html.matchAll(/(?:src|href)="\.\/assets\/(index-[^"]+\.(?:js|css))"/g)].map((match) => `dist/assets/${match[1]}`);
 }
 
+async function assertStaticSiteMetadata() {
+  const html = await readFile("dist/index.html", "utf8");
+  for (const required of [
+    'rel="canonical"',
+    'rel="manifest"',
+    'property="og:title"',
+    'property="og:image"',
+    'name="twitter:card"',
+    "The Department of Misplaced Hours"
+  ]) {
+    if (!html.includes(required)) {
+      throw new Error(`Release check failed: dist/index.html is missing metadata marker ${required}.`);
+    }
+  }
+
+  const manifest = JSON.parse(await readFile("dist/site.webmanifest", "utf8"));
+  const requiredManifest = {
+    name: "The Department of Misplaced Hours",
+    short_name: "Misplaced Hours",
+    start_url: "./",
+    scope: "./",
+    display: "fullscreen",
+    orientation: "landscape",
+    background_color: "#080a08",
+    theme_color: "#10170f"
+  };
+  for (const [key, value] of Object.entries(requiredManifest)) {
+    if (manifest[key] !== value) {
+      throw new Error(`Release check failed: site.webmanifest ${key} expected ${value}, got ${manifest[key]}.`);
+    }
+  }
+  if (!Array.isArray(manifest.icons) || !manifest.icons.some((icon) => icon.src === "./favicon.svg" && icon.type === "image/svg+xml")) {
+    throw new Error("Release check failed: site.webmanifest is missing the SVG favicon icon.");
+  }
+
+  const robots = await readFile("dist/robots.txt", "utf8");
+  if (
+    !robots.includes("User-agent: *") ||
+    !robots.includes("Allow: /") ||
+    !robots.includes("https://nocoderrandom.github.io/department-of-misplaced-hours/sitemap.xml")
+  ) {
+    throw new Error("Release check failed: robots.txt is missing crawler or sitemap directives.");
+  }
+
+  const sitemap = await readFile("dist/sitemap.xml", "utf8");
+  if (!sitemap.includes("<urlset") || !sitemap.includes("https://nocoderrandom.github.io/department-of-misplaced-hours/")) {
+    throw new Error("Release check failed: sitemap.xml is missing the public game URL.");
+  }
+}
+
 const distFiles = await listFiles(distDir);
 const missingDocs = [];
 for (const doc of requiredReleaseDocs) {
@@ -127,6 +180,7 @@ if (referencedAssets.length !== 2 || missingReferencedAssets.length > 0) {
     `Release check failed: dist/index.html does not reference the current built JS/CSS assets.\nReferenced:\n${referencedAssets.join("\n")}\nMissing:\n${missingReferencedAssets.join("\n")}`
   );
 }
+await assertStaticSiteMetadata();
 
 const expectedDistFiles = new Set([...requiredDistFiles, ...referencedAssets]);
 const unexpectedDistFiles = distFiles.filter((file) => !expectedDistFiles.has(file));

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://nocoderrandom.github.io/department-of-misplaced-hours/sitemap.xml

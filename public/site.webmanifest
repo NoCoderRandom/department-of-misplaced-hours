@@ -1,0 +1,20 @@
+{
+  "name": "The Department of Misplaced Hours",
+  "short_name": "Misplaced Hours",
+  "description": "A surreal point-and-click mystery puzzle game for static web hosting.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#080a08",
+  "theme_color": "#10170f",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

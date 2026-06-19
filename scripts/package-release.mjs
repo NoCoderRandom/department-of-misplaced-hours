@@ -37,6 +37,9 @@ const buildInputs = ["src", "public", "index.html", "package.json", "package-loc
 const requiredDistFiles = [
   "dist/index.html",
   "dist/favicon.svg",
+  "dist/site.webmanifest",
+  "dist/robots.txt",
+  "dist/sitemap.xml",
   "dist/assets/images/title-department.webp",
   "dist/assets/images/reception.webp",
   "dist/assets/images/clock-hall.webp",

@@ -110,6 +110,63 @@ async function assertLiveHtml(url) {
   }
 }
 
+async function assertPublicMetadata(rawUrl) {
+  const baseUrl = new URL(rawUrl);
+  const checks = [
+    {
+      label: "manifest",
+      url: new URL("site.webmanifest", baseUrl),
+      assert: async (response) => {
+        const manifest = await response.json();
+        if (
+          manifest.name !== "The Department of Misplaced Hours" ||
+          manifest.short_name !== "Misplaced Hours" ||
+          manifest.start_url !== "./" ||
+          manifest.scope !== "./" ||
+          manifest.display !== "fullscreen" ||
+          manifest.orientation !== "landscape" ||
+          !manifest.icons?.some((icon) => icon.src === "./favicon.svg" && icon.type === "image/svg+xml")
+        ) {
+          throw new Error(`Live manifest content is incomplete: ${JSON.stringify(manifest)}`);
+        }
+      }
+    },
+    {
+      label: "robots",
+      url: new URL("robots.txt", baseUrl),
+      assert: async (response) => {
+        const robots = await response.text();
+        if (
+          !robots.includes("User-agent: *") ||
+          !robots.includes("Allow: /") ||
+          !robots.includes("https://nocoderrandom.github.io/department-of-misplaced-hours/sitemap.xml")
+        ) {
+          throw new Error(`Live robots.txt content is incomplete: ${robots}`);
+        }
+      }
+    },
+    {
+      label: "sitemap",
+      url: new URL("sitemap.xml", baseUrl),
+      assert: async (response) => {
+        const sitemap = await response.text();
+        if (!sitemap.includes("<urlset") || !sitemap.includes("https://nocoderrandom.github.io/department-of-misplaced-hours/")) {
+          throw new Error(`Live sitemap.xml content is incomplete: ${sitemap}`);
+        }
+      }
+    }
+  ];
+
+  for (const check of checks) {
+    check.url.searchParams.set("live-smoke", `${Date.now()}`);
+    const response = await fetch(check.url, { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error(`Live ${check.label} returned HTTP ${response.status} for ${check.url}`);
+    }
+    await check.assert(response);
+  }
+}
+
 async function smokePlayable(browser, url) {
   const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
   const issues = [];
@@ -187,6 +244,7 @@ for (let attempt = 1; attempt <= retries; attempt += 1) {
   let browser;
   try {
     await assertLiveHtml(url);
+    await assertPublicMetadata(rawUrl);
     browser = await chromium.launch({ headless: true });
     const playable = await smokePlayable(browser, url);
     const noScript = await smokeNoScript(browser, url);

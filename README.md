@@ -16,6 +16,7 @@ The game is built as a static web app with Phaser 3, TypeScript, and Vite. It ha
 - Procedural ambience plus CC0 Kenney UI/SFX sounds, document rustle, glass/safe/machine feedback, phone clue, and ending tones.
 - Optimized generated WebP background art for title, seven rooms, and ending.
 - Static boot screen, in-canvas loading progress, a readable no-JavaScript fallback, a readable asset-load failure screen if a deployment is missing required images, and procedural audio fallback if optional UI sounds are unavailable.
+- Browser install/share metadata, crawler guidance, and a sitemap for the public GitHub Pages release.
 - GitHub Pages deployment workflow in `.github/workflows/deploy-pages.yml`.
 
 ## Requirements
@@ -83,7 +84,7 @@ It also writes `release/department-of-misplaced-hours-<version>-store.zip`, a st
 npm run smoke:live
 ```
 
-This checks the public GitHub Pages build, verifies the HTML fallback copy, launches the game in a browser, starts a new shift, checks that a save is written, and verifies the no-JavaScript fallback.
+This checks the public GitHub Pages build, verifies the HTML fallback copy, static-site metadata, crawler files, launches the game in a browser, starts a new shift, checks that a save is written, and verifies the no-JavaScript fallback.
 
 ## Controls
 
