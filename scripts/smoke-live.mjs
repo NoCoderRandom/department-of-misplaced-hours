@@ -92,6 +92,33 @@ async function assertCanvasPainted(page) {
   }
 }
 
+async function assertCanvasAccessibility(page) {
+  const attrs = await page.evaluate(() => {
+    const canvas = document.querySelector("canvas");
+    const summary = document.getElementById("game-accessibility-summary");
+    return {
+      tabIndex: canvas?.getAttribute("tabindex"),
+      role: canvas?.getAttribute("role"),
+      label: canvas?.getAttribute("aria-label"),
+      describedBy: canvas?.getAttribute("aria-describedby"),
+      keyShortcuts: canvas?.getAttribute("aria-keyshortcuts"),
+      summaryText: summary?.textContent?.replace(/\s+/g, " ").trim() ?? ""
+    };
+  });
+  if (
+    attrs.tabIndex !== "0" ||
+    attrs.role !== "application" ||
+    attrs.label !== "The Department of Misplaced Hours playable game canvas" ||
+    attrs.describedBy !== "game-accessibility-summary" ||
+    attrs.keyShortcuts !== "Tab Shift+Tab Enter Space M N H F1 S" ||
+    !attrs.summaryText.includes("Tab and Shift+Tab") ||
+    !attrs.summaryText.includes("Enter or Space") ||
+    !attrs.summaryText.includes("F1 for Help")
+  ) {
+    throw new Error(`Live canvas accessibility attributes are incomplete: ${JSON.stringify(attrs)}`);
+  }
+}
+
 async function assertLiveHtml(url) {
   const response = await fetch(url, { cache: "no-store" });
   if (!response.ok) {
@@ -100,6 +127,8 @@ async function assertLiveHtml(url) {
   const html = (await response.text()).replace(/\s+/g, " ");
   for (const required of [
     "The Department of Misplaced Hours",
+    "Interactive point-and-click mystery game canvas",
+    "Tab and Shift+Tab",
     "needs JavaScript enabled",
     "static web game",
     "does not require a backend server"
@@ -183,6 +212,7 @@ async function smokePlayable(browser, url) {
   await page.reload({ waitUntil: "networkidle", timeout: 60_000 });
   await page.locator("canvas").waitFor({ state: "visible", timeout: 30_000 });
   await page.waitForTimeout(900);
+  await assertCanvasAccessibility(page);
   await assertCanvasPainted(page);
   await gameClick(page, 600, 390);
   await page.getByRole("button", { name: "Clock In" }).click({ timeout: 30_000 });

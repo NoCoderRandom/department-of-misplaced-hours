@@ -109,6 +109,10 @@ export class MainScene extends Phaser.Scene {
   create(): void {
     document.getElementById("boot-screen")?.remove();
     this.game.canvas.tabIndex = 0;
+    this.game.canvas.setAttribute("role", "application");
+    this.game.canvas.setAttribute("aria-label", "The Department of Misplaced Hours playable game canvas");
+    this.game.canvas.setAttribute("aria-describedby", "game-accessibility-summary");
+    this.game.canvas.setAttribute("aria-keyshortcuts", "Tab Shift+Tab Enter Space M N H F1 S");
     this.input.setDefaultCursor("default");
     this.input.keyboard?.on("keydown", this.handleKeyboardShortcut, this);
     this.audio.setAssetPlayer((key, volume) => {

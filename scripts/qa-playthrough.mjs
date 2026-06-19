@@ -166,6 +166,33 @@ async function expectCanvasPainted(page, label) {
   }
 }
 
+async function expectCanvasAccessibility(page, label) {
+  const attrs = await page.evaluate(() => {
+    const canvas = document.querySelector("canvas");
+    const summary = document.getElementById("game-accessibility-summary");
+    return {
+      tabIndex: canvas?.getAttribute("tabindex"),
+      role: canvas?.getAttribute("role"),
+      label: canvas?.getAttribute("aria-label"),
+      describedBy: canvas?.getAttribute("aria-describedby"),
+      keyShortcuts: canvas?.getAttribute("aria-keyshortcuts"),
+      summaryText: summary?.textContent?.replace(/\s+/g, " ").trim() ?? ""
+    };
+  });
+  if (
+    attrs.tabIndex !== "0" ||
+    attrs.role !== "application" ||
+    attrs.label !== "The Department of Misplaced Hours playable game canvas" ||
+    attrs.describedBy !== "game-accessibility-summary" ||
+    attrs.keyShortcuts !== "Tab Shift+Tab Enter Space M N H F1 S" ||
+    !attrs.summaryText.includes("Tab and Shift+Tab") ||
+    !attrs.summaryText.includes("Enter or Space") ||
+    !attrs.summaryText.includes("F1 for Help")
+  ) {
+    throw new Error(`${label} canvas accessibility attributes are incomplete: ${JSON.stringify(attrs)}`);
+  }
+}
+
 async function expectFailureScreenPainted(page) {
   const metrics = await page.evaluate(() => {
     const canvas = document.querySelector("canvas");
@@ -376,6 +403,7 @@ async function startNew(page) {
   await clearGameStorage(page);
   await page.reload({ waitUntil: "networkidle" });
   await page.locator("canvas").waitFor({ state: "visible", timeout: 8_000 });
+  await expectCanvasAccessibility(page, "new game");
   await page.waitForTimeout(750);
   if ((await page.locator("#boot-screen").count()) !== 0) {
     throw new Error("Boot screen was not removed after Phaser startup.");
@@ -1700,7 +1728,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, canvas paint checks, mid-game reloads, phone/rain/muted clue paths, audio controls, keyboard shortcuts, keyboard title start, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, canvas paint and accessibility checks, mid-game reloads, phone/rain/muted clue paths, audio controls, keyboard shortcuts, keyboard title start, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;

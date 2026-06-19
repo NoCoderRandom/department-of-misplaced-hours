@@ -99,6 +99,9 @@ async function assertStaticSiteMetadata() {
     'property="og:title"',
     'property="og:image"',
     'name="twitter:card"',
+    'id="game-accessibility-summary"',
+    "Interactive point-and-click mystery game canvas",
+    "Tab and Shift+Tab",
     "The Department of Misplaced Hours"
   ]) {
     if (!html.includes(required)) {

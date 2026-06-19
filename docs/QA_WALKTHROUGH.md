@@ -38,6 +38,7 @@ This is the intended complete path through the game.
 Expected results:
 
 - The boot screen is removed after Phaser startup and the title canvas is painted.
+- The game canvas has a keyboard-focusable accessible name, keyboard shortcut metadata, and a screen-reader summary for keyboard controls.
 - A missing required asset shows a readable in-canvas asset-load failure screen and names the failed asset instead of hanging behind the boot overlay.
 - A missing optional UI sound does not block boot or play; procedural audio fallback keeps the game usable.
 - All puzzles can be completed without external instructions.
