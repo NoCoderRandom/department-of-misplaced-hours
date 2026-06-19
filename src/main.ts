@@ -16,6 +16,9 @@ const config: Phaser.Types.Core.GameConfig = {
     width: 1200,
     height: 800
   },
+  input: {
+    touch: true
+  },
   scene: [MainScene]
 };
 

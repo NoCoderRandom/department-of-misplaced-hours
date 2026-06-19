@@ -99,6 +99,7 @@ export class MainScene extends Phaser.Scene {
   private gamepadNavAt = 0;
   private touchPrimedHotspotId?: string;
   private touchPrimedAt = 0;
+  private touchPrimeClearTimer?: number;
   private handleCanvasContextMenu = (event: MouseEvent): void => {
     event.preventDefault();
     this.focusGameCanvas();
@@ -832,8 +833,7 @@ export class MainScene extends Phaser.Scene {
     this.keyboardFocusIndex = -1;
     this.titleFocusTargets = [];
     this.titleFocusIndex = -1;
-    this.touchPrimedHotspotId = undefined;
-    this.touchPrimedAt = 0;
+    this.clearTouchHotspotPreview(false);
   }
 
   private resetGameCursor(): void {
@@ -968,8 +968,7 @@ export class MainScene extends Phaser.Scene {
 
   private toggleInventoryItem(itemId: ItemId): void {
     const item = ITEMS[itemId];
-    this.touchPrimedHotspotId = undefined;
-    this.touchPrimedAt = 0;
+    this.clearTouchHotspotPreview(false);
     this.selectedItem = this.selectedItem === itemId ? undefined : itemId;
     this.createHudRefresh();
     this.say(this.selectedItem ? `Selected ${item.name}.` : `Put away ${item.name}.`);
@@ -980,8 +979,7 @@ export class MainScene extends Phaser.Scene {
       return false;
     }
     const item = ITEMS[this.selectedItem];
-    this.touchPrimedHotspotId = undefined;
-    this.touchPrimedAt = 0;
+    this.clearTouchHotspotPreview(false);
     this.selectedItem = undefined;
     this.createHudRefresh();
     this.say(`Put away ${item.name}.`);
@@ -1136,8 +1134,7 @@ export class MainScene extends Phaser.Scene {
         if (this.primeTouchHotspot(pointer, spot)) {
           return;
         }
-        this.touchPrimedHotspotId = undefined;
-        this.touchPrimedAt = 0;
+        this.clearTouchHotspotPreview(false);
         this.audio.click();
         this.hideHotspotFocus();
         spot.action();
@@ -1147,7 +1144,23 @@ export class MainScene extends Phaser.Scene {
 
   private isTouchPointer(pointer: Phaser.Input.Pointer): boolean {
     const sourceEvent = pointer.event as (Event & { pointerType?: string; changedTouches?: TouchList }) | undefined;
-    return sourceEvent?.pointerType === "touch" || Boolean(sourceEvent?.changedTouches?.length);
+    return pointer.wasTouch || sourceEvent?.pointerType === "touch" || Boolean(sourceEvent?.changedTouches?.length);
+  }
+
+  private clearTouchHotspotPreview(clearVisual: boolean): void {
+    if (this.touchPrimeClearTimer !== undefined) {
+      window.clearTimeout(this.touchPrimeClearTimer);
+      this.touchPrimeClearTimer = undefined;
+    }
+    const hadPreview = this.touchPrimedHotspotId !== undefined;
+    this.touchPrimedHotspotId = undefined;
+    this.touchPrimedAt = 0;
+    if (clearVisual && hadPreview) {
+      this.hideHotspotFocus();
+      this.hoverLabel?.setText("");
+      this.resetGameCursor();
+      this.announceStatus("Touch preview cleared.");
+    }
   }
 
   private primeTouchHotspot(pointer: Phaser.Input.Pointer, spot: Hotspot): boolean {
@@ -1162,9 +1175,24 @@ export class MainScene extends Phaser.Scene {
 
     this.touchPrimedHotspotId = spot.id;
     this.touchPrimedAt = now;
+    if (this.touchPrimeClearTimer !== undefined) {
+      window.clearTimeout(this.touchPrimeClearTimer);
+    }
+    const primedId = spot.id;
+    const primedAt = now;
+    this.touchPrimeClearTimer = window.setTimeout(() => {
+      if (this.touchPrimedHotspotId === primedId && this.touchPrimedAt === primedAt) {
+        this.clearTouchHotspotPreview(true);
+      }
+    }, 2500);
     this.audio.hover();
     this.showHotspotFocus({ ...spot, label: `${spot.label}\nTap again` });
     this.setHover(`${spot.label}. Tap again to inspect.`);
+    window.setTimeout(() => {
+      if (this.touchPrimedHotspotId === primedId && this.touchPrimedAt === primedAt) {
+        this.announceStatus(`${spot.label}. Tap again to inspect.`);
+      }
+    }, 0);
     return true;
   }
 

@@ -62,7 +62,7 @@ Expected results:
 - Progress persists after reload through `localStorage`.
 - Mid-game and late-game reloads continue from the current route without losing key rewards, final verification, or server unlock progress.
 - Map fast travel lists unlocked rooms and does not overlap Notes.
-- Hovering useful objects shows a hand cursor, focus bracket, and label, but no hotspot markers are visible at rest.
+- Hovering useful objects shows a hand cursor, focus bracket, and label, but no hotspot markers are visible at rest; touch first-tap previews clear after a short pause.
 - Known clues can be reviewed from relevant puzzle panels.
 - Optional side-room clues from the Handless Clock and Microwave are remembered in Notes and clarify final-answer red herrings.
 - Keypad puzzles can be solved with number-row keys as well as button clicks.
