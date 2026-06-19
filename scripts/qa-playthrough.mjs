@@ -774,10 +774,15 @@ async function solveVending(page, exerciseRewardEscape = false) {
     if (escapedVendingData.flags.vendingSolved || escapedVendingData.inventory.includes("memoryCup")) {
       throw new Error("Vending rewards were granted before Take Them.");
     }
-    await click(page, 854, 396);
-    for (const digit of ["7", "3", "1"]) {
-      await button(page, digit);
+    if (!escapedVendingData.flags.vendingDispensed) {
+      throw new Error(`Vending dispense state was not saved after solving code: ${JSON.stringify(escapedVendingData)}`);
     }
+    const recoveredVendingData = await reloadAndContinue(page, "vending reward pending");
+    if (!recoveredVendingData.flags.vendingDispensed || recoveredVendingData.flags.vendingSolved) {
+      throw new Error(`Vending pending reward did not survive reload cleanly: ${JSON.stringify(recoveredVendingData)}`);
+    }
+    await click(page, 854, 396);
+    await page.getByRole("dialog", { name: "Memory Dispensed" }).waitFor({ state: "visible", timeout: 8_000 });
   }
   await button(page, "Take Them");
 }
@@ -1762,6 +1767,25 @@ async function testWrongItemFeedback(browser, issues) {
 
   await continueSaved(page, {
     room: "reception",
+    inventory: ["visitorBadge", "blankForm", "rubberStamp"],
+    flags: { introSeen: true },
+    audioVolume: 0.72,
+    muted: false
+  });
+  await selectItem(page, "visitorBadge");
+  await click(page, 590, 660);
+  await page.getByText("Visitor Badge is selected, but the stamp only belongs on Blank Form 11-H.").waitFor({
+    state: "visible",
+    timeout: 8_000
+  });
+  let data = await save(page);
+  if (data.flags.formStamped || data.inventory.includes("stampedForm") || !data.inventory.includes("blankForm")) {
+    throw new Error(`Wrong selected item stamped the form: ${JSON.stringify(data)}`);
+  }
+  await button(page, "Close");
+
+  await continueSaved(page, {
+    room: "reception",
     inventory: ["visitorBadge"],
     flags: { introSeen: true },
     audioVolume: 0.72,
@@ -1773,7 +1797,7 @@ async function testWrongItemFeedback(browser, issues) {
     state: "visible",
     timeout: 8_000
   });
-  let data = await save(page);
+  data = await save(page);
   if (data.flags.clockUnlocked) {
     throw new Error(`Wrong item opened the Circle Door: ${JSON.stringify(data)}`);
   }
@@ -2264,7 +2288,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone/rain/muted clue paths, hand-cursor hotspot/inventory behavior, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/object/modal navigation, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone/rain/muted clue paths, hand-cursor hotspot/inventory behavior, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/object/modal navigation, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;

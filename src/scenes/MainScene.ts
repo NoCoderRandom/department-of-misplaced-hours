@@ -1315,6 +1315,10 @@ export class MainScene extends Phaser.Scene {
       this.createHudRefresh();
       return;
     }
+    if (this.selectedItem && this.selectedItem !== "blankForm") {
+      this.rejectSelectedItem("Stamp", "the stamp only belongs on Blank Form 11-H.", ["blankForm"]);
+      return;
+    }
     if (this.selectedItem === "blankForm" || this.state.has("blankForm")) {
       this.makeStampedForm();
       return;
@@ -1870,6 +1874,11 @@ export class MainScene extends Phaser.Scene {
       return;
     }
 
+    if (this.state.flag("vendingDispensed")) {
+      this.showVendingReward();
+      return;
+    }
+
     const cluePath = this.state.has("rainCipher")
       ? "Use the Rain Cipher or the phone clicks. Both point to the same three digits."
       : this.state.flag("rainCipherSeen")
@@ -1881,27 +1890,34 @@ export class MainScene extends Phaser.Scene {
           : "Enter the number counted from the future phone. If you miss it, replay the phone or tape recorder.";
 
     this.showKeypadPuzzle("Memory Vending", cluePath, "731", () => {
-      this.showMessage(
-        "Memory Dispensed",
-        "The machine accepts the token, the cup, and several facts about your childhood. It dispenses a steaming missing hour and a server fuse taped to the bottom.",
-        [
-          {
-            label: "Take Them",
-            action: () => {
-              this.state.setFlag("vendingSolved");
-              this.state.remove("timeToken");
-              this.state.remove("paperCup");
-              this.state.add("memoryCup");
-              this.state.add("serverFuse");
-              this.audio.machine();
-              this.audio.success();
-              this.state.save();
-              this.closeOverlayAndRefresh();
-            }
-          }
-        ]
-      );
+      this.state.setFlag("vendingDispensed");
+      this.state.save();
+      this.showVendingReward();
     }, () => this.state.setFlag("vendingFailed"));
+  }
+
+  private showVendingReward(): void {
+    this.showMessage(
+      "Memory Dispensed",
+      "The machine accepts the token, the cup, and several facts about your childhood. It dispenses a steaming missing hour and a server fuse taped to the bottom.",
+      [
+        {
+          label: "Take Them",
+          action: () => {
+            this.state.setFlag("vendingSolved");
+            this.state.setFlag("vendingDispensed", false);
+            this.state.remove("timeToken");
+            this.state.remove("paperCup");
+            this.state.add("memoryCup");
+            this.state.add("serverFuse");
+            this.audio.machine();
+            this.audio.success();
+            this.state.save();
+            this.closeOverlayAndRefresh();
+          }
+        }
+      ]
+    );
   }
 
   private microwave(): void {
