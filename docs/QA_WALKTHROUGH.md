@@ -51,6 +51,7 @@ Expected results:
 - Keyboard shortcuts open Map, Notes, Hint, Help, Sound, and volume controls, and do not fire through open panels.
 - Pressing `Enter` on the title starts a new shift, so the first action is not mouse-only.
 - Credits can be opened from the title screen and from Help before finishing the game, and the Credits panel remains readable in normal and Large Text layouts.
+- Early Notes keep clock clues generic until relevant evidence is read, and mid-game objectives can point toward the archive deduction route as well as Security.
 - `Tab` / `Shift+Tab` keyboard focus can cycle room objects and inventory, and `Enter` / `Space` can activate them; QA uses this path to solve the opening form/stamp/door chain.
 - Standard controller input can start from the title, cycle room objects/inventory with D-pad or left stick, select with `A`, close panels with `B`, and move focus between modal buttons.
 - Progress persists after reload through `localStorage`.
@@ -58,9 +59,11 @@ Expected results:
 - Map fast travel lists unlocked rooms and does not overlap Notes.
 - Hovering useful objects shows a hand cursor, focus bracket, and label, but no hotspot markers are visible at rest.
 - Known clues can be reviewed from relevant puzzle panels.
+- Keypad puzzles can be solved with number-row keys as well as button clicks.
 - The Phaser canvas is painted with varied room art on title, room, reload, map, and ending states; ending screens keep readable title, body, and action buttons.
 - Filed, Escaped, and Audit endings each save a distinct ending id.
 - After final verification, the Red Intercom offers optional Auditor questions about the file, hour, and warrant choices, and Notes remember those answers.
+- Wrong Auditor answers give clue-specific feedback before retrying.
 - Wrong puzzle entries recover cleanly and allow another attempt.
 - Using wrong inventory items on major locks gives explicit feedback and does not grant rewards, open gates, or trigger endings.
 - Major puzzle and Auditor answer buttons do not appear in solution order, so gates cannot be solved by simply clicking top-to-bottom.

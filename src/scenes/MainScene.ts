@@ -2244,6 +2244,7 @@ export class MainScene extends Phaser.Scene {
       {
         title: "The Auditor",
         body: "A voice like paper cuts asks: Who is missing?",
+        miss: "The file is the witness here. It names the clerk holding it as both present and absent.",
         answers: [
           { label: "The vending machine.", correct: false },
           { label: "The clerk holding the file.", correct: true },
@@ -2253,6 +2254,7 @@ export class MainScene extends Phaser.Scene {
       {
         title: "The Auditor",
         body: "What three-digit pattern did the phone, tape, or rain give you?",
+        miss: "Recheck the phone, tape, rain note, or Notes. The clue is counted in three groups, not read as a clock time.",
         answers: [
           { label: "One-three-seven.", correct: false },
           { label: "Twelve sharp.", correct: false },
@@ -2262,6 +2264,7 @@ export class MainScene extends Phaser.Scene {
       {
         title: "The Auditor",
         body: "Where should an impossible hour be kept?",
+        miss: "The Department is the trap. The missing hour has to leave the filing system, not join another office queue.",
         answers: [
           { label: "In the microwave.", correct: false },
           { label: "Outside the system.", correct: true },
@@ -2280,7 +2283,7 @@ export class MainScene extends Phaser.Scene {
             this.audio.fail();
             this.showMessage(
               "The Auditor",
-              "The intercom emits one red cough. 'Incorrect. Please reconsider your disappearance.'",
+              `The intercom emits one red cough. 'Incorrect.'\n\n${question.miss}`,
               [{ label: "Try Again", action: () => this.dialogueQuestion(index) }]
             );
             return;
@@ -2483,25 +2486,26 @@ export class MainScene extends Phaser.Scene {
   private showKeypadPuzzle(title: string, body: string, correct: string, onSolved: () => void, onFailed?: () => void): void {
     let input = "";
     let feedback = "";
+    const enterDigit = (digit: string) => {
+      feedback = "";
+      input += digit;
+      if (input.length === correct.length) {
+        if (input === correct) {
+          onSolved();
+          return;
+        }
+        this.audio.fail();
+        onFailed?.();
+        this.state.save();
+        input = "";
+        feedback = "Incorrect code. The keypad clears.";
+      }
+      redraw();
+    };
     const redraw = () => {
       const specs: ButtonSpec[] = "1234567890".split("").map((digit) => ({
         label: digit,
-        action: () => {
-          feedback = "";
-          input += digit;
-          if (input.length === correct.length) {
-            if (input === correct) {
-              onSolved();
-              return;
-            }
-            this.audio.fail();
-            onFailed?.();
-            this.state.save();
-            input = "";
-            feedback = "Incorrect code. The keypad clears.";
-          }
-          redraw();
-        }
+        action: () => enterDigit(digit)
       }));
       const reviewSpecs = this.puzzleReviewButtons(title, redraw);
       const feedbackLine = feedback ? `\n\n${feedback}` : "";
@@ -2518,8 +2522,35 @@ export class MainScene extends Phaser.Scene {
         },
         { label: "Leave", action: () => this.closeOverlay() }
       ]);
+      this.installKeypadDigitKeys(enterDigit, () => {
+        input = "";
+        feedback = "";
+        redraw();
+      });
     };
     redraw();
+  }
+
+  private installKeypadDigitKeys(enterDigit: (digit: string) => void, clearInput: () => void): void {
+    const overlay = this.domOverlay;
+    if (!overlay) {
+      return;
+    }
+    const handleDigitKey = (event: KeyboardEvent) => {
+      if (this.domOverlay !== overlay) {
+        return;
+      }
+      if (/^[0-9]$/.test(event.key)) {
+        event.preventDefault();
+        enterDigit(event.key);
+        return;
+      }
+      if (event.key === "Backspace" || event.key === "Delete") {
+        event.preventDefault();
+        clearInput();
+      }
+    };
+    overlay.addEventListener("keydown", handleDigitKey);
   }
 
   private puzzleReviewButtons(title: string, returnToPuzzle: () => void): ButtonSpec[] {
@@ -2971,12 +3002,19 @@ export class MainScene extends Phaser.Scene {
 
   private showNotes(): void {
     const objective = this.currentObjective();
+    const clockNote = this.state.flag("clockSolved")
+      ? "Clock order solved: Regret, Hunger, Calm, Joy."
+      : this.state.flag("receptionMemoSeen") && this.state.flag("calendarSeen")
+        ? "Clock clues: Regret knocks first, Hunger comes before Calm, and Joy signs last."
+        : this.state.flag("receptionMemoSeen")
+          ? "Clock clue: the Reception memo gives the first and last moods."
+          : this.state.flag("calendarSeen")
+            ? "Clock clue: the Personnel Calendar explains the middle moods."
+            : "Clock clue: look for office documents before setting the moods.";
     const notes = [
       "Current objective: " + objective,
       this.state.flag("formStamped") ? "Form 11-H has been stamped." : "Reception paperwork still needs official red ink.",
-      this.state.flag("clockSolved")
-        ? "Clock order solved: Regret, Hunger, Calm, Joy."
-        : "Clock clue: new clerks process emotions from first regret to late joy.",
+      clockNote,
       this.state.has("securityKey") ? "Security key collected from the cabinet." : "",
       this.state.has("auditWarrant") ? "Audit Warrant acquired: Mirror Office access is authorized." : "",
       this.state.flag("securityFootageSeen") ? "Security footage can witness an Audit Warrant archive override." : "",
@@ -3015,6 +3053,12 @@ export class MainScene extends Phaser.Scene {
       return "Use the stamped form on the circle door and solve the mood clocks.";
     }
     if (!this.state.has("auditWarrant")) {
+      if (!this.state.flag("archiveSolved") && this.state.flag("archiveTableSeen") && this.state.flag("breakBoardSeen")) {
+        return "You can solve the archive drawers from the table and break-room clues, while Security can issue a warrant for the final office.";
+      }
+      if (!this.state.flag("archiveSolved")) {
+        return "Explore the inner floor: Security can issue a warrant, and the Archive can be solved from office clues.";
+      }
       return "Security can issue the warrant needed for Mirror Office. Inspect evidence, prove authority, then open the safe.";
     }
     if (!this.state.flag("archiveSolved")) {

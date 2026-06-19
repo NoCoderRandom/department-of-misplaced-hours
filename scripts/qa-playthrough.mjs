@@ -682,6 +682,91 @@ async function testCreditsAccess(browser, issues) {
   await page.close();
 }
 
+async function testPuzzlePolish(browser, issues) {
+  const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
+  watchPage(page, issues, "puzzle-polish");
+  await startNew(page);
+
+  await click(page, 638, 32);
+  await page.getByRole("dialog", { name: "Notes" }).waitFor({ state: "visible", timeout: 8_000 });
+  let notesText = await page.locator(".game-modal-body").innerText();
+  if (!notesText.includes("Clock clue: look for office documents before setting the moods.")) {
+    throw new Error(`Early Notes did not keep the clock clue generic: ${notesText}`);
+  }
+  if (notesText.includes("first regret") || notesText.includes("late joy") || notesText.includes("Regret knocks first")) {
+    throw new Error(`Early Notes spoiled the clock answer before evidence was read: ${notesText}`);
+  }
+  await button(page, "Close");
+
+  await click(page, 706, 656);
+  await page.getByRole("dialog", { name: "Reception Memo" }).waitFor({ state: "visible", timeout: 8_000 });
+  await button(page, "Close");
+  await click(page, 638, 32);
+  notesText = await page.locator(".game-modal-body").innerText();
+  if (!notesText.includes("Clock clue: the Reception memo gives the first and last moods.")) {
+    throw new Error(`Notes did not record the read Reception memo without over-solving: ${notesText}`);
+  }
+  await button(page, "Close");
+
+  await continueSaved(page, {
+    room: "archive",
+    inventory: ["visitorBadge", "stampedForm"],
+    flags: {
+      introSeen: true,
+      formStamped: true,
+      clockUnlocked: true,
+      clockSolved: true,
+      archiveTableSeen: true,
+      breakBoardSeen: true
+    },
+    audioVolume: 0.72,
+    muted: false
+  });
+  await click(page, 638, 32);
+  notesText = await page.locator(".game-modal-body").innerText();
+  if (!notesText.includes("solve the archive drawers from the table and break-room clues")) {
+    throw new Error(`Notes objective ignored the archive deduction route: ${notesText}`);
+  }
+  await button(page, "Close");
+
+  await continueSaved(page, {
+    room: "mirror",
+    inventory: ["auditWarrant", "memoryCup", "selfFile"],
+    flags: {
+      introSeen: true,
+      formStamped: true,
+      clockUnlocked: true,
+      clockSolved: true,
+      archiveSolved: true,
+      glassCaseCollected: true,
+      vendingSolved: true,
+      mirrorShardInstalled: true,
+      fuseInstalled: true,
+      identityVerified: true,
+      hourPresented: true
+    },
+    audioVolume: 0.72,
+    muted: false
+  });
+  await click(page, 612, 596);
+  await button(page, "Answer");
+  await button(page, "The vending machine.");
+  await page.getByText("The file is the witness here.").waitFor({ state: "visible", timeout: 8_000 });
+  await button(page, "Try Again");
+  await button(page, "The clerk holding the file.");
+  await button(page, "Twelve sharp.");
+  await page.getByText("counted in three groups").waitFor({ state: "visible", timeout: 8_000 });
+  await button(page, "Try Again");
+  await button(page, "Seven-three-one.");
+  await button(page, "Under management review.");
+  await page.getByText("leave the filing system").waitFor({ state: "visible", timeout: 8_000 });
+  await button(page, "Try Again");
+  await button(page, "Outside the system.");
+  await button(page, "Proceed");
+
+  await page.close();
+}
+
 async function testAssetLoadFailure(browser) {
   const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
   const pageErrors = [];
@@ -902,8 +987,13 @@ async function solveVending(page, exerciseRewardEscape = false) {
   if ((await page.getByText("Accessibility transcript: the groups count seven, three, one.").count()) !== 0) {
     throw new Error("Unmuted vending failure revealed the exact accessibility transcript.");
   }
+  await page.keyboard.press("7");
+  await page.waitForTimeout(120);
+  await page.keyboard.press("Backspace");
+  await page.waitForTimeout(120);
   for (const digit of ["7", "3", "1"]) {
-    await button(page, digit);
+    await page.keyboard.press(digit);
+    await page.waitForTimeout(120);
   }
   if (exerciseRewardEscape) {
     await page.keyboard.press("Escape");
@@ -2524,6 +2614,7 @@ async function run() {
     await testNoScriptFallback(browser, issues);
     await testIntroBadgeRecovery(browser, issues);
     await testCreditsAccess(browser, issues);
+    await testPuzzlePolish(browser, issues);
 
     const securityPage = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
     watchPage(securityPage, issues, "security-route");
@@ -2556,7 +2647,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help Credits access with dialog semantics, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone clue recall/review, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help Credits access with dialog semantics, puzzle-polish checks for Notes/objectives/Auditor feedback, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;

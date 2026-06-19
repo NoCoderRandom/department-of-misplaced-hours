@@ -10,7 +10,7 @@ The game is built as a static web app with Phaser 3, TypeScript, and Vite. It ha
 
 - Seven playable rooms: Reception Desk, Clock Hall, Security Office, Interrogation Booth, Records Archive, Break Room, and Mirror Office.
 - Inventory-based interaction with more than a dozen collectible or usable objects, now shown with compact pictogram icons.
-- Multiple progression routes, including a Security Office audit-warrant path, an archive deduction path, an archive security-override path, an audio/visual vending code, physical final-act item use, optional Auditor consultation, and three ending actions.
+- Multiple progression routes, including a Security Office audit-warrant path, an archive deduction path, an archive security-override path, an audio/visual vending code, physical final-act item use with clueful recovery feedback, optional Auditor consultation, and three ending actions.
 - Three endings.
 - Local save/load through `localStorage`, with audio, readability, and motion preferences preserved separately from progress resets.
 - Mouse, keyboard, and standard gamepad/controller navigation for title actions, room objects, inventory, and modal buttons.
@@ -55,7 +55,7 @@ The production files are written to `dist/`.
 npm run verify
 ```
 
-This runs TypeScript, production build, exact release content checks, automated browser QA against the production preview, and a visual readability audit with minimum modal font-size checks. The QA covers asset-load failure recovery and alert text, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help Credits access, dialog title/body accessibility semantics, three endings, canvas paint and accessibility attributes, mid-game reloads, phone clue recall in Notes, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, selected-item cancel by Escape/right-click/controller B, controller title/stick/object/modal navigation plus hint and bumper controls, large-text and reduced-motion preference persistence, reset survival, protected Start New behavior, clue-gated Mood Clocks, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, story-panel, Credits-panel, and ending-screen visual checks, failed-puzzle recovery, reward Escape checks including rain/glass/vending take prompts and vending reward reload recovery, save repair, invalid-room save recovery, corrupt/unavailable storage recovery, Recover Position, malformed save handling, scaled/mobile canvas interaction, modal focus/Escape behavior, late-game Notes scrolling, and answer-order anti-spoiler checks.
+This runs TypeScript, production build, exact release content checks, automated browser QA against the production preview, and a visual readability audit with minimum modal font-size checks. The QA covers asset-load failure recovery and alert text, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help Credits access, dialog title/body accessibility semantics, puzzle-polish checks for Notes/objectives/Auditor feedback, three endings, canvas paint and accessibility attributes, mid-game reloads, phone clue recall in Notes, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, selected-item cancel by Escape/right-click/controller B, controller title/stick/object/modal navigation plus hint and bumper controls, large-text and reduced-motion preference persistence, reset survival, protected Start New behavior, clue-gated Mood Clocks, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, story-panel, Credits-panel, and ending-screen visual checks, failed-puzzle recovery, reward Escape checks including rain/glass/vending take prompts and vending reward reload recovery, save repair, invalid-room save recovery, corrupt/unavailable storage recovery, Recover Position, malformed save handling, scaled/mobile canvas interaction, modal focus/Escape behavior, late-game Notes scrolling, and answer-order anti-spoiler checks.
 
 ## Preview Production Build
 
@@ -99,6 +99,7 @@ This checks the public GitHub Pages build, verifies the HTML fallback copy, stat
 - Completed one-shot inventory tools dim after their main use.
 - Puzzle panels include clue review buttons once relevant evidence is known.
 - Ordered-choice puzzles include Undo, and Backspace/Delete removes the last entry while the panel is focused.
+- Keypad puzzles accept number-row keys, with Backspace/Delete clearing the entry.
 - Press `Escape` to close the current panel or put away the selected inventory item when no panel is open.
 - Use **Notes** to review discovered clues.
 - Use **Map** for unlocked-room fast travel.

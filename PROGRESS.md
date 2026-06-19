@@ -96,5 +96,6 @@
 - [x] Credits panel readability is now covered by desktop/mobile visual audit in normal and Large Text modes, after tightening copy that overflowed mobile Large Text.
 - [x] DOM dialogs now connect visible titles/body text to assistive technology with `aria-labelledby`/`aria-describedby`, with browser QA coverage on Help and Credits.
 - [x] Asset-load failure recovery now exposes the missing required asset through DOM alert text as well as the readable canvas recovery screen.
+- [x] Puzzle polish pass tightened Notes/objectives to avoid early clock spoilers and acknowledge alternate archive progression, added typed keypad input, and replaced generic Auditor wrong-answer text with clue-specific recovery feedback.
 - [x] Deployment prepared with `.github/workflows/deploy-pages.yml`.
 - [x] Documentation written: `README.md`, `ASSETS.md`, `THIRD_PARTY_NOTICES.md`, `DESIGN_NOTES.md`, `PROGRESS.md`.
