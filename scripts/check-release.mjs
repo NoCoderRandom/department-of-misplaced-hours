@@ -166,6 +166,7 @@ async function assertStaticSiteMetadata() {
   const requiredManifest = {
     name: "The Department of Misplaced Hours",
     short_name: "Misplaced Hours",
+    description: "A surreal point-and-click mystery puzzle game for static web hosting.",
     start_url: "./",
     scope: "./",
     display: "fullscreen",
@@ -178,16 +179,30 @@ async function assertStaticSiteMetadata() {
       throw new Error(`Release check failed: site.webmanifest ${key} expected ${value}, got ${manifest[key]}.`);
     }
   }
-  if (!Array.isArray(manifest.icons) || !manifest.icons.some((icon) => icon.src === "./favicon.svg" && icon.type === "image/svg+xml")) {
+  if (
+    !Array.isArray(manifest.categories) ||
+    !manifest.categories.includes("games") ||
+    !manifest.categories.includes("entertainment")
+  ) {
+    throw new Error(`Release check failed: site.webmanifest categories are incomplete: ${JSON.stringify(manifest.categories)}.`);
+  }
+  if (
+    !Array.isArray(manifest.icons) ||
+    !manifest.icons.some((icon) => icon.src === "./favicon.svg" && icon.type === "image/svg+xml" && icon.purpose === "any")
+  ) {
     throw new Error("Release check failed: site.webmanifest is missing the SVG favicon icon.");
   }
   for (const expectedIcon of [
-    { src: "./icon-192.png", sizes: "192x192", type: "image/png" },
-    { src: "./icon-512.png", sizes: "512x512", type: "image/png" }
+    { src: "./icon-192.png", sizes: "192x192", type: "image/png", purpose: "any maskable" },
+    { src: "./icon-512.png", sizes: "512x512", type: "image/png", purpose: "any maskable" }
   ]) {
     if (
       !manifest.icons.some(
-        (icon) => icon.src === expectedIcon.src && icon.sizes === expectedIcon.sizes && icon.type === expectedIcon.type
+        (icon) =>
+          icon.src === expectedIcon.src &&
+          icon.sizes === expectedIcon.sizes &&
+          icon.type === expectedIcon.type &&
+          icon.purpose === expectedIcon.purpose
       )
     ) {
       throw new Error(`Release check failed: site.webmanifest is missing app icon ${expectedIcon.src}.`);

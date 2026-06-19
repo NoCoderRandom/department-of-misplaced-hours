@@ -179,13 +179,31 @@ async function assertPublicMetadata(rawUrl) {
         if (
           manifest.name !== "The Department of Misplaced Hours" ||
           manifest.short_name !== "Misplaced Hours" ||
+          manifest.description !== "A surreal point-and-click mystery puzzle game for static web hosting." ||
           manifest.start_url !== "./" ||
           manifest.scope !== "./" ||
           manifest.display !== "fullscreen" ||
           manifest.orientation !== "landscape" ||
-          !manifest.icons?.some((icon) => icon.src === "./favicon.svg" && icon.type === "image/svg+xml") ||
-          !manifest.icons?.some((icon) => icon.src === "./icon-192.png" && icon.sizes === "192x192" && icon.type === "image/png") ||
-          !manifest.icons?.some((icon) => icon.src === "./icon-512.png" && icon.sizes === "512x512" && icon.type === "image/png")
+          manifest.background_color !== "#080a08" ||
+          manifest.theme_color !== "#10170f" ||
+          !Array.isArray(manifest.categories) ||
+          !manifest.categories.includes("games") ||
+          !manifest.categories.includes("entertainment") ||
+          !manifest.icons?.some((icon) => icon.src === "./favicon.svg" && icon.type === "image/svg+xml" && icon.purpose === "any") ||
+          !manifest.icons?.some(
+            (icon) =>
+              icon.src === "./icon-192.png" &&
+              icon.sizes === "192x192" &&
+              icon.type === "image/png" &&
+              icon.purpose === "any maskable"
+          ) ||
+          !manifest.icons?.some(
+            (icon) =>
+              icon.src === "./icon-512.png" &&
+              icon.sizes === "512x512" &&
+              icon.type === "image/png" &&
+              icon.purpose === "any maskable"
+          )
         ) {
           throw new Error(`Live manifest content is incomplete: ${JSON.stringify(manifest)}`);
         }
