@@ -67,6 +67,40 @@ body {
   color: var(--ink);
 }
 
+.noscript-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-content: center;
+  gap: 22px;
+  padding: clamp(28px, 6vw, 72px);
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(215, 184, 95, 0.14), transparent 34%),
+    #080a08;
+  color: var(--ink);
+}
+
+.noscript-panel h1 {
+  max-width: 920px;
+  margin: 0 auto;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(40px, 6vw, 76px);
+  line-height: 1;
+  text-transform: uppercase;
+  text-shadow: 0 4px 0 #080a07;
+}
+
+.noscript-panel p {
+  max-width: 780px;
+  margin: 0 auto;
+  font-size: clamp(20px, 2.8vw, 30px);
+  font-weight: 800;
+  line-height: 1.28;
+  color: var(--ink-muted);
+}
+
 .boot-title {
   max-width: 880px;
   font-family: Georgia, "Times New Roman", serif;

@@ -15,7 +15,7 @@ The game is built as a static web app with Phaser 3, TypeScript, and Vite. It ha
 - Local save/load through `localStorage`, with audio, readability, and motion preferences preserved separately from progress resets.
 - Procedural ambience plus CC0 Kenney UI/SFX sounds, document rustle, glass/safe/machine feedback, phone clue, and ending tones.
 - Optimized generated WebP background art for title, seven rooms, and ending.
-- Static boot screen, in-canvas loading progress, a readable asset-load failure screen if a deployment is missing required images, and procedural audio fallback if optional UI sounds are unavailable.
+- Static boot screen, in-canvas loading progress, a readable no-JavaScript fallback, a readable asset-load failure screen if a deployment is missing required images, and procedural audio fallback if optional UI sounds are unavailable.
 - GitHub Pages deployment workflow in `.github/workflows/deploy-pages.yml`.
 
 ## Requirements
@@ -51,7 +51,7 @@ The production files are written to `dist/`.
 npm run verify
 ```
 
-This runs TypeScript, production build, exact release content checks, automated browser QA against the production preview, and a visual readability audit. The QA covers asset-load failure recovery, optional audio fallback, intro badge recovery, both endings, canvas paint checks, mid-game reloads, phone/rain/muted clue paths, audio controls, keyboard shortcuts, large-text and reduced-motion preference persistence, reset survival, protected Start New behavior, clue-gated Mood Clocks, failed-puzzle recovery, reward Escape checks including rain/glass/vending take prompts, save repair, invalid-room save recovery, corrupt/unavailable storage recovery, Recover Position, malformed save handling, scaled/mobile canvas interaction, modal focus/Escape behavior, late-game Notes scrolling, and answer-order anti-spoiler checks.
+This runs TypeScript, production build, exact release content checks, automated browser QA against the production preview, and a visual readability audit. The QA covers asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, both endings, canvas paint checks, mid-game reloads, phone/rain/muted clue paths, audio controls, keyboard shortcuts, large-text and reduced-motion preference persistence, reset survival, protected Start New behavior, clue-gated Mood Clocks, failed-puzzle recovery, reward Escape checks including rain/glass/vending take prompts, save repair, invalid-room save recovery, corrupt/unavailable storage recovery, Recover Position, malformed save handling, scaled/mobile canvas interaction, modal focus/Escape behavior, late-game Notes scrolling, and answer-order anti-spoiler checks.
 
 ## Preview Production Build
 

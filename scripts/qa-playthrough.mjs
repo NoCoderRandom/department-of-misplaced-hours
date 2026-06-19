@@ -495,6 +495,34 @@ async function testOptionalAudioLoadFailure(browser) {
   await page.close();
 }
 
+async function testNoScriptFallback(browser, issues) {
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    viewport: { width: 1200, height: 800 },
+    deviceScaleFactor: 1
+  });
+  const page = await context.newPage();
+  watchPage(page, issues, "noscript-fallback");
+  try {
+    await page.goto(APP_URL, { waitUntil: "domcontentloaded" });
+    const fallback = page.getByRole("alert");
+    await fallback.waitFor({ state: "visible", timeout: 8_000 });
+    const text = (await fallback.textContent())?.replace(/\s+/g, " ").trim();
+    if (
+      !text?.includes("needs JavaScript enabled") ||
+      !text.includes("static web game") ||
+      !text.includes("does not require a backend server")
+    ) {
+      throw new Error(`No-JavaScript fallback copy is incomplete: ${JSON.stringify(text)}`);
+    }
+    if ((await page.locator("canvas").count()) !== 0) {
+      throw new Error("No-JavaScript page unexpectedly created a canvas.");
+    }
+  } finally {
+    await context.close();
+  }
+}
+
 async function solveIntroAndClock(page, options = {}) {
   await startNew(page);
   if (options.phone) {
@@ -1644,6 +1672,7 @@ async function run() {
 
     await testAssetLoadFailure(browser);
     await testOptionalAudioLoadFailure(browser);
+    await testNoScriptFallback(browser, issues);
     await testIntroBadgeRecovery(browser, issues);
 
     const securityPage = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
@@ -1671,7 +1700,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, intro badge recovery, security override route, deduction route, canvas paint checks, mid-game reloads, phone/rain/muted clue paths, audio controls, keyboard shortcuts, keyboard title start, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, canvas paint checks, mid-game reloads, phone/rain/muted clue paths, audio controls, keyboard shortcuts, keyboard title start, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;
