@@ -2450,7 +2450,9 @@ export class MainScene extends Phaser.Scene {
     }
     this.showMessage(
       "Exit Door",
-      "The exit splits into three mechanisms: a ledger slot that wants paperwork, a bright crack in the wall that drinks steam, and an audit seal waiting for official authority. Choose what you trust enough to place there.",
+      this.state.has("auditWarrant")
+        ? "The exit splits into three mechanisms: a ledger slot that wants paperwork, a bright crack in the wall that drinks steam, and an audit seal waiting for official authority. Choose what you trust enough to place there."
+        : "The exit splits into two usable mechanisms: a ledger slot that wants paperwork and a bright crack in the wall that drinks steam. The audit seal stays dark without an Audit Warrant.",
       [{ label: "Step Back", action: () => this.closeOverlay() }]
     );
   }

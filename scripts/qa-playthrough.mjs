@@ -1307,6 +1307,23 @@ async function finishFinalAct(page, identityItem, endingItem) {
     throw new Error(`Reload after server ledger restored installed items: ${JSON.stringify(checkpoint)}`);
   }
 
+  await click(page, 1080, 386);
+  await page.getByRole("dialog", { name: "Exit Door" }).waitFor({ state: "visible", timeout: 8_000 });
+  const exitPrompt = await page.locator(".game-modal-body").innerText();
+  const hasAuditWarrant = checkpoint.inventory.includes("auditWarrant");
+  if (hasAuditWarrant) {
+    if (!exitPrompt.includes("three mechanisms") || !exitPrompt.includes("audit seal waiting for official authority")) {
+      throw new Error(`Audit-authority final prompt did not present three mechanisms: ${exitPrompt}`);
+    }
+  } else if (
+    !exitPrompt.includes("two usable mechanisms") ||
+    !exitPrompt.includes("audit seal stays dark without an Audit Warrant") ||
+    exitPrompt.includes("three mechanisms")
+  ) {
+    throw new Error(`Warrantless final prompt did not restrict the final choice cleanly: ${exitPrompt}`);
+  }
+  await button(page, "Step Back");
+
   await selectItem(page, endingItem);
   await click(page, 1080, 386);
   await page.waitForTimeout(350);
