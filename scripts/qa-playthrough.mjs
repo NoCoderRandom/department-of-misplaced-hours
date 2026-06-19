@@ -2287,6 +2287,62 @@ async function testWrongItemFeedback(browser, issues) {
 
   await continueSaved(page, {
     room: "mirror",
+    inventory: ["auditWarrant", "memoryCup"],
+    flags: {
+      formStamped: true,
+      clockUnlocked: true,
+      clockSolved: true,
+      evidenceSafeOpened: true,
+      archiveSolved: true,
+      glassCaseCollected: true,
+      vendingSolved: true
+    },
+    audioVolume: 0.72,
+    muted: false
+  });
+  await selectItem(page, "memoryCup");
+  await click(page, 334, 346);
+  await page.getByText("Cup of Missing Hour is selected, but the shard-shaped gap expects the Mirror Shard.").waitFor({
+    state: "visible",
+    timeout: 8_000
+  });
+  data = await save(page);
+  if (data.flags.mirrorShardInstalled || !data.inventory.includes("mirrorShard")) {
+    throw new Error(`Wrong item installed the mirror shard or removed it: ${JSON.stringify(data)}`);
+  }
+  await button(page, "Close");
+
+  await continueSaved(page, {
+    room: "mirror",
+    inventory: ["auditWarrant", "memoryCup", "rainCipher"],
+    flags: {
+      formStamped: true,
+      clockUnlocked: true,
+      clockSolved: true,
+      evidenceSafeOpened: true,
+      archiveSolved: true,
+      glassCaseCollected: true,
+      vendingSolved: true,
+      mirrorShardInstalled: true,
+      mirrorClueSeen: true
+    },
+    audioVolume: 0.72,
+    muted: false
+  });
+  await selectItem(page, "memoryCup");
+  await click(page, 858, 438);
+  await page.getByText("Cup of Missing Hour is selected, but the empty cradle expects the Server Fuse.").waitFor({
+    state: "visible",
+    timeout: 8_000
+  });
+  data = await save(page);
+  if (data.flags.fuseInstalled || !data.inventory.includes("serverFuse")) {
+    throw new Error(`Wrong item powered the server console or removed the fuse: ${JSON.stringify(data)}`);
+  }
+  await button(page, "Close");
+
+  await continueSaved(page, {
+    room: "mirror",
     inventory: ["memoryCup"],
     flags: { mirrorShardInstalled: true },
     audioVolume: 0.72,
@@ -2301,6 +2357,25 @@ async function testWrongItemFeedback(browser, issues) {
   data = await save(page);
   if (data.flags.identityVerified) {
     throw new Error(`Wrong item verified identity at the intercom: ${JSON.stringify(data)}`);
+  }
+  await button(page, "Close");
+
+  await continueSaved(page, {
+    room: "mirror",
+    inventory: ["rainCipher"],
+    flags: { identityVerified: true },
+    audioVolume: 0.72,
+    muted: false
+  });
+  await selectItem(page, "rainCipher");
+  await click(page, 612, 596);
+  await page.getByText("Rain Cipher is selected, but the Auditor wants the Cup of Missing Hour now.").waitFor({
+    state: "visible",
+    timeout: 8_000
+  });
+  data = await save(page);
+  if (data.flags.hourPresented || data.flags.hourVerified) {
+    throw new Error(`Wrong item presented or verified the missing hour: ${JSON.stringify(data)}`);
   }
   await button(page, "Close");
 

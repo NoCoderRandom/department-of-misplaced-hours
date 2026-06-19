@@ -105,5 +105,6 @@
 - [x] Release archive smoke now verifies both standard/store ZIPs start a playable shift, show the no-JavaScript fallback, and enforce the touch-phone portrait rotate gate before artifacts are promoted.
 - [x] Static release checks now require no-JavaScript fallback copy in `dist/index.html`, catching broken static-host fallback text before browser smoke.
 - [x] Release and live smoke checks now require complete install manifest metadata, including description, categories, colors, and maskable icon purposes.
+- [x] Browser QA now guards late-game wrong-item feedback on the Black Mirror, Server Console, and Red Intercom hour gate so item misuse cannot silently solve final-act puzzles.
 - [x] Deployment prepared with `.github/workflows/deploy-pages.yml`.
 - [x] Documentation written: `README.md`, `ASSETS.md`, `THIRD_PARTY_NOTICES.md`, `DESIGN_NOTES.md`, `PROGRESS.md`.
