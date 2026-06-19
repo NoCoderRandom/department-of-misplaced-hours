@@ -116,6 +116,7 @@
 - [x] Credits now expose direct source-document buttons for web players, and the Monitor Bank clears the spent Misfiled Folder selection after cross-reference.
 - [x] Credits source-document buttons now have browser QA coverage for exact GitHub URLs and safe new-window features.
 - [x] Release archive smoke and live GitHub Pages smoke now also verify Credits source-document targets.
+- [x] Generated standard/store release README copy now names ending controls and Credits source-document behavior, with packager assertions to prevent stale release docs.
 - [x] Hotspot cursor QA now sweeps every authored room hotspot for hand cursor and live target status feedback.
 - [x] Deployment prepared with `.github/workflows/deploy-pages.yml`.
 - [x] Documentation written: `README.md`, `ASSETS.md`, `THIRD_PARTY_NOTICES.md`, `DESIGN_NOTES.md`, `PROGRESS.md`.

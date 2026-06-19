@@ -134,7 +134,7 @@ This checks the public GitHub Pages build, verifies the deployed JS/CSS runtime 
 - `public/assets/images/` - generated visual assets.
 - `scripts/optimize-images.mjs` - reproducible WebP export for generated room art.
 - `scripts/check-release.mjs` - verifies exact required `dist/` assets, runtime chunk size budgets, app/social icons and install metadata, production CSP hardening, no-JavaScript fallback copy, image provenance hashes, and release package contents.
-- `scripts/package-release.mjs` - creates, validates, smoke-tests, transactionally promotes, and verifies the distributable ZIP archives with platform-normalized text files and a deterministic Node-based ZIP writer.
+- `scripts/package-release.mjs` - creates, validates, smoke-tests, transactionally promotes, and verifies the distributable ZIP archives with platform-normalized text files, guarded generated release README copy, and a deterministic Node-based ZIP writer.
 - `scripts/visual-audit.mjs` - screenshots desktop/mobile modal states, Credits panels, Future Phone story panels, and ending screens, including short-screen dense mobile puzzle panels, and fails on panel, minimum font size, text overflow, button-label, focus, ending readability, or Escape regressions.
 - `scripts/smoke-release-archives.mjs` - extracts standard/store ZIPs, serves the playable web roots, and browser-smoke-tests launch, Credits source-document targets, no-JavaScript fallback, and touch-phone portrait orientation gating.
 - `scripts/smoke-live.mjs` - browser-smoke-tests the deployed public GitHub Pages URL, including deployed runtime chunk manifest/size budgets, install metadata, Credits source-document targets, normal play, no-JavaScript fallback, and touch-phone portrait orientation gating.

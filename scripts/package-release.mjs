@@ -520,11 +520,11 @@ await writeFile(
     "- Press Escape, right-click the game, or press controller B to put away a selected inventory item.",
     "- Ordered-choice puzzles include Undo; Backspace and Delete remove the last entry while the panel is focused.",
     "- Keyboard object mode: Tab / Shift+Tab cycles room objects and inventory; Enter / Space activates the focused target.",
-    "- Screen readers receive hidden live status updates when keyboard focus moves between room objects, inventory, and title actions.",
-    "- Controller mode: D-pad or left stick cycles title actions, room objects, inventory, and modal buttons; A selects; B cancels selected items or closes panels.",
+    "- Screen readers receive hidden live status updates when keyboard focus moves between room objects, inventory, title actions, and ending actions.",
+    "- Controller mode: D-pad or left stick cycles title actions, ending actions, room objects, inventory, and modal buttons; A selects; B cancels selected items or closes panels.",
     "- Use Map, Notes, Hint, Help, Sound, - and + from the top bar.",
     "- Help includes Large Text for bigger dialogue, document, and puzzle panels, plus Reduced Motion for static atmosphere. Browser/OS reduced-motion settings are honored on first launch.",
-    "- Credits are available from the title screen, Help, and ending screen, with asset/license pointers.",
+    "- Credits are available from the title screen, Help, and ending screen, with source-document buttons for asset and license details.",
     "- Keyboard shortcuts: M Map, N Notes, H Hint, F1 Help, S Sound, [ and ] volume.",
     "- Progress saves in browser localStorage when available. Audio, Large Text, and Reduced Motion preferences survive Reset Shift.",
     "- If browser storage is blocked, the game warns that the current session is playable but progress will not survive closing or reloading the page.",
@@ -548,9 +548,10 @@ for (const required of [
   "Press Escape, right-click the game, or press controller B",
   "On touch screens, first tap names a room object and second tap activates it",
   "Portrait phones show a Rotate Device prompt",
-  "Screen readers receive hidden live status updates",
+  "Screen readers receive hidden live status updates when keyboard focus moves between room objects, inventory, title actions, and ending actions",
+  "D-pad or left stick cycles title actions, ending actions, room objects, inventory, and modal buttons",
   "Ordered-choice puzzles include Undo",
-  "Credits are available from the title screen, Help, and ending screen",
+  "Credits are available from the title screen, Help, and ending screen, with source-document buttons",
   "Keyboard shortcuts: M Map, N Notes, H Hint, F1 Help, S Sound, [ and ] volume"
 ]) {
   if (!stagedReadme.includes(required)) {
@@ -636,9 +637,20 @@ await writeFile(
     "",
     "Portrait phones show a Rotate Device prompt so dense clues, buttons, and files stay readable in landscape.",
     "",
-    "Legal and asset provenance files are in the legal/ folder."
+    "Credits are available from the title screen, Help, and ending screen. In-game Credits buttons open the source repository docs; bundled legal and asset provenance files are in the legal/ folder."
   ].join("\n")
 );
+const stagedStoreReadme = await readFile(join(tempStoreStageDir, "README.txt"), "utf8");
+for (const required of [
+  "Portrait phones show a Rotate Device prompt",
+  "Credits are available from the title screen, Help, and ending screen",
+  "source repository docs",
+  "legal/ folder"
+]) {
+  if (!stagedStoreReadme.includes(required)) {
+    throw new Error(`Generated store README is missing required release text: ${required}`);
+  }
+}
 await writeFile(
   join(tempStoreStageDir, "PLAY.txt"),
   [
