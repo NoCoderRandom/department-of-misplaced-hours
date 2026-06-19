@@ -1893,6 +1893,7 @@ async function testSelectedItemCancel(browser, issues) {
   await continueSaved(page, setup);
 
   await selectItem(page, "visitorBadge");
+  await page.locator("canvas").focus();
   await page.keyboard.press("Escape");
   await expectCircleDoorNeedsStampedForm(page, "Escape selected-item cancel");
 

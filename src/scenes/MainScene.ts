@@ -146,10 +146,13 @@ export class MainScene extends Phaser.Scene {
     this.game.canvas.removeEventListener("contextmenu", this.handleCanvasContextMenu);
     this.game.canvas.addEventListener("contextmenu", this.handleCanvasContextMenu);
     document.removeEventListener("keydown", this.handleDocumentCancelKey, true);
+    window.removeEventListener("keydown", this.handleDocumentCancelKey, true);
     document.addEventListener("keydown", this.handleDocumentCancelKey, true);
+    window.addEventListener("keydown", this.handleDocumentCancelKey, true);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.game.canvas.removeEventListener("contextmenu", this.handleCanvasContextMenu);
       document.removeEventListener("keydown", this.handleDocumentCancelKey, true);
+      window.removeEventListener("keydown", this.handleDocumentCancelKey, true);
     });
     this.input.setDefaultCursor("default");
     this.input.keyboard?.on("keydown", this.handleKeyboardShortcut, this);
