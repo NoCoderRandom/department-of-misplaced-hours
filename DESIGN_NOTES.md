@@ -92,7 +92,7 @@ The soundscape mixes procedural Web Audio ambience with CC0 Kenney UI/SFX files.
 - Puzzle modals can offer contextual clue review so players do not need to close a keypad/order puzzle just to reread known evidence.
 - DOM dialogs connect their visible heading and body to assistive technology with `aria-labelledby` and `aria-describedby`.
 - Ordered-choice puzzle modals include Undo plus Backspace/Delete support so one misclick does not force a failed submission or full reset.
-- The phone/tape audio clue is remembered in Notes and Memory Vending review as non-spoiler recall after discovery; exact digits come from the rain visual clue, muted accessibility transcript, or explicit Hint answer.
+- The phone/tape audio clue is remembered in Notes and Memory Vending review as non-spoiler recall after discovery; exact digits come from the rain visual clue, muted accessibility transcript, or explicit Hint answer, then Notes records the solved code after Memory Vending is complete for final-act recall.
 - The required vending reward now labels the missing hour as unfileable, giving a positive clue for the final "Outside the system" Auditor answer before the quiz.
 - Optional side-room flavor can also clarify puzzle red herrings: the Handless Clock reminds players that grouped clues are counted, and the Microwave establishes that impossible hours cannot be filed there.
 - Notes avoid revealing clock-solution detail before the related documents are read, and objectives acknowledge the warrantless archive case-file route instead of forcing a single warrant-first reading.

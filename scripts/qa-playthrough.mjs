@@ -855,6 +855,12 @@ async function testPuzzlePolish(browser, issues) {
     }
     await button(page, "Close");
   }
+  await click(page, 638, 32);
+  notesText = await page.locator(".game-modal-body").innerText();
+  if (!notesText.includes("Memory Vending code solved: 7, 3, 1.")) {
+    throw new Error(`Post-solve Notes did not retain solved vending code for final-act recall: ${notesText}`);
+  }
+  await button(page, "Close");
 
   await continueSaved(page, {
     room: "archive",
