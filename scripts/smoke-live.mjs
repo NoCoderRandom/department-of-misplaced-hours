@@ -110,10 +110,11 @@ async function assertCanvasAccessibility(page) {
     attrs.role !== "application" ||
     attrs.label !== "The Department of Misplaced Hours playable game canvas" ||
     attrs.describedBy !== "game-accessibility-summary" ||
-    attrs.keyShortcuts !== "Tab Shift+Tab Enter Space ArrowLeft ArrowRight ArrowUp ArrowDown M N H F1 S" ||
+    attrs.keyShortcuts !== "Tab Shift+Tab Enter Space Escape ArrowLeft ArrowRight ArrowUp ArrowDown M N H F1 S" ||
     !attrs.summaryText.includes("Tab and Shift+Tab") ||
     !attrs.summaryText.includes("Enter or Space") ||
     !attrs.summaryText.includes("Arrow keys move between modal buttons") ||
+    !attrs.summaryText.includes("Escape closes panels or puts away a selected inventory item") ||
     !attrs.summaryText.includes("F1 for Help")
   ) {
     throw new Error(`Live canvas accessibility attributes are incomplete: ${JSON.stringify(attrs)}`);
