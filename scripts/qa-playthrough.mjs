@@ -3094,7 +3094,6 @@ async function testLateGameNotesScroll(browser, issues) {
     const panel = document.querySelector(".game-modal-panel").getBoundingClientRect();
     const body = document.querySelector(".game-modal-body");
     const rect = body.getBoundingClientRect();
-    body.scrollTop = 9999;
     return {
       panelTop: panel.top,
       panelBottom: panel.bottom,
@@ -3102,13 +3101,46 @@ async function testLateGameNotesScroll(browser, issues) {
       bodyBottom: rect.bottom,
       scrollTop: body.scrollTop,
       scrollHeight: body.scrollHeight,
-      clientHeight: body.clientHeight
+      clientHeight: body.clientHeight,
+      tabIndex: body.getAttribute("tabindex")
     };
   });
   if (geometry.bodyTop < geometry.panelTop - 1 || geometry.bodyBottom > geometry.panelBottom + 1) {
     throw new Error(`Late-game Notes body escapes panel: ${JSON.stringify(geometry)}`);
   }
-  if (geometry.scrollHeight > geometry.clientHeight && geometry.scrollTop === 0) {
+  if (geometry.scrollHeight <= geometry.clientHeight) {
+    throw new Error(`Late-game Notes no longer exercise scroll behavior: ${JSON.stringify(geometry)}`);
+  }
+  if (geometry.tabIndex !== "0") {
+    throw new Error(`Scrollable Notes body is not keyboard-focusable: ${JSON.stringify(geometry)}`);
+  }
+  await page.locator(".game-modal-body").focus();
+  await page.keyboard.press("PageDown");
+  await page.waitForTimeout(150);
+  const keyboardScrollTop = await page.evaluate(() => document.querySelector(".game-modal-body").scrollTop);
+  if (keyboardScrollTop <= 0) {
+    throw new Error(`PageDown did not scroll focused Notes body: ${JSON.stringify({ ...geometry, keyboardScrollTop })}`);
+  }
+  await page.keyboard.press("Shift+Tab");
+  const closeFocused = await page.evaluate(() => document.activeElement?.textContent ?? "");
+  if (!closeFocused.includes("Close")) {
+    throw new Error(`Shift+Tab from Notes body did not reach Close button: ${closeFocused}`);
+  }
+  await page.keyboard.press("Tab");
+  const bodyFocused = await page.evaluate(() => document.activeElement?.classList.contains("game-modal-body") ?? false);
+  if (!bodyFocused) {
+    throw new Error("Tab from Close did not wrap to the scrollable Notes body.");
+  }
+  const bottomGeometry = await page.evaluate(() => {
+    const body = document.querySelector(".game-modal-body");
+    body.scrollTop = 9999;
+    return {
+      scrollTop: body.scrollTop,
+      scrollHeight: body.scrollHeight,
+      clientHeight: body.clientHeight
+    };
+  });
+  if (bottomGeometry.scrollTop === 0) {
     throw new Error(`Late-game Notes content is not scrollable: ${JSON.stringify(geometry)}`);
   }
   await page.close();

@@ -2794,10 +2794,31 @@ export class MainScene extends Phaser.Scene {
     const message = document.createElement("div");
     message.id = `${modalId}-body`;
     message.className = "game-modal-body";
+    message.setAttribute("role", "document");
     message.textContent = body;
 
     const actions = document.createElement("div");
     actions.className = `game-modal-actions${actualButtons.length > 6 ? " game-modal-actions-many" : ""}${actualButtons.length === 4 ? " game-modal-actions-even" : ""}`;
+
+    const updateMessageScrollFocus = () => {
+      const isScrollable = message.scrollHeight > message.clientHeight + 1;
+      if (isScrollable) {
+        message.tabIndex = 0;
+        message.setAttribute("aria-label", `${title} text`);
+      } else {
+        message.removeAttribute("tabindex");
+        message.removeAttribute("aria-label");
+      }
+    };
+
+    const modalFocusables = (): HTMLElement[] => {
+      const focusables: HTMLElement[] = [];
+      if (message.tabIndex >= 0) {
+        focusables.push(message);
+      }
+      focusables.push(...actions.querySelectorAll<HTMLButtonElement>("button:not([disabled])"));
+      return focusables;
+    };
 
     actualButtons.forEach((button) => {
       const element = document.createElement("button");
@@ -2825,6 +2846,7 @@ export class MainScene extends Phaser.Scene {
     panel.append(heading, message, actions);
     backdrop.append(panel);
     document.body.append(backdrop);
+    updateMessageScrollFocus();
     this.domOverlay = backdrop;
     this.modalEscapeHandler = (event: KeyboardEvent) => {
       if (this.domOverlay !== backdrop) {
@@ -2835,6 +2857,11 @@ export class MainScene extends Phaser.Scene {
         this.closeOverlay();
         return;
       }
+      const active = document.activeElement;
+      const textScrollKeys = ["ArrowLeft", "ArrowUp", "ArrowRight", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "];
+      if (active === message && textScrollKeys.includes(event.key)) {
+        return;
+      }
       if (["ArrowLeft", "ArrowUp", "ArrowRight", "ArrowDown"].includes(event.key)) {
         event.preventDefault();
         this.focusModalButton(event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 1);
@@ -2843,14 +2870,13 @@ export class MainScene extends Phaser.Scene {
       if (event.key !== "Tab") {
         return;
       }
-      const focusable = [...actions.querySelectorAll<HTMLButtonElement>("button:not([disabled])")];
+      const focusable = modalFocusables();
       if (focusable.length === 0) {
         event.preventDefault();
         return;
       }
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
-      const active = document.activeElement;
       if (event.shiftKey && (active === first || !backdrop.contains(active))) {
         event.preventDefault();
         last.focus();
@@ -2861,6 +2887,7 @@ export class MainScene extends Phaser.Scene {
     };
     document.addEventListener("keydown", this.modalEscapeHandler, true);
     window.setTimeout(() => {
+      updateMessageScrollFocus();
       const preferred = initialFocusLabel
         ? [...actions.querySelectorAll<HTMLButtonElement>("button")].find((button) => button.textContent === initialFocusLabel)
         : undefined;

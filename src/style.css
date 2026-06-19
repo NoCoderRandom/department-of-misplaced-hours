@@ -257,6 +257,11 @@ canvas {
   scrollbar-gutter: stable both-edges;
 }
 
+.game-modal-body[tabindex="0"]:focus-visible {
+  outline: 3px solid rgba(240, 208, 121, 0.5);
+  outline-offset: 5px;
+}
+
 .game-modal-document .game-modal-body {
   max-width: 820px;
   font-family: Georgia, "Times New Roman", serif;
