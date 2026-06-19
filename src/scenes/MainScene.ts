@@ -601,6 +601,14 @@ export class MainScene extends Phaser.Scene {
             [{ label: "Close", action: () => this.closeOverlay() }]
           );
         }
+      },
+      {
+        label: "Credits",
+        x: 600,
+        y: 594,
+        w: 300,
+        h: 48,
+        action: () => this.showCredits()
       }
     ];
     this.titleFocusTargets.forEach((target) => {
@@ -2370,7 +2378,7 @@ export class MainScene extends Phaser.Scene {
   private showCredits(): void {
     this.showMessage(
       "Credits",
-      "Created as a static Phaser web game. Visual backgrounds were generated for this project, then optimized as local WebP assets. Sound uses procedural Web Audio ambience plus selected CC0 Kenney interface effects."
+      "Created as a static Phaser web game with TypeScript and Vite.\n\nVisual backgrounds, icons, and social-card art were generated for this project and optimized locally. Sound uses procedural Web Audio ambience plus selected CC0 Kenney interface effects.\n\nFull asset and license details ship with the release in ASSETS.md, NOTICE.md, and THIRD_PARTY_NOTICES.md."
     );
   }
 
@@ -2900,11 +2908,12 @@ export class MainScene extends Phaser.Scene {
   private showHelp(): void {
     this.showMessage(
       "Help",
-      "Hand cursor marks objects. Touch: first tap names, second tap uses. Select inventory, then object. Escape/right-click/B puts items away. Tab/D-pad focus; Enter/Space/A use.",
+      "Hand cursor = usable. Touch once names, twice uses. Inventory + object uses item. Esc/right-click/B cancels. Tab/D-pad + Enter/Space/A use.",
       [
         { label: this.state.largeText ? "Normal Text" : "Large Text", action: () => this.toggleLargeText() },
         { label: this.state.reducedMotion ? "Full Motion" : "Reduced Motion", action: () => this.toggleReducedMotion() },
         { label: "Recover Position", action: () => this.recoverPosition() },
+        { label: "Credits", action: () => this.showCredits() },
         { label: "Close", action: () => this.closeOverlay() }
       ]
     );

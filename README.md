@@ -18,6 +18,7 @@ The game is built as a static web app with Phaser 3, TypeScript, and Vite. It ha
 - Optimized generated WebP background art for title, seven rooms, and ending.
 - Static boot screen, in-canvas loading progress, a readable no-JavaScript fallback, a readable asset-load failure screen if a deployment is missing required images, and procedural audio fallback if optional UI sounds are unavailable.
 - Browser install/share metadata, PNG social preview card, crawler guidance, and a sitemap for the public GitHub Pages release.
+- In-game Credits panel reachable from the title screen, Help, and ending screen, with asset/license documentation pointers.
 - Static-host Content Security Policy and no-referrer policy are checked in release/live smoke.
 - GitHub Pages deployment workflow in `.github/workflows/deploy-pages.yml`.
 
@@ -54,7 +55,7 @@ The production files are written to `dist/`.
 npm run verify
 ```
 
-This runs TypeScript, production build, exact release content checks, automated browser QA against the production preview, and a visual readability audit with minimum modal font-size checks. The QA covers asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, three endings, canvas paint and accessibility attributes, mid-game reloads, phone clue recall in Notes, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, selected-item cancel by Escape/right-click/controller B, controller title/stick/object/modal navigation plus hint and bumper controls, large-text and reduced-motion preference persistence, reset survival, protected Start New behavior, clue-gated Mood Clocks, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, story-panel and ending-screen visual checks, failed-puzzle recovery, reward Escape checks including rain/glass/vending take prompts and vending reward reload recovery, save repair, invalid-room save recovery, corrupt/unavailable storage recovery, Recover Position, malformed save handling, scaled/mobile canvas interaction, modal focus/Escape behavior, late-game Notes scrolling, and answer-order anti-spoiler checks.
+This runs TypeScript, production build, exact release content checks, automated browser QA against the production preview, and a visual readability audit with minimum modal font-size checks. The QA covers asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help Credits access, three endings, canvas paint and accessibility attributes, mid-game reloads, phone clue recall in Notes, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, selected-item cancel by Escape/right-click/controller B, controller title/stick/object/modal navigation plus hint and bumper controls, large-text and reduced-motion preference persistence, reset survival, protected Start New behavior, clue-gated Mood Clocks, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, story-panel and ending-screen visual checks, failed-puzzle recovery, reward Escape checks including rain/glass/vending take prompts and vending reward reload recovery, save repair, invalid-room save recovery, corrupt/unavailable storage recovery, Recover Position, malformed save handling, scaled/mobile canvas interaction, modal focus/Escape behavior, late-game Notes scrolling, and answer-order anti-spoiler checks.
 
 ## Preview Production Build
 
@@ -105,6 +106,7 @@ This checks the public GitHub Pages build, verifies the HTML fallback copy, stat
 - Use **Help > Recover Position** to repair a strange save/position without deleting progress.
 - Use **Help > Large Text** to enlarge dialogue, document, puzzle panels, HUD text, and inventory labels.
 - Use **Help > Reduced Motion** to replace ambient animation with static atmosphere layers; the game also honors browser/OS reduced-motion settings on first launch.
+- Use **Credits** on the title screen, in Help, or on the ending screen for asset/license pointers.
 - Use **Sound**, **-**, and **+** for audio controls.
 - Keyboard: `M` Map, `N` Notes, `H` Hint, `F1` Help, `S` Sound, `[` / `]` volume.
 - Keyboard object mode: `Tab` / `Shift+Tab` cycles room objects and inventory; `Enter` / `Space` activates the focused target.

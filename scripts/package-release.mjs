@@ -474,6 +474,7 @@ await writeFile(
     "- Controller mode: D-pad or left stick cycles title actions, room objects, inventory, and modal buttons; A selects; B cancels selected items or closes panels.",
     "- Use Map, Notes, Hint, Help, Sound, - and + from the top bar.",
     "- Help includes Large Text for bigger dialogue, document, and puzzle panels, plus Reduced Motion for static atmosphere. Browser/OS reduced-motion settings are honored on first launch.",
+    "- Credits are available from the title screen, Help, and ending screen, with asset/license pointers.",
     "- Keyboard shortcuts: M Map, N Notes, H Hint, F1 Help, S Sound, [ and ] volume.",
     "- Progress saves in browser localStorage when available. Audio, Large Text, and Reduced Motion preferences survive Reset Shift.",
     "- If browser storage is blocked, the game warns that the current session is playable but progress will not survive closing or reloading the page.",
@@ -497,6 +498,7 @@ for (const required of [
   "Press Escape, right-click the game, or press controller B",
   "On touch screens, first tap names a room object and second tap activates it",
   "Ordered-choice puzzles include Undo",
+  "Credits are available from the title screen, Help, and ending screen",
   "Keyboard shortcuts: M Map, N Notes, H Hint, F1 Help, S Sound, [ and ] volume"
 ]) {
   if (!stagedReadme.includes(required)) {

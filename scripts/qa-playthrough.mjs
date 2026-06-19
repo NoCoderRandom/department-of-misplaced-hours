@@ -619,6 +619,34 @@ async function testIntroBadgeRecovery(browser, issues) {
   await page.close();
 }
 
+async function testCreditsAccess(browser, issues) {
+  const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
+  watchPage(page, issues, "credits-access");
+  await page.goto(APP_URL, { waitUntil: "networkidle" });
+  await clearGameStorage(page);
+  await page.reload({ waitUntil: "networkidle" });
+  await page.locator("canvas").waitFor({ state: "visible", timeout: 8_000 });
+  await page.waitForTimeout(650);
+  await expectCanvasPainted(page, "credits title");
+
+  await click(page, 600, 594);
+  await page.getByRole("dialog", { name: "Credits" }).waitFor({ state: "visible", timeout: 8_000 });
+  await page.getByText("static Phaser web game with TypeScript and Vite").waitFor({ state: "visible", timeout: 8_000 });
+  await page.getByText("ASSETS.md, NOTICE.md, and THIRD_PARTY_NOTICES.md").waitFor({ state: "visible", timeout: 8_000 });
+  await button(page, "Close");
+
+  await click(page, 600, 390, 300);
+  await button(page, "Clock In");
+  await page.waitForFunction(() => !document.querySelector(".game-modal-panel"), null, { timeout: 8_000 });
+  await click(page, 816, 32);
+  await page.getByRole("dialog", { name: "Help" }).waitFor({ state: "visible", timeout: 8_000 });
+  await button(page, "Credits");
+  await page.getByRole("dialog", { name: "Credits" }).waitFor({ state: "visible", timeout: 8_000 });
+  await page.getByText("selected CC0 Kenney interface effects").waitFor({ state: "visible", timeout: 8_000 });
+  await button(page, "Close");
+  await page.close();
+}
+
 async function testAssetLoadFailure(browser) {
   const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
   const pageErrors = [];
@@ -2456,6 +2484,7 @@ async function run() {
     await testOptionalAudioLoadFailure(browser);
     await testNoScriptFallback(browser, issues);
     await testIntroBadgeRecovery(browser, issues);
+    await testCreditsAccess(browser, issues);
 
     const securityPage = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
     watchPage(securityPage, issues, "security-route");
@@ -2488,7 +2517,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone clue recall/review, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help Credits access, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone clue recall/review, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;

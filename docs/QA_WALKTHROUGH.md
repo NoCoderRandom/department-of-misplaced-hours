@@ -49,6 +49,7 @@ Expected results:
 - Help > Reduced Motion replaces ambient animation with static atmosphere, saves, restores after reload/Continue, survives Reset Shift, and carries into a fresh new shift; browser/OS reduced-motion defaults are honored on first launch.
 - Keyboard shortcuts open Map, Notes, Hint, Help, Sound, and volume controls, and do not fire through open panels.
 - Pressing `Enter` on the title starts a new shift, so the first action is not mouse-only.
+- Credits can be opened from the title screen and from Help before finishing the game.
 - `Tab` / `Shift+Tab` keyboard focus can cycle room objects and inventory, and `Enter` / `Space` can activate them; QA uses this path to solve the opening form/stamp/door chain.
 - Standard controller input can start from the title, cycle room objects/inventory with D-pad or left stick, select with `A`, close panels with `B`, and move focus between modal buttons.
 - Progress persists after reload through `localStorage`.
