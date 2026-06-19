@@ -137,6 +137,15 @@ async function button(page, name, timeout = 8_000) {
   await page.waitForTimeout(100);
 }
 
+async function textVisible(page, text, timeout = 800) {
+  try {
+    await page.getByText(text).waitFor({ state: "visible", timeout });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function expectLeadingButtonOrderNot(page, forbiddenOrder, label) {
   const labels = await page.locator(".game-modal-button").evaluateAll((buttons) =>
     buttons.map((button) => button.textContent?.trim() ?? "").filter(Boolean)
@@ -1941,8 +1950,30 @@ async function testWrongItemFeedback(browser, issues) {
 }
 
 async function expectCircleDoorNeedsStampedForm(page, label) {
-  await click(page, 360, 374);
-  await page.getByText("Select the Stamped Form").waitFor({ state: "visible", timeout: 8_000 });
+  const expectedPrompt = "Select the Stamped Form";
+  const wrongItemPrompt = "Visitor Badge is selected, but the circular seal only accepts the Stamped Form.";
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await click(page, 360, 374, 220);
+    if (await textVisible(page, expectedPrompt, attempt === 2 ? 8_000 : 1_200)) {
+      break;
+    }
+    if (await textVisible(page, wrongItemPrompt, 250)) {
+      const data = await save(page);
+      throw new Error(`${label} left Visitor Badge selected before the Circle Door check: ${JSON.stringify(data)}`);
+    }
+    const unexpectedModal = await page
+      .locator(".game-modal-body")
+      .textContent({ timeout: 250 })
+      .catch(() => "");
+    if (unexpectedModal) {
+      throw new Error(`${label} opened an unexpected Circle Door prompt: ${unexpectedModal.trim()}`);
+    }
+    if (attempt === 2) {
+      throw new Error(`${label} did not open the Circle Door missing-item prompt after retrying.`);
+    }
+  }
+
   const data = await save(page);
   if (data.flags.clockUnlocked) {
     throw new Error(`${label} unexpectedly opened the Circle Door: ${JSON.stringify(data)}`);
@@ -1966,10 +1997,12 @@ async function testSelectedItemCancel(browser, issues) {
   await selectItem(page, "visitorBadge");
   await page.locator("canvas").focus();
   await page.keyboard.press("Escape");
+  await page.waitForTimeout(250);
   await expectCircleDoorNeedsStampedForm(page, "Escape selected-item cancel");
 
   await selectItem(page, "visitorBadge");
   await rightClick(page, 900, 500);
+  await page.waitForTimeout(150);
   await expectCircleDoorNeedsStampedForm(page, "Right-click selected-item cancel");
 
   await page.close();
@@ -1980,6 +2013,7 @@ async function testSelectedItemCancel(browser, issues) {
   await continueSaved(gamepadPage, setup);
   await selectItem(gamepadPage, "visitorBadge");
   await pressGamepadButton(gamepadPage, 1);
+  await gamepadPage.waitForTimeout(150);
   await expectCircleDoorNeedsStampedForm(gamepadPage, "Controller B selected-item cancel");
   await gamepadPage.close();
 }
