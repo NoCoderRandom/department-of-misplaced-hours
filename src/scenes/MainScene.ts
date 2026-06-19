@@ -714,7 +714,7 @@ export class MainScene extends Phaser.Scene {
         this.input.disable(gameObject, true);
       }
     });
-    this.input.resetCursor();
+    this.resetGameCursor();
     this.children.removeAll(true);
     this.overlay = undefined;
     this.hoverLabel = undefined;
@@ -726,6 +726,12 @@ export class MainScene extends Phaser.Scene {
     this.keyboardFocusIndex = -1;
     this.titleFocusTargets = [];
     this.titleFocusIndex = -1;
+  }
+
+  private resetGameCursor(): void {
+    this.input.setDefaultCursor("default");
+    this.input.resetCursor();
+    this.game.canvas.style.cursor = "default";
   }
 
   private createHud(): void {
@@ -821,13 +827,15 @@ export class MainScene extends Phaser.Scene {
       const hit = this.add.zone(x, 752, slotWidth, 68).setInteractive({ useHandCursor: true }).setDepth(23);
       this.keyboardInventoryTargets.push({ itemId, label: item.name, x, y: 752, w: slotWidth, h: 68 });
       hit.on("pointerover", () => {
+        this.input.setDefaultCursor("pointer");
         this.audio.hover();
         this.setHover(`${item.name}: ${item.description}`);
         slot.setStrokeStyle(2, 0xf0d079, 1);
       });
       hit.on("pointerout", () => {
+        this.input.setDefaultCursor("default");
         this.setHover("");
-        slot.setStrokeStyle(2, selected ? 0xf0d079 : 0x7f7a5d, selected ? 1 : 0.74);
+        slot.setStrokeStyle(2, selected ? 0xf0d079 : spent ? 0x4e4c3c : 0x7f7a5d, selected ? 1 : spent ? 0.48 : 0.74);
       });
       hit.on("pointerdown", () => {
         this.audio.click();
@@ -2506,6 +2514,7 @@ export class MainScene extends Phaser.Scene {
     }
     this.domOverlay?.remove();
     this.domOverlay = undefined;
+    this.resetGameCursor();
     window.setTimeout(() => this.game.canvas.focus({ preventScroll: true }), 0);
     this.overlay?.destroy(true);
     this.overlay = undefined;

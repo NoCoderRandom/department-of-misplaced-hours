@@ -83,6 +83,36 @@ async function click(page, x, y, wait = 140) {
   await page.waitForTimeout(wait);
 }
 
+async function move(page, x, y, wait = 120) {
+  const point = await page.evaluate(
+    ({ gameX, gameY, gameW, gameH }) => {
+      const canvas = document.querySelector("canvas");
+      if (!canvas) {
+        throw new Error("Canvas not found for game-coordinate move.");
+      }
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: rect.left + (gameX / gameW) * rect.width,
+        y: rect.top + (gameY / gameH) * rect.height
+      };
+    },
+    { gameX: x, gameY: y, gameW: GAME_W, gameH: GAME_H }
+  );
+  await page.mouse.move(point.x, point.y);
+  await page.waitForTimeout(wait);
+}
+
+async function expectCanvasCursor(page, expected, label) {
+  const cursor = await page.locator("canvas").evaluate((canvas) => getComputedStyle(canvas).cursor || "default");
+  const isPointer = cursor.includes("pointer");
+  if (expected === "pointer" && !isPointer) {
+    throw new Error(`${label} did not show a hand cursor; cursor=${cursor}`);
+  }
+  if (expected === "default" && isPointer) {
+    throw new Error(`${label} showed a hand cursor on empty space; cursor=${cursor}`);
+  }
+}
+
 async function button(page, name, timeout = 8_000) {
   await page.getByRole("button", { name }).click({ timeout });
   await page.waitForTimeout(100);
@@ -1066,6 +1096,109 @@ async function testScaledInteraction(browser, issues) {
   await mobile.close();
 }
 
+async function testHotspotCursorBehavior(browser, issues) {
+  const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
+  watchPage(page, issues, "hotspot-cursor");
+
+  const roomStates = [
+    {
+      label: "reception stamp",
+      target: [590, 660],
+      save: {
+        room: "reception",
+        inventory: ["visitorBadge"],
+        flags: { introSeen: true }
+      }
+    },
+    {
+      label: "clock mood clocks",
+      target: [610, 274],
+      save: {
+        room: "clock",
+        inventory: ["visitorBadge", "stampedForm"],
+        flags: { introSeen: true, formStamped: true, clockUnlocked: true }
+      }
+    },
+    {
+      label: "security key cabinet",
+      target: [696, 352],
+      save: {
+        room: "security",
+        inventory: ["visitorBadge", "stampedForm"],
+        flags: { introSeen: true, formStamped: true, clockUnlocked: true, clockSolved: true }
+      }
+    },
+    {
+      label: "interrogation rain window",
+      target: [292, 300],
+      save: {
+        room: "interrogation",
+        inventory: ["visitorBadge", "stampedForm"],
+        flags: { introSeen: true, formStamped: true, clockUnlocked: true, clockSolved: true }
+      }
+    },
+    {
+      label: "archive index drawers",
+      target: [356, 420],
+      save: {
+        room: "archive",
+        inventory: ["visitorBadge", "stampedForm"],
+        flags: { introSeen: true, formStamped: true, clockUnlocked: true, clockSolved: true }
+      }
+    },
+    {
+      label: "break memory vending",
+      target: [854, 396],
+      save: {
+        room: "break",
+        inventory: ["visitorBadge", "stampedForm", "timeToken", "paperCup"],
+        flags: { introSeen: true, formStamped: true, clockUnlocked: true, clockSolved: true }
+      }
+    },
+    {
+      label: "mirror red intercom",
+      target: [612, 596],
+      save: {
+        room: "mirror",
+        inventory: ["auditWarrant", "memoryCup"],
+        flags: { introSeen: true, serverSolved: true }
+      }
+    }
+  ];
+
+  for (const scenario of roomStates) {
+    await continueSaved(page, {
+      ...scenario.save,
+      audioVolume: 0.72,
+      muted: false,
+      reducedMotion: true
+    });
+    await move(page, 30, 120);
+    await expectCanvasCursor(page, "default", `${scenario.label} empty picture space`);
+    await move(page, scenario.target[0], scenario.target[1]);
+    await expectCanvasCursor(page, "pointer", `${scenario.label} hotspot`);
+    await move(page, 30, 120);
+    await expectCanvasCursor(page, "default", `${scenario.label} after leaving hotspot`);
+  }
+
+  await continueSaved(page, {
+    room: "reception",
+    inventory: ["visitorBadge", "stampedForm"],
+    flags: { introSeen: true, formStamped: true, clockUnlocked: true },
+    audioVolume: 0.72,
+    muted: false,
+    reducedMotion: true
+  });
+  await move(page, 30, 120);
+  await expectCanvasCursor(page, "default", "inventory test empty picture space");
+  await move(page, 116, 752);
+  await expectCanvasCursor(page, "pointer", "inventory item hover");
+  await move(page, 30, 120);
+  await expectCanvasCursor(page, "default", "inventory after leaving item");
+
+  await page.close();
+}
+
 async function testAudioControlsAndMutedClue(browser, issues) {
   const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
   watchPage(page, issues, "audio-controls");
@@ -1968,6 +2101,7 @@ async function run() {
 
     await testBadSaveAndMobile(browser);
     await testScaledInteraction(browser, issues);
+    await testHotspotCursorBehavior(browser, issues);
     await testAudioControlsAndMutedClue(browser, issues);
     await testKeyboardShortcuts(browser, issues);
     await testLargeTextPreference(browser, issues);
@@ -1984,7 +2118,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone/rain/muted clue paths, audio controls, keyboard shortcuts, keyboard title start, controller title/object/modal navigation, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone/rain/muted clue paths, hand-cursor hotspot/inventory behavior, audio controls, keyboard shortcuts, keyboard title start, controller title/object/modal navigation, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;

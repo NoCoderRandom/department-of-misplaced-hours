@@ -54,7 +54,7 @@ Expected results:
 - Progress persists after reload through `localStorage`.
 - Mid-game reloads continue from the current route without losing key rewards.
 - Map fast travel lists unlocked rooms and does not overlap Notes.
-- Hovering useful objects shows a focus bracket and label, but no hotspot markers are visible at rest.
+- Hovering useful objects shows a hand cursor, focus bracket, and label, but no hotspot markers are visible at rest.
 - Known clues can be reviewed from relevant puzzle panels.
 - The Phaser canvas is painted with varied room art on title, room, reload, map, and ending states.
 - Filed, Escaped, and Audit endings each save a distinct ending id.
