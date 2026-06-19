@@ -17,6 +17,7 @@ The game is built as a static web app with Phaser 3, TypeScript, and Vite. It ha
 - Optimized generated WebP background art for title, seven rooms, and ending.
 - Static boot screen, in-canvas loading progress, a readable no-JavaScript fallback, a readable asset-load failure screen if a deployment is missing required images, and procedural audio fallback if optional UI sounds are unavailable.
 - Browser install/share metadata, crawler guidance, and a sitemap for the public GitHub Pages release.
+- Static-host Content Security Policy and no-referrer policy are checked in release/live smoke.
 - GitHub Pages deployment workflow in `.github/workflows/deploy-pages.yml`.
 
 ## Requirements

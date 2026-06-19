@@ -96,6 +96,13 @@ async function assertStaticSiteMetadata() {
   for (const required of [
     'rel="canonical"',
     'rel="manifest"',
+    'http-equiv="Content-Security-Policy"',
+    "default-src 'self'",
+    "object-src 'none'",
+    "script-src 'self'",
+    "img-src 'self' data: blob:",
+    "form-action 'none'",
+    'name="referrer" content="no-referrer"',
     'property="og:title"',
     'property="og:image"',
     'name="twitter:card"',

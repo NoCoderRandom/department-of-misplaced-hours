@@ -127,6 +127,13 @@ async function assertLiveHtml(url) {
   const html = (await response.text()).replace(/\s+/g, " ");
   for (const required of [
     "The Department of Misplaced Hours",
+    'http-equiv="Content-Security-Policy"',
+    "default-src 'self'",
+    "object-src 'none'",
+    "script-src 'self'",
+    "img-src 'self' data: blob:",
+    "form-action 'none'",
+    'name="referrer" content="no-referrer"',
     "Interactive point-and-click mystery game canvas",
     "Tab and Shift+Tab",
     "needs JavaScript enabled",
