@@ -102,5 +102,6 @@
 - [x] Mobile QA now verifies the rendered canvas stays fully visible and keeps the intended aspect ratio, catching cropped or distorted phone layouts.
 - [x] Accessibility/mobile polish now includes live keyboard target announcements and a touch-phone portrait rotate gate, both covered by QA.
 - [x] Live GitHub Pages smoke now verifies the touch-phone portrait rotate gate and landscape recovery on the deployed build.
+- [x] Release archive smoke now verifies both standard/store ZIPs start a playable shift and enforce the touch-phone portrait rotate gate before artifacts are promoted.
 - [x] Deployment prepared with `.github/workflows/deploy-pages.yml`.
 - [x] Documentation written: `README.md`, `ASSETS.md`, `THIRD_PARTY_NOTICES.md`, `DESIGN_NOTES.md`, `PROGRESS.md`.

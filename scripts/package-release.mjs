@@ -467,10 +467,12 @@ await writeFile(
     "",
     "- Move the cursor around the room. It changes to a hand and the status line names usable objects.",
     "- On touch screens, first tap names a room object and second tap activates it; selected inventory still uses immediately.",
+    "- Portrait phones show a Rotate Device prompt so dense clues, buttons, and files stay readable in landscape.",
     "- Click inventory items at the bottom, then click room objects to try using them.",
     "- Press Escape, right-click the game, or press controller B to put away a selected inventory item.",
     "- Ordered-choice puzzles include Undo; Backspace and Delete remove the last entry while the panel is focused.",
     "- Keyboard object mode: Tab / Shift+Tab cycles room objects and inventory; Enter / Space activates the focused target.",
+    "- Screen readers receive hidden live status updates when keyboard focus moves between room objects, inventory, and title actions.",
     "- Controller mode: D-pad or left stick cycles title actions, room objects, inventory, and modal buttons; A selects; B cancels selected items or closes panels.",
     "- Use Map, Notes, Hint, Help, Sound, - and + from the top bar.",
     "- Help includes Large Text for bigger dialogue, document, and puzzle panels, plus Reduced Motion for static atmosphere. Browser/OS reduced-motion settings are honored on first launch.",
@@ -497,6 +499,8 @@ for (const required of [
   "B cancels selected items or closes panels",
   "Press Escape, right-click the game, or press controller B",
   "On touch screens, first tap names a room object and second tap activates it",
+  "Portrait phones show a Rotate Device prompt",
+  "Screen readers receive hidden live status updates",
   "Ordered-choice puzzles include Undo",
   "Credits are available from the title screen, Help, and ending screen",
   "Keyboard shortcuts: M Map, N Notes, H Hint, F1 Help, S Sound, [ and ] volume"
@@ -571,7 +575,9 @@ await writeFile(
     "",
     "This is the store-ready static HTML build. Upload this ZIP directly to itch.io or another HTML game host that expects index.html at the archive root.",
     "",
-    "Open index.html through a static web host. Browser localStorage stores progress and preferences.",
+    "Open index.html through a static web host. The build has no backend, and browser localStorage stores progress and preferences.",
+    "",
+    "Portrait phones show a Rotate Device prompt so dense clues, buttons, and files stay readable in landscape.",
     "",
     "Legal and asset provenance files are in the legal/ folder."
   ].join("\n")

@@ -182,6 +182,30 @@ function createStaticServer(webRoot) {
   });
 }
 
+function watchPage(page, issues) {
+  page.on("console", (message) => {
+    const text = message.text();
+    if (message.type() === "warning" && text.includes("AudioContext was not allowed to start")) {
+      return;
+    }
+    if (message.type() === "warning" && text.includes("CONTEXT_LOST_WEBGL")) {
+      return;
+    }
+    if (message.type() === "log" && text.includes("Phaser v")) {
+      return;
+    }
+    if (["error", "warning"].includes(message.type())) {
+      issues.push(`${message.type()}: ${text}`);
+    }
+  });
+  page.on("pageerror", (error) => issues.push(`pageerror: ${error.message}`));
+  page.on("response", (response) => {
+    if (response.status() >= 400) {
+      issues.push(`${response.status()} ${response.url()}`);
+    }
+  });
+}
+
 async function gameClick(page, x, y) {
   const point = await page.evaluate(
     ({ gameX, gameY }) => {
@@ -228,6 +252,38 @@ async function paintedCanvasMetrics(page) {
   });
 }
 
+async function smokeOrientationGate(browser, url, target) {
+  const page = await browser.newPage({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 2,
+    isMobile: true,
+    hasTouch: true
+  });
+  const issues = [];
+  watchPage(page, issues);
+  try {
+    await page.goto(url, { waitUntil: "networkidle" });
+    await page.locator("canvas").waitFor({ state: "visible", timeout: 8_000 });
+    await page.locator("#orientation-gate").waitFor({ state: "visible", timeout: 8_000 });
+    const gateText = ((await page.locator("#orientation-gate").textContent()) ?? "").replace(/\s+/g, " ").trim();
+    for (const required of ["Rotate Device", "Landscape mode"]) {
+      if (!gateText.includes(required)) {
+        throw new Error(`${target.label} orientation gate is missing required text: ${required}`);
+      }
+    }
+
+    await page.setViewportSize({ width: 844, height: 390 });
+    await page.waitForFunction(() => getComputedStyle(document.getElementById("orientation-gate")).display === "none", null, {
+      timeout: 5_000
+    });
+    if (issues.length > 0) {
+      throw new Error(`${target.label} orientation-gate smoke issues:\n${issues.join("\n")}`);
+    }
+  } finally {
+    await page.close().catch(() => {});
+  }
+}
+
 async function smokeExtractedArchive(target) {
   await assertChecksum(target);
   await extractArchive(target);
@@ -242,31 +298,12 @@ async function smokeExtractedArchive(target) {
   let browser;
   try {
     browser = await chromium.launch({ headless: true });
+    const url = `http://${host}:${address.port}/`;
     const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
     const issues = [];
-    page.on("console", (message) => {
-      const text = message.text();
-      if (message.type() === "warning" && text.includes("AudioContext was not allowed to start")) {
-        return;
-      }
-      if (message.type() === "warning" && text.includes("CONTEXT_LOST_WEBGL")) {
-        return;
-      }
-      if (message.type() === "log" && text.includes("Phaser v")) {
-        return;
-      }
-      if (["error", "warning"].includes(message.type())) {
-        issues.push(`${message.type()}: ${text}`);
-      }
-    });
-    page.on("pageerror", (error) => issues.push(`pageerror: ${error.message}`));
-    page.on("response", (response) => {
-      if (response.status() >= 400) {
-        issues.push(`${response.status()} ${response.url()}`);
-      }
-    });
+    watchPage(page, issues);
 
-    await page.goto(`http://${host}:${address.port}/`, { waitUntil: "networkidle" });
+    await page.goto(url, { waitUntil: "networkidle" });
     await page.evaluate(() => {
       localStorage.removeItem("department-misplaced-hours-save-v1");
       localStorage.removeItem("department-misplaced-hours-preferences-v1");
@@ -290,6 +327,7 @@ async function smokeExtractedArchive(target) {
     if (issues.length > 0) {
       throw new Error(`${target.label} smoke issues:\n${issues.join("\n")}`);
     }
+    await smokeOrientationGate(browser, url, target);
   } finally {
     await browser?.close().catch(() => {});
     await new Promise((resolvePromise) => server.close(resolvePromise));
@@ -298,5 +336,7 @@ async function smokeExtractedArchive(target) {
 
 for (const target of smokeTargets) {
   await smokeExtractedArchive(target);
-  console.log(`Release archive smoke passed: ${target.archivePath} served from ${target.webRootSubdir || "root"} and started a new shift.`);
+  console.log(
+    `Release archive smoke passed: ${target.archivePath} served from ${target.webRootSubdir || "root"}, started a new shift, and passed touch-phone orientation gating.`
+  );
 }
