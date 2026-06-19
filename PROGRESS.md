@@ -91,5 +91,6 @@
 - [x] Phone/tape clue recall now appears in Notes and Memory Vending review after discovery, with QA proving the non-rain audio route remains fair.
 - [x] Red Intercom now resumes Auditor verification after the player presents the missing hour and closes the prompt, with QA guarding the recovery state.
 - [x] Static release metadata now includes relative favicon/manifest links, generated PNG app icons, production CSP hardening, and npm-package checks for playable `dist/index.html`.
+- [x] Public share metadata now uses a generated 1200x630 PNG social card with Open Graph/Twitter dimensions, alt text, release checks, and live smoke coverage.
 - [x] Deployment prepared with `.github/workflows/deploy-pages.yml`.
 - [x] Documentation written: `README.md`, `ASSETS.md`, `THIRD_PARTY_NOTICES.md`, `DESIGN_NOTES.md`, `PROGRESS.md`.

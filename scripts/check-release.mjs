@@ -13,6 +13,7 @@ const requiredPackageFiles = [
   "dist/favicon.svg",
   "dist/icon-192.png",
   "dist/icon-512.png",
+  "dist/social-card.png",
   "dist/site.webmanifest",
   "dist/assets/images/title-department.webp"
 ];
@@ -36,6 +37,7 @@ const requiredDistFiles = [
   "dist/favicon.svg",
   "dist/icon-192.png",
   "dist/icon-512.png",
+  "dist/social-card.png",
   "dist/site.webmanifest",
   "dist/robots.txt",
   "dist/sitemap.xml",
@@ -121,7 +123,12 @@ async function assertStaticSiteMetadata() {
     'name="referrer" content="no-referrer"',
     'property="og:title"',
     'property="og:image"',
+    'property="og:image:type" content="image/png"',
+    'property="og:image:width" content="1200"',
+    'property="og:image:height" content="630"',
+    'property="og:image:alt"',
     'name="twitter:card"',
+    'name="twitter:image:alt"',
     'id="game-accessibility-summary"',
     "Interactive point-and-click mystery game canvas",
     "Tab and Shift+Tab",
@@ -137,6 +144,14 @@ async function assertStaticSiteMetadata() {
   }
   if (/localhost|127\.0\.0\.1|ws:\/\//.test(html)) {
     throw new Error("Release check failed: production CSP still exposes localhost or websocket development endpoints.");
+  }
+  for (const socialImageUrl of [
+    "https://nocoderrandom.github.io/department-of-misplaced-hours/social-card.png",
+    "content=\"https://nocoderrandom.github.io/department-of-misplaced-hours/social-card.png\""
+  ]) {
+    if (!html.includes(socialImageUrl)) {
+      throw new Error(`Release check failed: social metadata is missing ${socialImageUrl}.`);
+    }
   }
 
   const manifest = JSON.parse(await readFile("dist/site.webmanifest", "utf8"));

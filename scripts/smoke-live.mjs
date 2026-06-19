@@ -136,6 +136,11 @@ async function assertLiveHtml(url) {
     "script-src 'self'",
     "img-src 'self' data: blob:",
     "form-action 'none'",
+    "https://nocoderrandom.github.io/department-of-misplaced-hours/social-card.png",
+    'property="og:image:type" content="image/png"',
+    'property="og:image:width" content="1200"',
+    'property="og:image:height" content="630"',
+    'name="twitter:image:alt"',
     'name="referrer" content="no-referrer"',
     "Interactive point-and-click mystery game canvas",
     "Tab and Shift+Tab",
@@ -190,6 +195,19 @@ async function assertPublicMetadata(rawUrl) {
       assert: async (response) => {
         if (!response.headers.get("content-type")?.includes("image/png")) {
           throw new Error("Live icon-512.png did not serve as PNG.");
+        }
+      }
+    },
+    {
+      label: "social card",
+      url: new URL("social-card.png", baseUrl),
+      assert: async (response) => {
+        if (!response.headers.get("content-type")?.includes("image/png")) {
+          throw new Error("Live social-card.png did not serve as PNG.");
+        }
+        const bytes = await response.arrayBuffer();
+        if (bytes.byteLength < 50_000) {
+          throw new Error(`Live social-card.png is unexpectedly small: ${bytes.byteLength} bytes.`);
         }
       }
     },

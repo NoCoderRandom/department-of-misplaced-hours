@@ -39,6 +39,7 @@ const requiredDistFiles = [
   "dist/favicon.svg",
   "dist/icon-192.png",
   "dist/icon-512.png",
+  "dist/social-card.png",
   "dist/site.webmanifest",
   "dist/robots.txt",
   "dist/sitemap.xml",

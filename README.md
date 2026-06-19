@@ -17,7 +17,7 @@ The game is built as a static web app with Phaser 3, TypeScript, and Vite. It ha
 - Procedural ambience plus CC0 Kenney UI/SFX sounds, document rustle, glass/safe/machine feedback, phone clue, and ending tones.
 - Optimized generated WebP background art for title, seven rooms, and ending.
 - Static boot screen, in-canvas loading progress, a readable no-JavaScript fallback, a readable asset-load failure screen if a deployment is missing required images, and procedural audio fallback if optional UI sounds are unavailable.
-- Browser install/share metadata, crawler guidance, and a sitemap for the public GitHub Pages release.
+- Browser install/share metadata, PNG social preview card, crawler guidance, and a sitemap for the public GitHub Pages release.
 - Static-host Content Security Policy and no-referrer policy are checked in release/live smoke.
 - GitHub Pages deployment workflow in `.github/workflows/deploy-pages.yml`.
 
@@ -119,7 +119,7 @@ This checks the public GitHub Pages build, verifies the HTML fallback copy, stat
 - Procedural audio depends on browser Web Audio support and starts after the first user interaction.
 - The generated backgrounds are static WebP images, with animation and interaction layered in Phaser.
 - The game is designed desktop-first; small mobile screens fit the full canvas, but the experience is still best with a mouse or large touch screen.
-- Project GitHub Pages metadata includes relative favicon, Apple touch icon, manifest, sitemap, and generated PNG install icons.
+- Project GitHub Pages metadata includes relative favicon, Apple touch icon, manifest, sitemap, generated PNG install icons, and a PNG social preview card.
 
 ## Project Structure
 
@@ -129,7 +129,7 @@ This checks the public GitHub Pages build, verifies the HTML fallback copy, stat
 - `src/data/content.ts` - item and room definitions.
 - `public/assets/images/` - generated visual assets.
 - `scripts/optimize-images.mjs` - reproducible WebP export for generated room art.
-- `scripts/check-release.mjs` - verifies exact required `dist/` assets, app icons, production CSP hardening, image provenance hashes, and release package contents.
+- `scripts/check-release.mjs` - verifies exact required `dist/` assets, app/social icons, production CSP hardening, image provenance hashes, and release package contents.
 - `scripts/package-release.mjs` - creates, validates, smoke-tests, transactionally promotes, and verifies the distributable ZIP archives with a deterministic Node-based ZIP writer.
 - `scripts/visual-audit.mjs` - screenshots desktop/mobile modal states, Future Phone story panels, and ending screens, including short-screen dense mobile puzzle panels, and fails on panel, minimum font size, text overflow, button-label, focus, ending readability, or Escape regressions.
 - `scripts/smoke-release-archives.mjs` - extracts standard/store ZIPs, serves the playable web roots, and browser-smoke-tests launch.

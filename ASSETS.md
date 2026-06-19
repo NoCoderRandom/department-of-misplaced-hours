@@ -20,11 +20,12 @@ All background assets were generated specifically for this project with the buil
 
 ## Generated UI Icons
 
-The favicon and install icons are original project UI art created for this game. The PNG app icons are rendered from the SVG favicon with Sharp for browser install/share surfaces.
+The favicon, install icons, and social preview card are original project UI art created for this game. The PNG app icons are rendered from the SVG favicon with Sharp for browser install/share surfaces. The social card is composited from the project-owned generated title background with original title text.
 
 | Asset | Author / Tool | Source | License / Use | Modifications | Used In |
 | --- | --- | --- | --- | --- | --- |
 | `favicon.svg`, `icon-192.png`, `icon-512.png` | Original project vector icon, PNGs generated with Sharp | Local project art | Project-owned generated asset for this game | SVG clock mark exported to 192x192 and 512x512 PNG | Browser tab, manifest, mobile install/share icons |
+| `social-card.png` | Generated from project-owned title background with Sharp/SVG text overlay | Local project art | Project-owned generated asset for this game | Cropped to 1200x630 PNG with title, subtitle, and border overlay | Open Graph and Twitter/X link previews |
 
 ## Procedural Audio
 
