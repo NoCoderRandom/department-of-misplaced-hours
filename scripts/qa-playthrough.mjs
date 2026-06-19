@@ -812,6 +812,50 @@ async function testPuzzlePolish(browser, issues) {
   await button(page, "Close");
 
   await continueSaved(page, {
+    room: "interrogation",
+    inventory: ["visitorBadge", "stampedForm"],
+    flags: {
+      introSeen: true,
+      formStamped: true,
+      clockUnlocked: true,
+      clockSolved: true
+    },
+    audioVolume: 0.72,
+    muted: false
+  });
+  await click(page, 862, 246);
+  await page.getByText("Do not translate them into clock time.").waitFor({ state: "visible", timeout: 8_000 });
+  await button(page, "Close");
+  await click(page, 638, 32);
+  notesText = await page.locator(".game-modal-body").innerText();
+  if (!notesText.includes("Handless clock note: click groups are counted, not read as clock time.")) {
+    throw new Error(`Notes did not retain the handless clock clue: ${notesText}`);
+  }
+  await button(page, "Close");
+
+  await continueSaved(page, {
+    room: "break",
+    inventory: ["visitorBadge", "stampedForm"],
+    flags: {
+      introSeen: true,
+      formStamped: true,
+      clockUnlocked: true,
+      clockSolved: true
+    },
+    audioVolume: 0.72,
+    muted: false
+  });
+  await click(page, 548, 456);
+  await page.getByText("not store impossible time").waitFor({ state: "visible", timeout: 8_000 });
+  await button(page, "Close");
+  await click(page, 638, 32);
+  notesText = await page.locator(".game-modal-body").innerText();
+  if (!notesText.includes("Microwave note: it warms memories, but it is not a place to file an impossible hour.")) {
+    throw new Error(`Notes did not retain the microwave red-herring clue: ${notesText}`);
+  }
+  await button(page, "Close");
+
+  await continueSaved(page, {
     room: "mirror",
     inventory: ["auditWarrant", "memoryCup", "selfFile"],
     flags: {
@@ -2856,7 +2900,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help Credits access with dialog semantics, puzzle-polish checks for Notes/objectives/hint answer reveal/Auditor feedback, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game and late-game reloads, phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help Credits access with dialog semantics, puzzle-polish checks for Notes/objectives/side-room clue recall/hint answer reveal/Auditor feedback, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game and late-game reloads, phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;

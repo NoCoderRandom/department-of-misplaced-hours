@@ -108,5 +108,6 @@
 - [x] Browser QA now guards late-game wrong-item feedback on the Black Mirror, Server Console, and Red Intercom hour gate so item misuse cannot silently solve final-act puzzles.
 - [x] Browser QA now reloads and continues after Auditor verification and after the server ledger unlocks, proving final-act saves cannot strand the player before choosing an ending.
 - [x] Release packaging now normalizes shipped text files and declares repository line endings, keeping distributable ZIP contents stable across Windows and Linux builds.
+- [x] Handless Clock and Microwave flavor now double as optional clue reinforcement, with Notes/QA coverage so final red herrings feel fair instead of arbitrary.
 - [x] Deployment prepared with `.github/workflows/deploy-pages.yml`.
 - [x] Documentation written: `README.md`, `ASSETS.md`, `THIRD_PARTY_NOTICES.md`, `DESIGN_NOTES.md`, `PROGRESS.md`.

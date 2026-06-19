@@ -1764,9 +1764,11 @@ export class MainScene extends Phaser.Scene {
   }
 
   private handlessClock(): void {
+    this.state.setFlag("handlessClockSeen");
+    this.state.save();
     this.showMessage(
       "Handless Clock",
-      "The clock has no hands because the room is not measuring time. It is measuring how long you can avoid answering."
+      "The clock has no hands because the room is not measuring time. It is measuring how long you can avoid answering. Its blank face adds one useful warning: when a clue arrives in groups, count the groups. Do not translate them into clock time."
     );
   }
 
@@ -2000,9 +2002,11 @@ export class MainScene extends Phaser.Scene {
   }
 
   private microwave(): void {
+    this.state.setFlag("microwaveSeen");
+    this.state.save();
     this.showMessage(
       "Microwave",
-      "The microwave door shows a tiny version of you heating soup in 1998. You have never owned that shirt."
+      "The microwave door shows a tiny version of you heating soup in 1998. You have never owned that shirt. A label says NOT APPROVED FOR FILING HOURS. It can warm leftovers, not store impossible time."
     );
   }
 
@@ -3069,6 +3073,8 @@ export class MainScene extends Phaser.Scene {
         : this.state.flag("heardPhone")
           ? "Future phone / tape groups: 7, 3, 1."
           : "",
+      this.state.flag("handlessClockSeen") ? "Handless clock note: click groups are counted, not read as clock time." : "",
+      this.state.flag("microwaveSeen") ? "Microwave note: it warms memories, but it is not a place to file an impossible hour." : "",
       this.state.flag("glassCaseCollected") ? "Your file, mirror shard, and misfiled folder came from the glass case." : "",
       this.state.flag("selfFileReviewed") ? "Your file proves who the Department is correcting, even if the warrant authorizes the correction." : "",
       this.state.flag("vendingSolved") ? "Memory Vending dispensed the missing hour and server fuse." : "",
