@@ -284,6 +284,36 @@ async function smokeOrientationGate(browser, url, target) {
   }
 }
 
+async function smokeNoScriptFallback(browser, url, target) {
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    viewport: { width: 1200, height: 800 },
+    deviceScaleFactor: 1
+  });
+  const page = await context.newPage();
+  const issues = [];
+  watchPage(page, issues);
+  try {
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 8_000 });
+    const fallback = page.getByRole("alert");
+    await fallback.waitFor({ state: "visible", timeout: 8_000 });
+    const fallbackText = ((await fallback.textContent()) ?? "").replace(/\s+/g, " ").trim();
+    for (const required of ["needs JavaScript enabled", "static web game", "does not require a backend server"]) {
+      if (!fallbackText.includes(required)) {
+        throw new Error(`${target.label} no-JavaScript fallback is missing required text: ${required}`);
+      }
+    }
+    if ((await page.locator("canvas").count()) !== 0) {
+      throw new Error(`${target.label} no-JavaScript fallback unexpectedly created a canvas.`);
+    }
+    if (issues.length > 0) {
+      throw new Error(`${target.label} no-JavaScript smoke issues:\n${issues.join("\n")}`);
+    }
+  } finally {
+    await context.close().catch(() => {});
+  }
+}
+
 async function smokeExtractedArchive(target) {
   await assertChecksum(target);
   await extractArchive(target);
@@ -328,6 +358,7 @@ async function smokeExtractedArchive(target) {
       throw new Error(`${target.label} smoke issues:\n${issues.join("\n")}`);
     }
     await smokeOrientationGate(browser, url, target);
+    await smokeNoScriptFallback(browser, url, target);
   } finally {
     await browser?.close().catch(() => {});
     await new Promise((resolvePromise) => server.close(resolvePromise));
@@ -337,6 +368,6 @@ async function smokeExtractedArchive(target) {
 for (const target of smokeTargets) {
   await smokeExtractedArchive(target);
   console.log(
-    `Release archive smoke passed: ${target.archivePath} served from ${target.webRootSubdir || "root"}, started a new shift, and passed touch-phone orientation gating.`
+    `Release archive smoke passed: ${target.archivePath} served from ${target.webRootSubdir || "root"}, started a new shift, passed touch-phone orientation gating, and showed the no-JavaScript fallback.`
   );
 }
