@@ -5,6 +5,10 @@ import { createHash } from "node:crypto";
 
 const distDir = "dist";
 const maxDistBytes = 5 * 1024 * 1024;
+const maxEntryJsBytes = 200 * 1024;
+const maxPhaserVendorBytes = 1400 * 1024;
+const maxRuntimeHelperBytes = 10 * 1024;
+const maxCssBytes = 32 * 1024;
 const forbiddenDistExtensions = [".map"];
 const forbiddenPackagePrefixes = ["public/", "release/", "release_backups/", "scripts/", "src/", "tmp/"];
 const forbiddenPackageNames = ["promt.txt", "DESIGN_NOTES.md", "PROGRESS.md", "docs/QA_WALKTHROUGH.md"];
@@ -110,6 +114,15 @@ async function referencedBuildAssets() {
 
 async function sha256(path) {
   return createHash("sha256").update(await readFile(path)).digest("hex");
+}
+
+async function assertAssetBudget(label, path, maxBytes) {
+  const info = await stat(path);
+  if (info.size > maxBytes) {
+    throw new Error(
+      `Release check failed: ${label} ${path} is ${(info.size / 1024).toFixed(1)} KB, above ${(maxBytes / 1024).toFixed(1)} KB budget.`
+    );
+  }
 }
 
 async function assertStaticSiteMetadata() {
@@ -306,6 +319,9 @@ const missingReferencedAssets = referencedAssets.filter((file) => !distFiles.inc
 const entryJsFiles = referencedAssets.filter((file) => /^dist\/assets\/index-.+\.js$/.test(file));
 const vendorJsFiles = referencedAssets.filter((file) => /^dist\/assets\/phaser-.+\.js$/.test(file));
 const cssFiles = referencedAssets.filter((file) => /^dist\/assets\/index-.+\.css$/.test(file));
+const runtimeHelperFiles = referencedAssets.filter(
+  (file) => file.endsWith(".js") && !entryJsFiles.includes(file) && !vendorJsFiles.includes(file)
+);
 if (entryJsFiles.length !== 1 || vendorJsFiles.length !== 1 || cssFiles.length !== 1) {
   throw new Error(
     `Release check failed: expected one entry JS, one Phaser vendor JS, and one CSS asset referenced by dist/index.html.\nReferenced:\n${referencedAssets.join("\n")}`
@@ -315,6 +331,12 @@ if (missingReferencedAssets.length > 0) {
   throw new Error(
     `Release check failed: dist/index.html does not reference the current built JS/CSS assets.\nReferenced:\n${referencedAssets.join("\n")}\nMissing:\n${missingReferencedAssets.join("\n")}`
   );
+}
+await assertAssetBudget("entry JavaScript", entryJsFiles[0], maxEntryJsBytes);
+await assertAssetBudget("Phaser vendor JavaScript", vendorJsFiles[0], maxPhaserVendorBytes);
+await assertAssetBudget("entry CSS", cssFiles[0], maxCssBytes);
+for (const runtimeHelper of runtimeHelperFiles) {
+  await assertAssetBudget("runtime helper JavaScript", runtimeHelper, maxRuntimeHelperBytes);
 }
 await assertStaticSiteMetadata();
 await assertImageProvenance();
