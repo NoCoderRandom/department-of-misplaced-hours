@@ -75,7 +75,15 @@ It also writes `release/department-of-misplaced-hours-<version>-store.zip`, a st
 2. In the GitHub repository, open **Settings > Pages**.
 3. Set **Source** to **GitHub Actions**.
 4. Push to `main`, or run the **Deploy to GitHub Pages** workflow manually.
-5. The workflow installs dependencies, runs `npm run release`, uploads the verified `dist/` artifact, and deploys it with GitHub Pages.
+5. The workflow installs dependencies, runs `npm run release`, uploads the verified `dist` artifact, deploys it with GitHub Pages, then runs a live browser smoke test against the public Pages URL.
+
+## Smoke Live Page
+
+```bash
+npm run smoke:live
+```
+
+This checks the public GitHub Pages build, verifies the HTML fallback copy, launches the game in a browser, starts a new shift, checks that a save is written, and verifies the no-JavaScript fallback.
 
 ## Controls
 
@@ -116,6 +124,7 @@ It also writes `release/department-of-misplaced-hours-<version>-store.zip`, a st
 - `scripts/package-release.mjs` - creates, validates, smoke-tests, transactionally promotes, and verifies the distributable ZIP archives with a deterministic Node-based ZIP writer.
 - `scripts/visual-audit.mjs` - screenshots desktop/mobile modal states, including short-screen dense mobile puzzle panels, and fails on panel, text, button-label, focus, or Escape regressions.
 - `scripts/smoke-release-archives.mjs` - extracts standard/store ZIPs, serves the playable web roots, and browser-smoke-tests launch.
+- `scripts/smoke-live.mjs` - browser-smoke-tests the deployed public GitHub Pages URL, including normal play and the no-JavaScript fallback.
 - `scripts/qa-playthrough.mjs` - automated browser QA for ship checks.
 - `ASSETS.md` - asset provenance and license notes.
 - `THIRD_PARTY_NOTICES.md` - bundled runtime and audio license notices.

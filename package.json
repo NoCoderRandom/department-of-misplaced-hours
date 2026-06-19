@@ -18,6 +18,7 @@
     "qa": "node scripts/qa-playthrough.mjs",
     "qa:preview": "node scripts/qa-playthrough.mjs --preview",
     "qa:visual": "node scripts/visual-audit.mjs",
+    "smoke:live": "node scripts/smoke-live.mjs",
     "verify": "npm run typecheck && npm run build && npm run release:check && npm run qa:preview && npm run qa:visual"
   },
   "dependencies": {
