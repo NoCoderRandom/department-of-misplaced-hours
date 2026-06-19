@@ -1696,6 +1696,10 @@ export class MainScene extends Phaser.Scene {
     return this.state.has("auditWarrant") || this.state.has("selfFile") || this.state.flag("glassCaseCollected");
   }
 
+  private hasAuditAuthority(): boolean {
+    return this.state.has("auditWarrant") || this.state.flag("identityVerifiedByWarrant") || this.state.flag("evidenceSafeOpened");
+  }
+
   private keyCabinet(): void {
     if (this.state.has("securityKey")) {
       this.showMessage("Key Cabinet", "Only blank hooks remain. The evidence key is already making your pocket heavier.");
@@ -2297,6 +2301,23 @@ export class MainScene extends Phaser.Scene {
   }
 
   private auditorConsultation(): void {
+    const auditQuestion = this.hasAuditAuthority()
+      ? {
+          label: "Ask Warrant",
+          action: () =>
+            this.auditorAnswer(
+              "auditorWarrantAsked",
+              "The warrant crackles like a small courtroom. 'Invoke audit authority and the correction turns outward. You stop being the case and make the Department answer for the filing system.'"
+            )
+        }
+      : {
+          label: "Ask Audit Seal",
+          action: () =>
+            this.auditorAnswer(
+              "auditorAuditSealAsked",
+              "The Auditor taps the silent seal behind the grille. 'An audit requires an Audit Warrant. Without one, the Department will only let this case answer for itself: file or hour.'"
+            )
+        };
     this.showMessage(
       "The Auditor",
       "The intercom keeps the line open after verification. 'One sanctioned question may become three, provided each is filed as hesitation.'",
@@ -2317,14 +2338,7 @@ export class MainScene extends Phaser.Scene {
               "The cup ticks once. 'Carry the missing hour out and the ledger loses its grip. You leave with an absence in your pocket. Freedom is rarely complete documentation.'"
             )
         },
-        {
-          label: "Ask Warrant",
-          action: () =>
-            this.auditorAnswer(
-              "auditorWarrantAsked",
-              "The warrant crackles like a small courtroom. 'Invoke audit authority and the correction turns outward. You stop being the case and make the Department answer for the filing system.'"
-            )
-        },
+        auditQuestion,
         { label: "Leave", action: () => this.closeOverlay() }
       ]
     );
@@ -3250,7 +3264,8 @@ export class MainScene extends Phaser.Scene {
       this.state.flag("hourVerified") ? "Intercom accepted the Cup of Missing Hour." : "",
       this.state.flag("auditorFileAsked") ? "Auditor note: the file ending makes you findable, but still legible to the Department." : "",
       this.state.flag("auditorHourAsked") ? "Auditor note: the hour ending breaks the ledger's grip, but does not promise complete memory." : "",
-      this.state.flag("auditorWarrantAsked") ? "Auditor note: the warrant ending turns the correction outward and audits the Department itself." : ""
+      this.state.flag("auditorWarrantAsked") ? "Auditor note: the warrant ending turns the correction outward and audits the Department itself." : "",
+      this.state.flag("auditorAuditSealAsked") ? "Auditor note: without an Audit Warrant, the audit seal leaves the file and hour choices." : ""
     ].filter(Boolean);
     this.showDocument("Notes", notes.join("\n\n"));
   }

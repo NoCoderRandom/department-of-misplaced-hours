@@ -72,7 +72,7 @@
 - [x] Major puzzle answer buttons now avoid solution order, and QA guards against top-to-bottom puzzle regressions.
 - [x] Major lock objects now give explicit wrong-item feedback, and QA verifies wrong items do not grant rewards, open gates, or trigger endings.
 - [x] Hand-cursor behavior is now explicit for room hotspots and inventory, with QA sweeping every room for default cursor on empty art and a hand cursor over real targets.
-- [x] Late-game Auditor consultation added so the file, hour, and warrant endings have optional in-world explanation before the final choice, with QA verifying Notes persistence.
+- [x] Late-game Auditor consultation added so the file, hour, and route-eligible warrant ending have optional in-world explanation before the final choice, with warrantless audit-seal feedback and QA verifying Notes persistence.
 - [x] Late-game save repair now restores upstream access gates for damaged archive, vending, mirror, and ending saves.
 - [x] Mirror Office and Map feedback now name exactly which prerequisite is still missing.
 - [x] Vending flow now requires the glass-case file beat before dispensing the missing hour, accepts seen rain-clue knowledge consistently, and avoids revealing the exact code after one wrong unmuted guess.

@@ -2867,6 +2867,45 @@ async function testAuditorConsultation(browser, issues) {
   await page.getByText("the warrant ending turns the correction outward").waitFor({ state: "visible", timeout: 8_000 });
 
   await page.close();
+
+  const warrantless = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
+  watchPage(warrantless, issues, "auditor-consultation-warrantless");
+
+  await continueSaved(warrantless, {
+    room: "mirror",
+    inventory: ["memoryCup", "selfFile"],
+    flags: { serverSolved: true },
+    audioVolume: 0.72,
+    muted: false
+  });
+
+  await click(warrantless, 612, 596);
+  await warrantless.getByText("One sanctioned question").waitFor({ state: "visible", timeout: 8_000 });
+  if ((await warrantless.getByRole("button", { name: "Ask Warrant" }).count()) !== 0) {
+    throw new Error("Warrantless Auditor consultation exposed the warrant-only question.");
+  }
+  await button(warrantless, "Ask Audit Seal");
+  await warrantless.getByText("An audit requires an Audit Warrant").waitFor({ state: "visible", timeout: 8_000 });
+  await button(warrantless, "Leave");
+
+  const warrantlessData = await save(warrantless);
+  if (
+    warrantlessData.inventory.includes("auditWarrant") ||
+    warrantlessData.flags.evidenceSafeOpened ||
+    warrantlessData.flags.identityVerifiedByWarrant ||
+    warrantlessData.flags.auditorWarrantAsked ||
+    !warrantlessData.flags.auditorAuditSealAsked
+  ) {
+    throw new Error(`Warrantless Auditor consultation did not preserve route state: ${JSON.stringify(warrantlessData)}`);
+  }
+
+  await click(warrantless, 638, 32);
+  await warrantless.getByText("without an Audit Warrant").waitFor({ state: "visible", timeout: 8_000 });
+  if ((await warrantless.getByText("the warrant ending turns the correction outward").count()) !== 0) {
+    throw new Error("Warrantless Notes showed the warrant-ending consultation note.");
+  }
+
+  await warrantless.close();
 }
 
 async function testSaveRepairAndArchiveGates(browser, issues) {
