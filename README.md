@@ -16,7 +16,7 @@ The game is built as a static web app with Phaser 3, TypeScript, and Vite. It ha
 - Mouse, keyboard, and standard gamepad/controller navigation for title actions, room objects, inventory, and modal buttons.
 - Procedural ambience plus CC0 Kenney UI/SFX sounds, document rustle, glass/safe/machine feedback, phone clue, and ending tones.
 - Optimized generated WebP background art for title, seven rooms, and ending.
-- Static boot screen, in-canvas loading progress, a readable no-JavaScript fallback, a readable asset-load failure screen if a deployment is missing required images, and procedural audio fallback if optional UI sounds are unavailable.
+- Static boot screen, in-canvas loading progress, a readable no-JavaScript fallback, a readable asset-load failure screen with DOM alert text if a deployment is missing required images, and procedural audio fallback if optional UI sounds are unavailable.
 - Browser install/share metadata, PNG social preview card, crawler guidance, and a sitemap for the public GitHub Pages release.
 - In-game Credits panel reachable from the title screen, Help, and ending screen, with asset/license documentation pointers.
 - Static-host Content Security Policy and no-referrer policy are checked in release/live smoke.
@@ -55,7 +55,7 @@ The production files are written to `dist/`.
 npm run verify
 ```
 
-This runs TypeScript, production build, exact release content checks, automated browser QA against the production preview, and a visual readability audit with minimum modal font-size checks. The QA covers asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help Credits access, three endings, canvas paint and accessibility attributes, mid-game reloads, phone clue recall in Notes, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, selected-item cancel by Escape/right-click/controller B, controller title/stick/object/modal navigation plus hint and bumper controls, large-text and reduced-motion preference persistence, reset survival, protected Start New behavior, clue-gated Mood Clocks, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, story-panel and ending-screen visual checks, failed-puzzle recovery, reward Escape checks including rain/glass/vending take prompts and vending reward reload recovery, save repair, invalid-room save recovery, corrupt/unavailable storage recovery, Recover Position, malformed save handling, scaled/mobile canvas interaction, modal focus/Escape behavior, late-game Notes scrolling, and answer-order anti-spoiler checks.
+This runs TypeScript, production build, exact release content checks, automated browser QA against the production preview, and a visual readability audit with minimum modal font-size checks. The QA covers asset-load failure recovery and alert text, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help Credits access, dialog title/body accessibility semantics, three endings, canvas paint and accessibility attributes, mid-game reloads, phone clue recall in Notes, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, selected-item cancel by Escape/right-click/controller B, controller title/stick/object/modal navigation plus hint and bumper controls, large-text and reduced-motion preference persistence, reset survival, protected Start New behavior, clue-gated Mood Clocks, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, story-panel, Credits-panel, and ending-screen visual checks, failed-puzzle recovery, reward Escape checks including rain/glass/vending take prompts and vending reward reload recovery, save repair, invalid-room save recovery, corrupt/unavailable storage recovery, Recover Position, malformed save handling, scaled/mobile canvas interaction, modal focus/Escape behavior, late-game Notes scrolling, and answer-order anti-spoiler checks.
 
 ## Preview Production Build
 
@@ -112,6 +112,7 @@ This checks the public GitHub Pages build, verifies the HTML fallback copy, stat
 - Keyboard object mode: `Tab` / `Shift+Tab` cycles room objects and inventory; `Enter` / `Space` activates the focused target.
 - Controller: D-pad or left stick cycles title actions, room objects, inventory, and modal buttons; `A` selects; `B` cancels a selected item or closes panels; `Back/View` opens Map, `X` opens Notes, `Y` opens Hint, `Start/Menu` opens Help, and bumpers adjust volume.
 - The game canvas has an accessible name and screen-reader summary for its keyboard controls.
+- Dialog panels expose visible titles and body text through `aria-labelledby` and `aria-describedby`.
 - Progress saves automatically after meaningful actions when browser storage is available. Audio, Large Text, and Reduced Motion preferences survive Reset Shift.
 - If the browser blocks localStorage, the game warns that the current session is playable but progress will not survive closing or reloading the page.
 
@@ -133,7 +134,7 @@ This checks the public GitHub Pages build, verifies the HTML fallback copy, stat
 - `scripts/optimize-images.mjs` - reproducible WebP export for generated room art.
 - `scripts/check-release.mjs` - verifies exact required `dist/` assets, app/social icons, production CSP hardening, image provenance hashes, and release package contents.
 - `scripts/package-release.mjs` - creates, validates, smoke-tests, transactionally promotes, and verifies the distributable ZIP archives with a deterministic Node-based ZIP writer.
-- `scripts/visual-audit.mjs` - screenshots desktop/mobile modal states, Future Phone story panels, and ending screens, including short-screen dense mobile puzzle panels, and fails on panel, minimum font size, text overflow, button-label, focus, ending readability, or Escape regressions.
+- `scripts/visual-audit.mjs` - screenshots desktop/mobile modal states, Credits panels, Future Phone story panels, and ending screens, including short-screen dense mobile puzzle panels, and fails on panel, minimum font size, text overflow, button-label, focus, ending readability, or Escape regressions.
 - `scripts/smoke-release-archives.mjs` - extracts standard/store ZIPs, serves the playable web roots, and browser-smoke-tests launch.
 - `scripts/smoke-live.mjs` - browser-smoke-tests the deployed public GitHub Pages URL, including normal play and the no-JavaScript fallback.
 - `scripts/qa-playthrough.mjs` - automated browser QA for ship checks.

@@ -322,10 +322,22 @@ try {
   await desktop.locator(".game-modal-panel").waitFor({ state: "visible", timeout: 5000 });
   await desktop.screenshot({ path: join(OUT_DIR, "desktop-help-normal.png"), fullPage: true });
   await recordModal(desktop, "desktop help normal");
+  await desktop.getByRole("button", { name: "Credits" }).click();
+  await desktop.getByRole("dialog", { name: "Credits" }).waitFor({ state: "visible", timeout: 5000 });
+  await desktop.screenshot({ path: join(OUT_DIR, "desktop-credits-normal.png"), fullPage: true });
+  await recordModal(desktop, "desktop credits normal");
+  await desktop.keyboard.press("Escape");
+  await desktop.locator(".game-modal-panel").waitFor({ state: "detached", timeout: 5000 });
+  await clickGame(desktop, 816, 32);
+  await desktop.locator(".game-modal-panel").waitFor({ state: "visible", timeout: 5000 });
   await desktop.getByRole("button", { name: "Large Text" }).click();
   await desktop.waitForTimeout(250);
   await desktop.screenshot({ path: join(OUT_DIR, "desktop-help-large.png"), fullPage: true });
   await recordModal(desktop, "desktop help large");
+  await desktop.getByRole("button", { name: "Credits" }).click();
+  await desktop.getByRole("dialog", { name: "Credits" }).waitFor({ state: "visible", timeout: 5000 });
+  await desktop.screenshot({ path: join(OUT_DIR, "desktop-credits-large.png"), fullPage: true });
+  await recordModal(desktop, "desktop credits large");
   await desktop.close();
 
   const mobile = await openStartedPage({ width: 390, height: 844 });
@@ -343,10 +355,22 @@ try {
   await mobile.locator(".game-modal-panel").waitFor({ state: "visible", timeout: 5000 });
   await mobile.screenshot({ path: join(OUT_DIR, "mobile-help-normal.png"), fullPage: true });
   await recordModal(mobile, "mobile help normal");
+  await mobile.getByRole("button", { name: "Credits" }).click();
+  await mobile.getByRole("dialog", { name: "Credits" }).waitFor({ state: "visible", timeout: 5000 });
+  await mobile.screenshot({ path: join(OUT_DIR, "mobile-credits-normal.png"), fullPage: true });
+  await recordModal(mobile, "mobile credits normal");
+  await mobile.keyboard.press("Escape");
+  await mobile.locator(".game-modal-panel").waitFor({ state: "detached", timeout: 5000 });
+  await clickGame(mobile, 816, 32);
+  await mobile.locator(".game-modal-panel").waitFor({ state: "visible", timeout: 5000 });
   await mobile.getByRole("button", { name: "Large Text" }).click();
   await mobile.waitForTimeout(250);
   await mobile.screenshot({ path: join(OUT_DIR, "mobile-help-large.png"), fullPage: true });
   await recordModal(mobile, "mobile help large");
+  await mobile.getByRole("button", { name: "Credits" }).click();
+  await mobile.getByRole("dialog", { name: "Credits" }).waitFor({ state: "visible", timeout: 5000 });
+  await mobile.screenshot({ path: join(OUT_DIR, "mobile-credits-large.png"), fullPage: true });
+  await recordModal(mobile, "mobile credits large");
   await mobile.close();
 
   const vendingState = {

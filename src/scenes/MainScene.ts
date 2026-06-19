@@ -82,6 +82,7 @@ export class MainScene extends Phaser.Scene {
   private titleFocusTargets: TitleFocusTarget[] = [];
   private titleFocusIndex = -1;
   private modalEscapeHandler?: ModalEscapeHandler;
+  private modalSerial = 0;
   private lastShortcutKey = "";
   private lastShortcutAt = 0;
   private saveUnavailableWarned = false;
@@ -521,7 +522,18 @@ export class MainScene extends Phaser.Scene {
       )
       .setOrigin(0.5);
     this.makeButton(GAME_W / 2, 610, 260, 64, "Reload", () => window.location.reload(), 10);
-    document.getElementById("game")?.setAttribute("data-load-state", "asset-failed-visible");
+    const game = document.getElementById("game");
+    game?.setAttribute("data-load-state", "asset-failed-visible");
+    let alert = document.getElementById("asset-load-alert");
+    if (!alert) {
+      alert = document.createElement("div");
+      alert.id = "asset-load-alert";
+      alert.className = "sr-only";
+      alert.setAttribute("role", "alert");
+      alert.setAttribute("aria-live", "assertive");
+      game?.append(alert);
+    }
+    alert.textContent = `Asset load failed. The game could not load required release files. ${details.replace(/\s+/g, " ")} Check that the release folder was uploaded intact, then reload.`;
   }
 
   private showTitle(): void {
@@ -2378,7 +2390,7 @@ export class MainScene extends Phaser.Scene {
   private showCredits(): void {
     this.showMessage(
       "Credits",
-      "Created as a static Phaser web game with TypeScript and Vite.\n\nVisual backgrounds, icons, and social-card art were generated for this project and optimized locally. Sound uses procedural Web Audio ambience plus selected CC0 Kenney interface effects.\n\nFull asset and license details ship with the release in ASSETS.md, NOTICE.md, and THIRD_PARTY_NOTICES.md."
+      "A static Phaser web game with TypeScript and Vite.\n\nArt generated and optimized locally. Sound uses procedural ambience plus selected CC0 Kenney interface effects.\n\nDetails: ASSETS.md, NOTICE.md, and THIRD_PARTY_NOTICES.md."
     );
   }
 
@@ -2596,13 +2608,17 @@ export class MainScene extends Phaser.Scene {
     panel.className = `game-modal-panel${actualButtons.length > 3 ? " game-modal-panel-grid" : ""}${actualButtons.length > 6 ? " game-modal-panel-many" : ""}`;
     panel.setAttribute("role", "dialog");
     panel.setAttribute("aria-modal", "true");
-    panel.setAttribute("aria-label", title);
+    const modalId = `game-modal-${++this.modalSerial}`;
+    panel.setAttribute("aria-labelledby", `${modalId}-title`);
+    panel.setAttribute("aria-describedby", `${modalId}-body`);
 
     const heading = document.createElement("h2");
+    heading.id = `${modalId}-title`;
     heading.className = "game-modal-title";
     heading.textContent = title;
 
     const message = document.createElement("div");
+    message.id = `${modalId}-body`;
     message.className = "game-modal-body";
     message.textContent = body;
 

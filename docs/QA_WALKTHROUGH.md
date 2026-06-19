@@ -40,7 +40,8 @@ Expected results:
 
 - The boot screen is removed after Phaser startup and the title canvas is painted.
 - The game canvas has a keyboard-focusable accessible name, keyboard shortcut metadata, and a screen-reader summary for keyboard controls.
-- A missing required asset shows a readable in-canvas asset-load failure screen and names the failed asset instead of hanging behind the boot overlay.
+- Dialogs expose their visible title and body through accessible name/description relationships.
+- A missing required asset shows a readable in-canvas asset-load failure screen and DOM alert text naming the failed asset instead of hanging behind the boot overlay.
 - A missing optional UI sound does not block boot or play; procedural audio fallback keeps the game usable.
 - All puzzles can be completed without external instructions.
 - Sound controls persist volume/mute changes, and the audio clue plays as click groups.
@@ -49,7 +50,7 @@ Expected results:
 - Help > Reduced Motion replaces ambient animation with static atmosphere, saves, restores after reload/Continue, survives Reset Shift, and carries into a fresh new shift; browser/OS reduced-motion defaults are honored on first launch.
 - Keyboard shortcuts open Map, Notes, Hint, Help, Sound, and volume controls, and do not fire through open panels.
 - Pressing `Enter` on the title starts a new shift, so the first action is not mouse-only.
-- Credits can be opened from the title screen and from Help before finishing the game.
+- Credits can be opened from the title screen and from Help before finishing the game, and the Credits panel remains readable in normal and Large Text layouts.
 - `Tab` / `Shift+Tab` keyboard focus can cycle room objects and inventory, and `Enter` / `Space` can activate them; QA uses this path to solve the opening form/stamp/door chain.
 - Standard controller input can start from the title, cycle room objects/inventory with D-pad or left stick, select with `A`, close panels with `B`, and move focus between modal buttons.
 - Progress persists after reload through `localStorage`.

@@ -350,6 +350,38 @@ async function expectCanvasAccessibility(page, label) {
   }
 }
 
+async function expectDialogSemantics(page, label, expectedTitle) {
+  const attrs = await page.evaluate(() => {
+    const panel = document.querySelector(".game-modal-panel");
+    if (!(panel instanceof HTMLElement)) {
+      return null;
+    }
+    const labelledBy = panel.getAttribute("aria-labelledby");
+    const describedBy = panel.getAttribute("aria-describedby");
+    const title = labelledBy ? document.getElementById(labelledBy) : null;
+    const body = describedBy ? document.getElementById(describedBy) : null;
+    return {
+      role: panel.getAttribute("role"),
+      modal: panel.getAttribute("aria-modal"),
+      labelledBy,
+      describedBy,
+      titleText: title?.textContent?.trim() ?? "",
+      bodyText: body?.textContent?.replace(/\s+/g, " ").trim() ?? ""
+    };
+  });
+  if (
+    !attrs ||
+    attrs.role !== "dialog" ||
+    attrs.modal !== "true" ||
+    !attrs.labelledBy ||
+    !attrs.describedBy ||
+    attrs.titleText !== expectedTitle ||
+    attrs.bodyText.length < 20
+  ) {
+    throw new Error(`${label} dialog semantics are incomplete: ${JSON.stringify(attrs)}`);
+  }
+}
+
 async function expectFailureScreenPainted(page) {
   const metrics = await page.evaluate(() => {
     const canvas = document.querySelector("canvas");
@@ -631,6 +663,7 @@ async function testCreditsAccess(browser, issues) {
 
   await click(page, 600, 594);
   await page.getByRole("dialog", { name: "Credits" }).waitFor({ state: "visible", timeout: 8_000 });
+  await expectDialogSemantics(page, "title Credits", "Credits");
   await page.getByText("static Phaser web game with TypeScript and Vite").waitFor({ state: "visible", timeout: 8_000 });
   await page.getByText("ASSETS.md, NOTICE.md, and THIRD_PARTY_NOTICES.md").waitFor({ state: "visible", timeout: 8_000 });
   await button(page, "Close");
@@ -640,8 +673,10 @@ async function testCreditsAccess(browser, issues) {
   await page.waitForFunction(() => !document.querySelector(".game-modal-panel"), null, { timeout: 8_000 });
   await click(page, 816, 32);
   await page.getByRole("dialog", { name: "Help" }).waitFor({ state: "visible", timeout: 8_000 });
+  await expectDialogSemantics(page, "Help", "Help");
   await button(page, "Credits");
   await page.getByRole("dialog", { name: "Credits" }).waitFor({ state: "visible", timeout: 8_000 });
+  await expectDialogSemantics(page, "Help Credits", "Credits");
   await page.getByText("selected CC0 Kenney interface effects").waitFor({ state: "visible", timeout: 8_000 });
   await button(page, "Close");
   await page.close();
@@ -671,6 +706,10 @@ async function testAssetLoadFailure(browser) {
   const loadError = await page.evaluate(() => document.getElementById("game")?.getAttribute("data-load-error") ?? "");
   if (!loadError.includes("bg-title")) {
     throw new Error(`Asset failure did not identify the missing title image: ${loadError}`);
+  }
+  const alertText = await page.getByRole("alert").textContent();
+  if (!alertText?.includes("Asset load failed") || !alertText.includes("bg-title")) {
+    throw new Error(`Asset failure alert did not expose the missing asset text: ${alertText ?? "missing alert"}`);
   }
   await expectFailureScreenPainted(page);
   if (pageErrors.length > 0) {
@@ -2517,7 +2556,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help Credits access, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone clue recall/review, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help Credits access with dialog semantics, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone clue recall/review, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;

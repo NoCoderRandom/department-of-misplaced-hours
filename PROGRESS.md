@@ -93,5 +93,8 @@
 - [x] Static release metadata now includes relative favicon/manifest links, generated PNG app icons, production CSP hardening, and npm-package checks for playable `dist/index.html`.
 - [x] Public share metadata now uses a generated 1200x630 PNG social card with Open Graph/Twitter dimensions, alt text, release checks, and live smoke coverage.
 - [x] Credits are now reachable from the title screen, Help, and ending screen, with QA proving title/help access and in-game pointers to shipped license docs.
+- [x] Credits panel readability is now covered by desktop/mobile visual audit in normal and Large Text modes, after tightening copy that overflowed mobile Large Text.
+- [x] DOM dialogs now connect visible titles/body text to assistive technology with `aria-labelledby`/`aria-describedby`, with browser QA coverage on Help and Credits.
+- [x] Asset-load failure recovery now exposes the missing required asset through DOM alert text as well as the readable canvas recovery screen.
 - [x] Deployment prepared with `.github/workflows/deploy-pages.yml`.
 - [x] Documentation written: `README.md`, `ASSETS.md`, `THIRD_PARTY_NOTICES.md`, `DESIGN_NOTES.md`, `PROGRESS.md`.
