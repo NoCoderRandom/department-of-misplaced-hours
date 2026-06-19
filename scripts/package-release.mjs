@@ -464,6 +464,7 @@ await writeFile(
     "## Controls",
     "",
     "- Move the cursor around the room. It changes to a hand and the status line names usable objects.",
+    "- On touch screens, first tap names a room object and second tap activates it; selected inventory still uses immediately.",
     "- Click inventory items at the bottom, then click room objects to try using them.",
     "- Press Escape, right-click the game, or press controller B to put away a selected inventory item.",
     "- Keyboard object mode: Tab / Shift+Tab cycles room objects and inventory; Enter / Space activates the focused target.",
@@ -491,6 +492,7 @@ const stagedReadme = await readFile(join(tempStageDir, "README.md"), "utf8");
 for (const required of [
   "B cancels selected items or closes panels",
   "Press Escape, right-click the game, or press controller B",
+  "On touch screens, first tap names a room object and second tap activates it",
   "Keyboard shortcuts: M Map, N Notes, H Hint, F1 Help, S Sound, [ and ] volume"
 ]) {
   if (!stagedReadme.includes(required)) {

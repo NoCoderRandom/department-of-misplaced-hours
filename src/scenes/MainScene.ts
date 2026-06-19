@@ -88,6 +88,8 @@ export class MainScene extends Phaser.Scene {
   private gamepadButtonLatch: Record<string, boolean> = {};
   private gamepadNavDirection = 0;
   private gamepadNavAt = 0;
+  private touchPrimedHotspotId?: string;
+  private touchPrimedAt = 0;
   private handleCanvasContextMenu = (event: MouseEvent): void => {
     event.preventDefault();
     this.focusGameCanvas();
@@ -752,6 +754,8 @@ export class MainScene extends Phaser.Scene {
     this.keyboardFocusIndex = -1;
     this.titleFocusTargets = [];
     this.titleFocusIndex = -1;
+    this.touchPrimedHotspotId = undefined;
+    this.touchPrimedAt = 0;
   }
 
   private resetGameCursor(): void {
@@ -886,6 +890,8 @@ export class MainScene extends Phaser.Scene {
 
   private toggleInventoryItem(itemId: ItemId): void {
     const item = ITEMS[itemId];
+    this.touchPrimedHotspotId = undefined;
+    this.touchPrimedAt = 0;
     this.selectedItem = this.selectedItem === itemId ? undefined : itemId;
     this.createHudRefresh();
     this.say(this.selectedItem ? `Selected ${item.name}.` : `Put away ${item.name}.`);
@@ -896,6 +902,8 @@ export class MainScene extends Phaser.Scene {
       return false;
     }
     const item = ITEMS[this.selectedItem];
+    this.touchPrimedHotspotId = undefined;
+    this.touchPrimedAt = 0;
     this.selectedItem = undefined;
     this.createHudRefresh();
     this.say(`Put away ${item.name}.`);
@@ -1038,17 +1046,48 @@ export class MainScene extends Phaser.Scene {
         this.setHover(this.selectedItem ? `${spot.label} with ${ITEMS[this.selectedItem].name}` : spot.label);
       });
       zone.on("pointerout", () => {
+        if (this.touchPrimedHotspotId === spot.id) {
+          return;
+        }
         this.input.setDefaultCursor("default");
         this.hideHotspotFocus();
         this.setHover("");
       });
-      zone.on("pointerdown", () => {
+      zone.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
         this.focusGameCanvas();
+        if (this.primeTouchHotspot(pointer, spot)) {
+          return;
+        }
+        this.touchPrimedHotspotId = undefined;
+        this.touchPrimedAt = 0;
         this.audio.click();
         this.hideHotspotFocus();
         spot.action();
       });
     }
+  }
+
+  private isTouchPointer(pointer: Phaser.Input.Pointer): boolean {
+    const sourceEvent = pointer.event as (Event & { pointerType?: string; changedTouches?: TouchList }) | undefined;
+    return sourceEvent?.pointerType === "touch" || Boolean(sourceEvent?.changedTouches?.length);
+  }
+
+  private primeTouchHotspot(pointer: Phaser.Input.Pointer, spot: Hotspot): boolean {
+    if (!this.isTouchPointer(pointer) || this.selectedItem) {
+      return false;
+    }
+
+    const now = performance.now();
+    if (this.touchPrimedHotspotId === spot.id && now - this.touchPrimedAt <= 2500) {
+      return false;
+    }
+
+    this.touchPrimedHotspotId = spot.id;
+    this.touchPrimedAt = now;
+    this.audio.hover();
+    this.showHotspotFocus({ ...spot, label: `${spot.label}\nTap again` });
+    this.setHover(`${spot.label}. Tap again to inspect.`);
+    return true;
   }
 
   private keyboardTargets(): KeyboardFocusTarget[] {
@@ -2819,7 +2858,7 @@ export class MainScene extends Phaser.Scene {
   private showHelp(): void {
     this.showMessage(
       "Help",
-      "Hand cursor marks useful objects. Select inventory, then click an object. Right-click, Escape, or controller B puts it away. Tab/D-pad moves focus; Enter/Space/A activates. Map fast-travels.",
+      "Hand cursor marks objects. Touch: first tap names, second tap uses. Select inventory, then object. Escape/right-click/B puts items away. Tab/D-pad focus; Enter/Space/A use.",
       [
         { label: this.state.largeText ? "Normal Text" : "Large Text", action: () => this.toggleLargeText() },
         { label: this.state.reducedMotion ? "Full Motion" : "Reduced Motion", action: () => this.toggleReducedMotion() },

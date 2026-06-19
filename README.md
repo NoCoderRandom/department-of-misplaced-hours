@@ -54,7 +54,7 @@ The production files are written to `dist/`.
 npm run verify
 ```
 
-This runs TypeScript, production build, exact release content checks, automated browser QA against the production preview, and a visual readability audit with minimum modal font-size checks. The QA covers asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, three endings, canvas paint and accessibility attributes, mid-game reloads, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, selection-safe audio controls, keyboard shortcuts, selected-item cancel by Escape/right-click/controller B, controller title/stick/object/modal navigation plus hint and bumper controls, large-text and reduced-motion preference persistence, reset survival, protected Start New behavior, clue-gated Mood Clocks, wrong-item feedback, Auditor consultation notes, story-panel and ending-screen visual checks, failed-puzzle recovery, reward Escape checks including rain/glass/vending take prompts and vending reward reload recovery, save repair, invalid-room save recovery, corrupt/unavailable storage recovery, Recover Position, malformed save handling, scaled/mobile canvas interaction, modal focus/Escape behavior, late-game Notes scrolling, and answer-order anti-spoiler checks.
+This runs TypeScript, production build, exact release content checks, automated browser QA against the production preview, and a visual readability audit with minimum modal font-size checks. The QA covers asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, three endings, canvas paint and accessibility attributes, mid-game reloads, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, touch first-tap hotspot preview, selection-safe audio controls, keyboard shortcuts, selected-item cancel by Escape/right-click/controller B, controller title/stick/object/modal navigation plus hint and bumper controls, large-text and reduced-motion preference persistence, reset survival, protected Start New behavior, clue-gated Mood Clocks, wrong-item feedback, Auditor consultation notes, story-panel and ending-screen visual checks, failed-puzzle recovery, reward Escape checks including rain/glass/vending take prompts and vending reward reload recovery, save repair, invalid-room save recovery, corrupt/unavailable storage recovery, Recover Position, malformed save handling, scaled/mobile canvas interaction, modal focus/Escape behavior, late-game Notes scrolling, and answer-order anti-spoiler checks.
 
 ## Preview Production Build
 
@@ -91,6 +91,7 @@ This checks the public GitHub Pages build, verifies the HTML fallback copy, stat
 ## Controls
 
 - Move the cursor around the room; it becomes a hand and the status line names useful objects.
+- On touch screens, the first tap names a room object and the second tap activates it; selected inventory still uses immediately.
 - Hovering a useful object shows an object-local focus bracket and label; there are no always-visible hotspot markers on the art.
 - Click an inventory item to select it, then click a room object to try using it there.
 - Press `Escape`, right-click the game, or press controller `B` to put away a selected inventory item.

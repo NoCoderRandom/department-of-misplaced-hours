@@ -86,5 +86,6 @@
 - [x] Visual readability audit now has minimum modal font-size gates and screenshots the Future Phone story panel on desktop and mobile.
 - [x] Large Text now enlarges canvas HUD/inventory labels, muted phone/tape interactions show the 7-3-1 transcript immediately, and QA covers those muted transcript paths.
 - [x] GitHub Pages CI now retains generated release ZIP/SHA files as a downloadable workflow artifact instead of only deploying `dist/`.
+- [x] Touch hotspots now preview on first tap and activate on second tap, while selected inventory still uses immediately; mobile QA covers both paths.
 - [x] Deployment prepared with `.github/workflows/deploy-pages.yml`.
 - [x] Documentation written: `README.md`, `ASSETS.md`, `THIRD_PARTY_NOTICES.md`, `DESIGN_NOTES.md`, `PROGRESS.md`.

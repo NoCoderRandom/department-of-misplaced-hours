@@ -83,6 +83,25 @@ async function click(page, x, y, wait = 140) {
   await page.waitForTimeout(wait);
 }
 
+async function touchTap(page, x, y, wait = 180) {
+  const point = await page.evaluate(
+    ({ gameX, gameY, gameW, gameH }) => {
+      const canvas = document.querySelector("canvas");
+      if (!canvas) {
+        throw new Error("Canvas not found for game-coordinate touch.");
+      }
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: rect.left + (gameX / gameW) * rect.width,
+        y: rect.top + (gameY / gameH) * rect.height
+      };
+    },
+    { gameX: x, gameY: y, gameW: GAME_W, gameH: GAME_H }
+  );
+  await page.touchscreen.tap(point.x, point.y);
+  await page.waitForTimeout(wait);
+}
+
 async function rightClick(page, x, y, wait = 140) {
   const point = await page.evaluate(
     ({ gameX, gameY, gameW, gameH }) => {
@@ -1153,6 +1172,49 @@ async function testScaledInteraction(browser, issues) {
     throw new Error("Scaled mobile Escape did not close the Notes panel.");
   }
   await mobile.close();
+
+  const touchContext = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 1,
+    hasTouch: true,
+    isMobile: true
+  });
+  const touchPage = await touchContext.newPage();
+  watchPage(touchPage, issues, "touch-hotspot-prime");
+  try {
+    await startNew(touchPage);
+    await touchTap(touchPage, 226, 650);
+    mobileData = await save(touchPage);
+    if (mobileData.inventory.includes("blankForm")) {
+      throw new Error(`Touch first tap activated instead of previewing the in-tray: ${JSON.stringify(mobileData)}`);
+    }
+    await touchTap(touchPage, 226, 650);
+    mobileData = await save(touchPage);
+    if (!mobileData.inventory.includes("blankForm")) {
+      throw new Error(`Touch second tap did not collect the blank form: ${JSON.stringify(mobileData)}`);
+    }
+
+    await touchTap(touchPage, 590, 660);
+    mobileData = await save(touchPage);
+    if (mobileData.inventory.includes("rubberStamp")) {
+      throw new Error(`Touch first tap activated instead of previewing the stamp: ${JSON.stringify(mobileData)}`);
+    }
+    await touchTap(touchPage, 590, 660);
+    mobileData = await save(touchPage);
+    if (!mobileData.inventory.includes("rubberStamp")) {
+      throw new Error(`Touch second tap did not collect the rubber stamp: ${JSON.stringify(mobileData)}`);
+    }
+
+    await selectItem(touchPage, "blankForm");
+    await touchTap(touchPage, 590, 660);
+    await button(touchPage, "Accept");
+    mobileData = await save(touchPage);
+    if (!mobileData.inventory.includes("stampedForm") || mobileData.inventory.includes("blankForm") || mobileData.inventory.includes("rubberStamp")) {
+      throw new Error(`Selected inventory did not bypass touch preview for immediate use: ${JSON.stringify(mobileData)}`);
+    }
+  } finally {
+    await touchContext.close();
+  }
 }
 
 async function testHotspotCursorBehavior(browser, issues) {
@@ -2397,7 +2459,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, touch first-tap hotspot preview, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;
