@@ -110,6 +110,7 @@ async function sha256(path) {
 
 async function assertStaticSiteMetadata() {
   const html = await readFile("dist/index.html", "utf8");
+  const normalizedHtml = html.replace(/\s+/g, " ");
   for (const required of [
     'rel="canonical"',
     'rel="apple-touch-icon"',
@@ -140,9 +141,12 @@ async function assertStaticSiteMetadata() {
     "[ / ] adjust volume",
     "Rotate Device",
     "Landscape mode keeps the files, buttons, and clues readable.",
+    "needs JavaScript enabled",
+    "static web game",
+    "does not require a backend server",
     "The Department of Misplaced Hours"
   ]) {
-    if (!html.includes(required)) {
+    if (!html.includes(required) && !normalizedHtml.includes(required)) {
       throw new Error(`Release check failed: dist/index.html is missing metadata marker ${required}.`);
     }
   }
