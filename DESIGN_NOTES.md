@@ -84,6 +84,7 @@ The soundscape mixes procedural Web Audio ambience with CC0 Kenney UI/SFX files.
 - Hover focus uses temporary object-local brackets/labels instead of permanent hotspot markers, preserving the art while reducing pixel-hunt uncertainty.
 - Touch input uses first-tap hotspot preview and second-tap activation, so touch players get the missing hover affordance without permanent hotspot markers. Selected inventory bypasses the preview and uses immediately.
 - Keyboard focus uses the same temporary bracket/status feedback plus a hidden live status region, so room objects and inventory can be cycled and activated without pointer coordinates.
+- Browser QA now sweeps every authored room hotspot for hand-cursor feedback and live target status, rather than sampling one hotspot per room.
 - Standard controller/gamepad input reuses the same focus targets: D-pad or left stick cycles title actions, room objects, inventory, and modal buttons; A selects; B cancels selected items or closes panels; face/menu buttons open common panels.
 - Help includes Large Text and Reduced Motion preferences that scale dialogue, document, puzzle, action-button, HUD, and inventory text while allowing ambient animation to be replaced by static atmosphere layers. First launch also honors browser/OS reduced-motion settings unless the player overrides them in Help.
 - Credits are reachable from title, Help, and endings, giving in-game pointers and direct source-document buttons for the shipped asset/license documents instead of hiding attribution only in repository files.

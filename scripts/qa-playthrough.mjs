@@ -1623,67 +1623,136 @@ async function testHotspotCursorBehavior(browser, issues) {
 
   const roomStates = [
     {
-      label: "reception stamp",
-      target: [590, 660],
+      room: "reception",
+      label: "Reception",
       save: {
         room: "reception",
         inventory: ["visitorBadge"],
         flags: { introSeen: true }
-      }
+      },
+      hotspots: [
+        ["In-Tray", 226, 650],
+        ["Stamp", 590, 660],
+        ["Badge Drawer", 456, 430],
+        ["Future Phone", 875, 635],
+        ["Circle Door", 360, 374],
+        ["Triangle Door", 612, 376],
+        ["Desk Memo", 706, 656]
+      ]
     },
     {
-      label: "clock mood clocks",
-      target: [610, 274],
+      room: "clock",
+      label: "Clock Hall",
       save: {
         room: "clock",
         inventory: ["visitorBadge", "stampedForm"],
         flags: { introSeen: true, formStamped: true, clockUnlocked: true }
-      }
+      },
+      hotspots: [
+        ["Mood Clocks", 610, 274],
+        ["Personnel Calendar", 936, 314],
+        ["Security Office", 768, 492],
+        ["Archive Elevator", 1000, 502],
+        ["Break Room Stairs", 184, 500],
+        ["Interrogation Booth", 420, 506],
+        ["Reception", 604, 662]
+      ]
     },
     {
-      label: "security key cabinet",
-      target: [696, 352],
+      room: "security",
+      label: "Security Office",
       save: {
         room: "security",
         inventory: ["visitorBadge", "stampedForm"],
         flags: { introSeen: true, formStamped: true, clockUnlocked: true, clockSolved: true }
-      }
+      },
+      hotspots: [
+        ["Monitor Bank", 200, 386],
+        ["Evidence Safe", 522, 392],
+        ["Key Cabinet", 696, 352],
+        ["Incident Board", 1026, 326],
+        ["Security Log", 570, 690],
+        ["Clock Hall", 866, 456],
+        ["Records Archive", 1060, 682]
+      ]
     },
     {
-      label: "interrogation rain window",
-      target: [292, 300],
+      room: "interrogation",
+      label: "Interrogation Booth",
       save: {
         room: "interrogation",
         inventory: ["visitorBadge", "stampedForm"],
         flags: { introSeen: true, formStamped: true, clockUnlocked: true, clockSolved: true }
-      }
+      },
+      hotspots: [
+        ["Tape Recorder", 520, 532],
+        ["Rain Window", 292, 300],
+        ["Interview File", 638, 622],
+        ["Handless Clock", 862, 246],
+        ["Clock Hall", 1110, 650],
+        ["Break Room", 102, 660]
+      ]
     },
     {
-      label: "archive index drawers",
-      target: [356, 420],
+      room: "archive",
+      label: "Records Archive",
       save: {
         room: "archive",
         inventory: ["visitorBadge", "stampedForm"],
         flags: { introSeen: true, formStamped: true, clockUnlocked: true, clockSolved: true }
-      }
+      },
+      hotspots: [
+        ["Index Drawers", 356, 420],
+        ["Glass Case", 706, 394],
+        ["Coin Drawer", 910, 558],
+        ["Archive Table", 610, 646],
+        ["Security Office", 250, 674],
+        ["Clock Hall", 100, 674],
+        ["Break Room", 1082, 674]
+      ]
     },
     {
-      label: "break memory vending",
-      target: [854, 396],
+      room: "break",
+      label: "Break Room",
       save: {
         room: "break",
         inventory: ["visitorBadge", "stampedForm", "timeToken", "paperCup"],
         flags: { introSeen: true, formStamped: true, clockUnlocked: true, clockSolved: true }
-      }
+      },
+      hotspots: [
+        ["Cork Board", 304, 250],
+        ["Paper Cups", 398, 606],
+        ["Memory Vending", 854, 396],
+        ["Microwave", 548, 456],
+        ["Records Archive", 110, 674],
+        ["Security Office", 490, 676],
+        ["Interrogation Booth", 640, 676],
+        ["Mirror Office", 1080, 674]
+      ]
     },
     {
-      label: "mirror red intercom",
-      target: [612, 596],
+      room: "mirror",
+      label: "Mirror Office",
       save: {
         room: "mirror",
-        inventory: ["auditWarrant", "memoryCup"],
-        flags: { introSeen: true, serverSolved: true }
-      }
+        inventory: ["auditWarrant", "memoryCup", "selfFile"],
+        flags: {
+          introSeen: true,
+          formStamped: true,
+          clockUnlocked: true,
+          clockSolved: true,
+          glassCaseCollected: true,
+          vendingSolved: true,
+          serverSolved: true
+        }
+      },
+      hotspots: [
+        ["Black Mirror", 334, 346],
+        ["Server Console", 858, 438],
+        ["Red Intercom", 612, 596],
+        ["Exit Door", 1080, 386],
+        ["Break Room", 112, 680]
+      ]
     }
   ];
 
@@ -1696,8 +1765,13 @@ async function testHotspotCursorBehavior(browser, issues) {
     });
     await move(page, 30, 120);
     await expectCanvasCursor(page, "default", `${scenario.label} empty picture space`);
-    await move(page, scenario.target[0], scenario.target[1]);
-    await expectCanvasCursor(page, "pointer", `${scenario.label} hotspot`);
+    for (const [label, x, y] of scenario.hotspots) {
+      await move(page, 30, 120);
+      await expectCanvasCursor(page, "default", `${scenario.label} empty before ${label}`);
+      await move(page, x, y);
+      await expectCanvasCursor(page, "pointer", `${scenario.label} ${label} hotspot`);
+      await expectLiveStatus(page, label, `${scenario.label} ${label} hover`);
+    }
     await move(page, 30, 120);
     await expectCanvasCursor(page, "default", `${scenario.label} after leaving hotspot`);
   }
@@ -3028,7 +3102,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help/ending Credits access with dialog semantics, puzzle-polish checks for Notes/objectives/side-room clue recall/hint answer reveal/Auditor feedback/Mirror identity wording, security override route, deduction route, audit ending, ending keyboard/gamepad controls after reload, spent-folder selection clearing, canvas paint and accessibility checks, mid-game and late-game reloads, phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help/ending Credits access with dialog semantics, puzzle-polish checks for Notes/objectives/side-room clue recall/hint answer reveal/Auditor feedback/Mirror identity wording, security override route, deduction route, audit ending, ending keyboard/gamepad controls after reload, spent-folder selection clearing, canvas paint and accessibility checks, mid-game and late-game reloads, phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts, all authored hand-cursor hotspot/live-status behavior plus inventory hover, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;
