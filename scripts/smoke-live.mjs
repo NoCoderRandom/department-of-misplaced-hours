@@ -7,6 +7,12 @@ const maxEntryJsBytes = 200 * 1024;
 const maxPhaserVendorBytes = 1400 * 1024;
 const maxRuntimeHelperBytes = 10 * 1024;
 const maxCssBytes = 32 * 1024;
+const sourceDocBase = "https://github.com/NoCoderRandom/department-of-misplaced-hours/blob/main/";
+const sourceDocs = [
+  { label: "Assets", path: "ASSETS.md" },
+  { label: "Notice", path: "NOTICE.md" },
+  { label: "3rd Party", path: "THIRD_PARTY_NOTICES.md" }
+];
 
 function option(name, fallback) {
   const prefix = `--${name}=`;
@@ -151,6 +157,38 @@ async function gameClick(page, x, y) {
     { gameX: x, gameY: y }
   );
   await page.mouse.click(point.x, point.y);
+}
+
+async function installWindowOpenCapture(page) {
+  await page.evaluate(() => {
+    window.__liveSmokeOpenedUrls = [];
+    window.open = (url, target, features) => {
+      window.__liveSmokeOpenedUrls.push({
+        url: String(url),
+        target: target === undefined ? "" : String(target),
+        features: features === undefined ? "" : String(features)
+      });
+      return null;
+    };
+  });
+}
+
+async function assertCreditDocButton(page, label, path, smokeLabel) {
+  const before = await page.evaluate(() => window.__liveSmokeOpenedUrls?.length ?? 0);
+  await page.getByRole("button", { name: label }).click({ timeout: 30_000 });
+  await page.waitForFunction((count) => (window.__liveSmokeOpenedUrls?.length ?? 0) === count + 1, before, {
+    timeout: 30_000
+  });
+  const opened = await page.evaluate(() => window.__liveSmokeOpenedUrls.at(-1));
+  const expectedUrl = `${sourceDocBase}${path}`;
+  if (
+    opened?.url !== expectedUrl ||
+    opened.target !== "_blank" ||
+    !opened.features.includes("noopener") ||
+    !opened.features.includes("noreferrer")
+  ) {
+    throw new Error(`${smokeLabel} Credits ${label} opened wrong document target: ${JSON.stringify(opened)}.`);
+  }
 }
 
 async function assertCanvasPainted(page) {
@@ -370,6 +408,43 @@ async function assertPublicMetadata(rawUrl) {
   }
 }
 
+async function smokeCredits(browser, url) {
+  const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
+  const issues = [];
+  watchPage(page, issues, "live-credits");
+  try {
+    await page.goto(url, { waitUntil: "networkidle", timeout: 60_000 });
+    await page.locator("canvas").waitFor({ state: "visible", timeout: 30_000 });
+    await page.evaluate(
+      ({ save, preferences }) => {
+        localStorage.removeItem(save);
+        localStorage.removeItem(preferences);
+      },
+      { save: saveKey, preferences: preferencesKey }
+    );
+    await page.reload({ waitUntil: "networkidle", timeout: 60_000 });
+    await page.locator("canvas").waitFor({ state: "visible", timeout: 30_000 });
+    await page.waitForTimeout(900);
+    await installWindowOpenCapture(page);
+    await assertCanvasPainted(page);
+    await gameClick(page, 600, 594);
+    await page.getByRole("dialog", { name: "Credits" }).waitFor({ state: "visible", timeout: 30_000 });
+    await page.getByText("source repository").waitFor({ state: "visible", timeout: 30_000 });
+    for (const doc of sourceDocs) {
+      await page.getByRole("button", { name: doc.label }).waitFor({ state: "visible", timeout: 30_000 });
+      await assertCreditDocButton(page, doc.label, doc.path, "Live");
+    }
+    const openedUrls = await page.evaluate(() => window.__liveSmokeOpenedUrls.map((entry) => entry.url));
+    await page.getByRole("button", { name: "Close" }).click({ timeout: 30_000 });
+    if (issues.length > 0) {
+      throw new Error(`Live Credits browser issues:\n${issues.join("\n")}`);
+    }
+    return { openedUrls };
+  } finally {
+    await page.close().catch(() => {});
+  }
+}
+
 async function smokePlayable(browser, url) {
   const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
   const issues = [];
@@ -483,10 +558,11 @@ for (let attempt = 1; attempt <= retries; attempt += 1) {
     const runtime = await assertLiveHtml(url);
     await assertPublicMetadata(rawUrl);
     browser = await chromium.launch({ headless: true });
+    const credits = await smokeCredits(browser, url);
     const playable = await smokePlayable(browser, url);
     const noScript = await smokeNoScript(browser, url);
     const orientation = await smokeOrientationGate(browser, url);
-    console.log(JSON.stringify({ ok: true, url: rawUrl, attempts: attempt, runtime, playable, noScript, orientation }, null, 2));
+    console.log(JSON.stringify({ ok: true, url: rawUrl, attempts: attempt, runtime, credits, playable, noScript, orientation }, null, 2));
     await browser.close();
     passed = true;
     break;

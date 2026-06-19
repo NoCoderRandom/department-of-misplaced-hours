@@ -9,6 +9,12 @@ import { chromium } from "playwright";
 const packageJson = JSON.parse(await readFile("package.json", "utf8"));
 const releaseName = `department-of-misplaced-hours-${packageJson.version}`;
 const host = "127.0.0.1";
+const sourceDocBase = "https://github.com/NoCoderRandom/department-of-misplaced-hours/blob/main/";
+const sourceDocs = [
+  { label: "Assets", path: "ASSETS.md" },
+  { label: "Notice", path: "NOTICE.md" },
+  { label: "3rd Party", path: "THIRD_PARTY_NOTICES.md" }
+];
 
 function option(name, fallback) {
   const prefix = `--${name}=`;
@@ -225,6 +231,38 @@ async function gameClick(page, x, y) {
   await page.waitForTimeout(150);
 }
 
+async function installWindowOpenCapture(page) {
+  await page.evaluate(() => {
+    window.__archiveSmokeOpenedUrls = [];
+    window.open = (url, target, features) => {
+      window.__archiveSmokeOpenedUrls.push({
+        url: String(url),
+        target: target === undefined ? "" : String(target),
+        features: features === undefined ? "" : String(features)
+      });
+      return null;
+    };
+  });
+}
+
+async function assertCreditDocButton(page, label, path, target) {
+  const before = await page.evaluate(() => window.__archiveSmokeOpenedUrls?.length ?? 0);
+  await page.getByRole("button", { name: label }).click({ timeout: 8_000 });
+  await page.waitForFunction((count) => (window.__archiveSmokeOpenedUrls?.length ?? 0) === count + 1, before, {
+    timeout: 8_000
+  });
+  const opened = await page.evaluate(() => window.__archiveSmokeOpenedUrls.at(-1));
+  const expectedUrl = `${sourceDocBase}${path}`;
+  if (
+    opened?.url !== expectedUrl ||
+    opened.target !== "_blank" ||
+    !opened.features.includes("noopener") ||
+    !opened.features.includes("noreferrer")
+  ) {
+    throw new Error(`${target.label} Credits ${label} opened wrong document target: ${JSON.stringify(opened)}.`);
+  }
+}
+
 async function paintedCanvasMetrics(page) {
   return page.evaluate(() => {
     const canvas = document.querySelector("canvas");
@@ -347,6 +385,16 @@ async function smokeExtractedArchive(target) {
       throw new Error(`${target.label} title canvas did not paint correctly: ${JSON.stringify(metrics)}`);
     }
 
+    await installWindowOpenCapture(page);
+    await gameClick(page, 600, 594);
+    await page.getByRole("dialog", { name: "Credits" }).waitFor({ state: "visible", timeout: 8_000 });
+    await page.getByText("source repository").waitFor({ state: "visible", timeout: 8_000 });
+    for (const doc of sourceDocs) {
+      await page.getByRole("button", { name: doc.label }).waitFor({ state: "visible", timeout: 8_000 });
+      await assertCreditDocButton(page, doc.label, doc.path, target);
+    }
+    await page.getByRole("button", { name: "Close" }).click({ timeout: 8_000 });
+
     await gameClick(page, 600, 390);
     await page.getByRole("button", { name: "Clock In" }).click({ timeout: 8_000 });
     await page.waitForTimeout(300);
@@ -368,6 +416,6 @@ async function smokeExtractedArchive(target) {
 for (const target of smokeTargets) {
   await smokeExtractedArchive(target);
   console.log(
-    `Release archive smoke passed: ${target.archivePath} served from ${target.webRootSubdir || "root"}, started a new shift, passed touch-phone orientation gating, and showed the no-JavaScript fallback.`
+    `Release archive smoke passed: ${target.archivePath} served from ${target.webRootSubdir || "root"}, verified Credits document targets, started a new shift, passed touch-phone orientation gating, and showed the no-JavaScript fallback.`
   );
 }
