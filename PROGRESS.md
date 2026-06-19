@@ -99,5 +99,7 @@
 - [x] Puzzle polish pass tightened Notes/objectives to avoid early clock spoilers and acknowledge alternate archive progression, added typed keypad input, and replaced generic Auditor wrong-answer text with clue-specific recovery feedback.
 - [x] Final hint solutions now require an explicit Show Answer step, with QA proving the clock answer is not revealed by ordinary hint cycling.
 - [x] Fast state regression tests now cover save/load normalization, repair invariants, reset preference preservation, and storage failure handling before browser QA runs.
+- [x] Mobile QA now verifies the rendered canvas stays fully visible and keeps the intended aspect ratio, catching cropped or distorted phone layouts.
+- [x] Accessibility/mobile polish now includes live keyboard target announcements and a touch-phone portrait rotate gate, both covered by QA.
 - [x] Deployment prepared with `.github/workflows/deploy-pages.yml`.
 - [x] Documentation written: `README.md`, `ASSETS.md`, `THIRD_PARTY_NOTICES.md`, `DESIGN_NOTES.md`, `PROGRESS.md`.

@@ -145,6 +145,7 @@ export class MainScene extends Phaser.Scene {
 
   create(): void {
     document.getElementById("boot-screen")?.remove();
+    document.body.classList.add("game-ready");
     this.game.canvas.tabIndex = 0;
     this.game.canvas.setAttribute("role", "application");
     this.game.canvas.setAttribute("aria-label", "The Department of Misplaced Hours playable game canvas");
@@ -641,6 +642,11 @@ export class MainScene extends Phaser.Scene {
         align: "center"
       })
       .setOrigin(0.5);
+    this.announceStatus(
+      GameState.hasSave()
+        ? "Title screen. Start New Shift, Continue Shift, Controls, and Credits are available."
+        : "Title screen. Start New Shift, Controls, and Credits are available."
+    );
   }
 
   private startNewShift(): void {
@@ -2395,6 +2401,7 @@ export class MainScene extends Phaser.Scene {
       this.showTitle();
     });
     this.makeButton(735, 610, 210, 52, fromSave ? "Title" : "Credits", fromSave ? () => this.showTitle() : () => this.showCredits());
+    this.announceStatus(`${title} ending screen.`);
   }
 
   private showCredits(): void {
@@ -2636,6 +2643,7 @@ export class MainScene extends Phaser.Scene {
 
   private showMessage(title: string, body: string, buttons?: ButtonSpec[], documentStyle = false, initialFocusLabel?: string): void {
     this.closeOverlay();
+    this.announceStatus(`${title} dialog opened.`);
     const actualButtons = buttons ?? [{ label: "Close", action: () => this.closeOverlay() }];
     const backdrop = document.createElement("div");
     backdrop.className = `game-modal-backdrop${documentStyle ? " game-modal-document" : ""}`;
@@ -3192,6 +3200,18 @@ export class MainScene extends Phaser.Scene {
 
   private setHover(message: string): void {
     this.hoverLabel?.setText(message);
+    this.announceStatus(message);
+  }
+
+  private announceStatus(message: string): void {
+    const text = message.replace(/\s+/g, " ").trim();
+    if (!text) {
+      return;
+    }
+    const status = document.getElementById("game-live-status");
+    if (status) {
+      status.textContent = text;
+    }
   }
 
   private createAtmosphere(roomId: RoomId): void {

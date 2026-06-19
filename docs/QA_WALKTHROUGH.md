@@ -41,6 +41,8 @@ Expected results:
 - Fast state tests pass for save/load normalization, repair invariants, reset preference preservation, and storage write failures.
 - The boot screen is removed after Phaser startup and the title canvas is painted.
 - The game canvas has a keyboard-focusable accessible name, keyboard shortcut metadata, and a screen-reader summary for keyboard controls.
+- Keyboard target changes update the hidden live status so screen-reader players hear the current room object.
+- Touch-phone portrait view shows a rotate prompt instead of asking players to use a tiny canvas.
 - Dialogs expose their visible title and body through accessible name/description relationships.
 - A missing required asset shows a readable in-canvas asset-load failure screen and DOM alert text naming the failed asset instead of hanging behind the boot overlay.
 - A missing optional UI sound does not block boot or play; procedural audio fallback keeps the game usable.
@@ -77,6 +79,6 @@ Expected results:
 - Late-game Notes remain inside the panel and scroll when needed.
 - Panels close with `Escape`.
 - Modal button focus stays trapped inside panels, and `Escape` still closes panels if focus leaves the button.
-- Canvas clicks still hit the intended game objects when the browser viewport scales or letterboxes the game.
+- Canvas clicks still hit the intended game objects when the browser viewport scales or letterboxes the game, and the rendered mobile canvas stays fully visible at the correct aspect ratio.
 - The production build succeeds with `npm run build`.
 - The production verification gate succeeds with `npm run verify`, and the full release gate succeeds with `npm run release`.

@@ -320,17 +320,53 @@ async function expectCanvasPainted(page, label) {
   }
 }
 
+async function expectRenderedCanvasFit(page, label) {
+  const rect = await page.evaluate(
+    ({ gameW, gameH }) => {
+      const canvas = document.querySelector("canvas");
+      if (!canvas) {
+        throw new Error("Canvas not found for rendered fit check.");
+      }
+      const bounds = canvas.getBoundingClientRect();
+      return {
+        x: bounds.x,
+        y: bounds.y,
+        width: bounds.width,
+        height: bounds.height,
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+        aspect: bounds.width / bounds.height,
+        expectedAspect: gameW / gameH
+      };
+    },
+    { gameW: GAME_W, gameH: GAME_H }
+  );
+  if (
+    rect.x < -1 ||
+    rect.y < -1 ||
+    rect.x + rect.width > rect.viewportWidth + 1 ||
+    rect.y + rect.height > rect.viewportHeight + 1 ||
+    Math.abs(rect.aspect - rect.expectedAspect) > 0.01
+  ) {
+    throw new Error(`${label} canvas is cropped or distorted: ${JSON.stringify(rect)}`);
+  }
+}
+
 async function expectCanvasAccessibility(page, label) {
   const attrs = await page.evaluate(() => {
     const canvas = document.querySelector("canvas");
     const summary = document.getElementById("game-accessibility-summary");
+    const liveStatus = document.getElementById("game-live-status");
     return {
       tabIndex: canvas?.getAttribute("tabindex"),
       role: canvas?.getAttribute("role"),
       label: canvas?.getAttribute("aria-label"),
       describedBy: canvas?.getAttribute("aria-describedby"),
       keyShortcuts: canvas?.getAttribute("aria-keyshortcuts"),
-      summaryText: summary?.textContent?.replace(/\s+/g, " ").trim() ?? ""
+      summaryText: summary?.textContent?.replace(/\s+/g, " ").trim() ?? "",
+      liveStatusRole: liveStatus?.getAttribute("role"),
+      liveStatusLive: liveStatus?.getAttribute("aria-live"),
+      liveStatusAtomic: liveStatus?.getAttribute("aria-atomic")
     };
   });
   if (
@@ -344,9 +380,24 @@ async function expectCanvasAccessibility(page, label) {
     !attrs.summaryText.includes("Arrow keys move between modal buttons") ||
     !attrs.summaryText.includes("Escape closes panels or puts away a selected inventory item") ||
     !attrs.summaryText.includes("F1 opens Help") ||
-    !attrs.summaryText.includes("[ / ] adjust volume")
+    !attrs.summaryText.includes("[ / ] adjust volume") ||
+    attrs.liveStatusRole !== "status" ||
+    attrs.liveStatusLive !== "polite" ||
+    attrs.liveStatusAtomic !== "true"
   ) {
     throw new Error(`${label} canvas accessibility attributes are incomplete: ${JSON.stringify(attrs)}`);
+  }
+}
+
+async function expectLiveStatus(page, expectedText, label) {
+  await page.waitForFunction(
+    (expected) => document.getElementById("game-live-status")?.textContent?.includes(expected),
+    expectedText,
+    { timeout: 4_000 }
+  );
+  const status = ((await page.locator("#game-live-status").textContent()) ?? "").replace(/\s+/g, " ").trim();
+  if (!status.includes(expectedText)) {
+    throw new Error(`${label} live status did not include ${expectedText}: ${status}`);
   }
 }
 
@@ -1350,14 +1401,28 @@ async function testBadSaveAndMobile(browser) {
   await mobile.reload({ waitUntil: "networkidle" });
   await mobile.locator("canvas").waitFor({ state: "visible", timeout: 8_000 });
   await mobile.waitForTimeout(650);
-  const rect = await mobile.evaluate(() => {
-    const bounds = document.querySelector("canvas").getBoundingClientRect();
-    return { x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height, viewportWidth: innerWidth };
-  });
-  if (rect.x < -1 || rect.x + rect.width > rect.viewportWidth + 1) {
-    throw new Error(`Mobile canvas is cropped horizontally: ${JSON.stringify(rect)}`);
-  }
+  await expectRenderedCanvasFit(mobile, "mobile title");
   await mobile.close();
+
+  const phoneContext = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 1,
+    hasTouch: true,
+    isMobile: true
+  });
+  const phone = await phoneContext.newPage();
+  await phone.goto(APP_URL, { waitUntil: "networkidle" });
+  await phone.locator("canvas").waitFor({ state: "visible", timeout: 8_000 });
+  await phone.locator("#orientation-gate").waitFor({ state: "visible", timeout: 8_000 });
+  const gateText = ((await phone.locator("#orientation-gate").textContent()) ?? "").replace(/\s+/g, " ").trim();
+  if (!gateText.includes("Rotate Device") || !gateText.includes("Landscape mode")) {
+    throw new Error(`Phone portrait orientation gate text is incomplete: ${gateText}`);
+  }
+  await phone.setViewportSize({ width: 844, height: 390 });
+  await phone.waitForFunction(() => getComputedStyle(document.getElementById("orientation-gate")).display === "none", null, {
+    timeout: 8_000
+  });
+  await phoneContext.close();
 }
 
 async function testScaledInteraction(browser, issues) {
@@ -1376,6 +1441,7 @@ async function testScaledInteraction(browser, issues) {
   const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
   watchPage(mobile, issues, "scaled-mobile");
   await startNew(mobile);
+  await expectRenderedCanvasFit(mobile, "scaled mobile new game");
   await click(mobile, 226, 650);
   let mobileData = await save(mobile);
   if (!mobileData.inventory.includes("blankForm")) {
@@ -1391,7 +1457,7 @@ async function testScaledInteraction(browser, issues) {
   await mobile.close();
 
   const touchContext = await browser.newContext({
-    viewport: { width: 390, height: 844 },
+    viewport: { width: 844, height: 390 },
     deviceScaleFactor: 1,
     hasTouch: true,
     isMobile: true
@@ -1974,8 +2040,10 @@ async function testKeyboardObjectInteraction(browser, issues) {
   await page.keyboard.press("Enter");
   await button(page, "Clock In");
   await expectCanvasPainted(page, "keyboard object reception");
+  await expectLiveStatus(page, "Reception Desk", "room status");
 
   await pressTab(page);
+  await expectLiveStatus(page, "In-Tray", "keyboard first hotspot");
   await page.keyboard.press("Enter");
   await page.waitForTimeout(250);
   let data = await save(page);
@@ -1984,6 +2052,7 @@ async function testKeyboardObjectInteraction(browser, issues) {
   }
 
   await pressTab(page, 2);
+  await expectLiveStatus(page, "Stamp", "keyboard stamp hotspot");
   await page.keyboard.press("Enter");
   await page.waitForTimeout(250);
   data = await save(page);

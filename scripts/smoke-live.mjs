@@ -96,13 +96,17 @@ async function assertCanvasAccessibility(page) {
   const attrs = await page.evaluate(() => {
     const canvas = document.querySelector("canvas");
     const summary = document.getElementById("game-accessibility-summary");
+    const liveStatus = document.getElementById("game-live-status");
     return {
       tabIndex: canvas?.getAttribute("tabindex"),
       role: canvas?.getAttribute("role"),
       label: canvas?.getAttribute("aria-label"),
       describedBy: canvas?.getAttribute("aria-describedby"),
       keyShortcuts: canvas?.getAttribute("aria-keyshortcuts"),
-      summaryText: summary?.textContent?.replace(/\s+/g, " ").trim() ?? ""
+      summaryText: summary?.textContent?.replace(/\s+/g, " ").trim() ?? "",
+      liveStatusRole: liveStatus?.getAttribute("role"),
+      liveStatusLive: liveStatus?.getAttribute("aria-live"),
+      liveStatusAtomic: liveStatus?.getAttribute("aria-atomic")
     };
   });
   if (
@@ -116,7 +120,10 @@ async function assertCanvasAccessibility(page) {
     !attrs.summaryText.includes("Arrow keys move between modal buttons") ||
     !attrs.summaryText.includes("Escape closes panels or puts away a selected inventory item") ||
     !attrs.summaryText.includes("F1 opens Help") ||
-    !attrs.summaryText.includes("[ / ] adjust volume")
+    !attrs.summaryText.includes("[ / ] adjust volume") ||
+    attrs.liveStatusRole !== "status" ||
+    attrs.liveStatusLive !== "polite" ||
+    attrs.liveStatusAtomic !== "true"
   ) {
     throw new Error(`Live canvas accessibility attributes are incomplete: ${JSON.stringify(attrs)}`);
   }
@@ -144,6 +151,10 @@ async function assertLiveHtml(url) {
     'name="referrer" content="no-referrer"',
     "Interactive point-and-click mystery game canvas",
     "Tab and Shift+Tab",
+    "game-live-status",
+    "orientation-gate",
+    "Rotate Device",
+    "Landscape mode keeps the files, buttons, and clues readable.",
     "needs JavaScript enabled",
     "static web game",
     "does not require a backend server"

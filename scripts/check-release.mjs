@@ -130,12 +130,16 @@ async function assertStaticSiteMetadata() {
     'name="twitter:card"',
     'name="twitter:image:alt"',
     'id="game-accessibility-summary"',
+    'id="game-live-status"',
+    'id="orientation-gate"',
     "Interactive point-and-click mystery game canvas",
     "Tab and Shift+Tab",
     "Arrow keys move between modal buttons",
     "Escape closes panels or puts away a selected inventory item",
     "F1 opens Help",
     "[ / ] adjust volume",
+    "Rotate Device",
+    "Landscape mode keeps the files, buttons, and clues readable.",
     "The Department of Misplaced Hours"
   ]) {
     if (!html.includes(required)) {
