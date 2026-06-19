@@ -125,7 +125,7 @@ This checks the public GitHub Pages build, verifies the HTML fallback copy, stat
 - `src/data/content.ts` - item and room definitions.
 - `public/assets/images/` - generated visual assets.
 - `scripts/optimize-images.mjs` - reproducible WebP export for generated room art.
-- `scripts/check-release.mjs` - verifies exact required `dist/` assets and release package contents.
+- `scripts/check-release.mjs` - verifies exact required `dist/` assets, image provenance hashes, and release package contents.
 - `scripts/package-release.mjs` - creates, validates, smoke-tests, transactionally promotes, and verifies the distributable ZIP archives with a deterministic Node-based ZIP writer.
 - `scripts/visual-audit.mjs` - screenshots desktop/mobile modal states and ending screens, including short-screen dense mobile puzzle panels, and fails on panel, text, button-label, focus, ending readability, or Escape regressions.
 - `scripts/smoke-release-archives.mjs` - extracts standard/store ZIPs, serves the playable web roots, and browser-smoke-tests launch.

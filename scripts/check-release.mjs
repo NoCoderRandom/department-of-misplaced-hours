@@ -1,6 +1,7 @@
 import { access, readFile, readdir, stat } from "node:fs/promises";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 
 const distDir = "dist";
 const maxDistBytes = 5 * 1024 * 1024;
@@ -91,6 +92,10 @@ async function referencedBuildAssets() {
   return [...html.matchAll(/(?:src|href)="\.\/assets\/(index-[^"]+\.(?:js|css))"/g)].map((match) => `dist/assets/${match[1]}`);
 }
 
+async function sha256(path) {
+  return createHash("sha256").update(await readFile(path)).digest("hex");
+}
+
 async function assertStaticSiteMetadata() {
   const html = await readFile("dist/index.html", "utf8");
   for (const required of [
@@ -152,6 +157,52 @@ async function assertStaticSiteMetadata() {
   }
 }
 
+async function assertImageProvenance() {
+  const provenance = await readFile("docs/ASSET_PROVENANCE.md", "utf8");
+  const rows = [...provenance.matchAll(/^\| `([^`]+\.webp)` \| \d+ \| `[a-f0-9]{64}` \| (\d+) \| `([a-f0-9]{64})` \|$/gm)];
+  const records = new Map(rows.map((row) => [row[1], { bytes: Number(row[2]), hash: row[3] }]));
+  const expectedImages = requiredDistFiles
+    .filter((file) => file.startsWith("dist/assets/images/") && file.endsWith(".webp"))
+    .map((file) => file.slice("dist/assets/images/".length))
+    .sort();
+  const documentedImages = [...records.keys()].sort();
+  const missing = expectedImages.filter((name) => !records.has(name));
+  const unexpected = documentedImages.filter((name) => !expectedImages.includes(name));
+  if (missing.length > 0 || unexpected.length > 0) {
+    throw new Error(
+      `Release check failed: image provenance table does not match shipped images.\nMissing:\n${missing.join("\n")}\nUnexpected:\n${unexpected.join("\n")}`
+    );
+  }
+
+  const failures = [];
+  for (const image of expectedImages) {
+    const record = records.get(image);
+    const publicPath = `public/assets/images/${image}`;
+    const distPath = `dist/assets/images/${image}`;
+    const [publicStat, distStat, publicHash, distHash] = await Promise.all([
+      stat(publicPath),
+      stat(distPath),
+      sha256(publicPath),
+      sha256(distPath)
+    ]);
+    if (publicStat.size !== record.bytes) {
+      failures.push(`${publicPath} size expected ${record.bytes}, got ${publicStat.size}`);
+    }
+    if (distStat.size !== record.bytes) {
+      failures.push(`${distPath} size expected ${record.bytes}, got ${distStat.size}`);
+    }
+    if (publicHash !== record.hash) {
+      failures.push(`${publicPath} hash expected ${record.hash}, got ${publicHash}`);
+    }
+    if (distHash !== record.hash) {
+      failures.push(`${distPath} hash expected ${record.hash}, got ${distHash}`);
+    }
+  }
+  if (failures.length > 0) {
+    throw new Error(`Release check failed: image provenance hashes are stale.\n${failures.join("\n")}`);
+  }
+}
+
 const distFiles = await listFiles(distDir);
 const missingDocs = [];
 for (const doc of requiredReleaseDocs) {
@@ -192,6 +243,7 @@ if (referencedAssets.length !== 2 || missingReferencedAssets.length > 0) {
   );
 }
 await assertStaticSiteMetadata();
+await assertImageProvenance();
 
 const expectedDistFiles = new Set([...requiredDistFiles, ...referencedAssets]);
 const unexpectedDistFiles = distFiles.filter((file) => !expectedDistFiles.has(file));

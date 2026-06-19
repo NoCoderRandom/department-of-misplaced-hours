@@ -40,6 +40,7 @@
 - [x] Archive drawer logic now blocks blind oracle attempts and explains warrant override requirements.
 - [x] QA now covers phone-only and rain-clue vending paths, failed puzzle recovery, save repair, archive gates, and production preview behavior.
 - [x] Background art optimized from large PNGs to 1200x800 WebP files with a reproducible Sharp script and asset provenance hashes.
+- [x] Release checks now verify WebP provenance table sizes and SHA-256 hashes against both source `public/` images and shipped `dist/` images.
 - [x] Static boot screen and Phaser loading progress added before the title screen.
 - [x] Missing release assets now show a readable in-canvas failure screen with the missing asset named, and QA verifies this path.
 - [x] Optional UI audio failures now fall back to procedural sound instead of blocking play, and QA verifies the missing-audio path.
