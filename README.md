@@ -54,7 +54,7 @@ The production files are written to `dist/`.
 npm run verify
 ```
 
-This runs TypeScript, production build, exact release content checks, automated browser QA against the production preview, and a visual readability audit. The QA covers asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, three endings, canvas paint and accessibility attributes, mid-game reloads, phone/rain/muted clue paths, hand-cursor hotspot/inventory behavior, selection-safe audio controls, keyboard shortcuts, selected-item cancel by Escape/right-click/controller B, controller title/stick/object/modal navigation plus hint and bumper controls, large-text and reduced-motion preference persistence, reset survival, protected Start New behavior, clue-gated Mood Clocks, wrong-item feedback, Auditor consultation notes, ending-screen visual checks, failed-puzzle recovery, reward Escape checks including rain/glass/vending take prompts and vending reward reload recovery, save repair, invalid-room save recovery, corrupt/unavailable storage recovery, Recover Position, malformed save handling, scaled/mobile canvas interaction, modal focus/Escape behavior, late-game Notes scrolling, and answer-order anti-spoiler checks.
+This runs TypeScript, production build, exact release content checks, automated browser QA against the production preview, and a visual readability audit with minimum modal font-size checks. The QA covers asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, three endings, canvas paint and accessibility attributes, mid-game reloads, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, selection-safe audio controls, keyboard shortcuts, selected-item cancel by Escape/right-click/controller B, controller title/stick/object/modal navigation plus hint and bumper controls, large-text and reduced-motion preference persistence, reset survival, protected Start New behavior, clue-gated Mood Clocks, wrong-item feedback, Auditor consultation notes, story-panel and ending-screen visual checks, failed-puzzle recovery, reward Escape checks including rain/glass/vending take prompts and vending reward reload recovery, save repair, invalid-room save recovery, corrupt/unavailable storage recovery, Recover Position, malformed save handling, scaled/mobile canvas interaction, modal focus/Escape behavior, late-game Notes scrolling, and answer-order anti-spoiler checks.
 
 ## Preview Production Build
 
@@ -78,7 +78,7 @@ It also writes `release/department-of-misplaced-hours-<version>-store.zip`, a st
 2. In the GitHub repository, open **Settings > Pages**.
 3. Set **Source** to **GitHub Actions**.
 4. Push to `main`, or run the **Deploy to GitHub Pages** workflow manually.
-5. The workflow installs dependencies, runs `npm run release`, uploads the verified `dist` artifact, deploys it with GitHub Pages, then runs a live browser smoke test against the public Pages URL.
+5. The workflow installs dependencies, runs `npm run release`, retains the release ZIP/SHA files as a workflow artifact, uploads the verified `dist` artifact, deploys it with GitHub Pages, then runs a live browser smoke test against the public Pages URL.
 
 ## Smoke Live Page
 
@@ -101,7 +101,7 @@ This checks the public GitHub Pages build, verifies the HTML fallback copy, stat
 - Use **Map** for unlocked-room fast travel.
 - Use **Hint** if stuck.
 - Use **Help > Recover Position** to repair a strange save/position without deleting progress.
-- Use **Help > Large Text** to enlarge dialogue, document, and puzzle panels.
+- Use **Help > Large Text** to enlarge dialogue, document, puzzle panels, HUD text, and inventory labels.
 - Use **Help > Reduced Motion** to replace ambient animation with static atmosphere layers; the game also honors browser/OS reduced-motion settings on first launch.
 - Use **Sound**, **-**, and **+** for audio controls.
 - Keyboard: `M` Map, `N` Notes, `H` Hint, `F1` Help, `S` Sound, `[` / `]` volume.
@@ -128,7 +128,7 @@ This checks the public GitHub Pages build, verifies the HTML fallback copy, stat
 - `scripts/optimize-images.mjs` - reproducible WebP export for generated room art.
 - `scripts/check-release.mjs` - verifies exact required `dist/` assets, image provenance hashes, and release package contents.
 - `scripts/package-release.mjs` - creates, validates, smoke-tests, transactionally promotes, and verifies the distributable ZIP archives with a deterministic Node-based ZIP writer.
-- `scripts/visual-audit.mjs` - screenshots desktop/mobile modal states and ending screens, including short-screen dense mobile puzzle panels, and fails on panel, text, button-label, focus, ending readability, or Escape regressions.
+- `scripts/visual-audit.mjs` - screenshots desktop/mobile modal states, Future Phone story panels, and ending screens, including short-screen dense mobile puzzle panels, and fails on panel, minimum font size, text overflow, button-label, focus, ending readability, or Escape regressions.
 - `scripts/smoke-release-archives.mjs` - extracts standard/store ZIPs, serves the playable web roots, and browser-smoke-tests launch.
 - `scripts/smoke-live.mjs` - browser-smoke-tests the deployed public GitHub Pages URL, including normal play and the no-JavaScript fallback.
 - `scripts/qa-playthrough.mjs` - automated browser QA for ship checks.

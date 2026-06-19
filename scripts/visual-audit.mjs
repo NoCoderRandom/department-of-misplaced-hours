@@ -197,6 +197,17 @@ const recordModal = async (page, label) => {
   if (metrics.overflowing) {
     throw new Error(`Modal text overflowed in ${label}: ${JSON.stringify(metrics)}`);
   }
+  const bodyFont = Number.parseFloat(metrics.body.fontSize);
+  const buttonFont = Number.parseFloat(metrics.button.fontSize);
+  const minBodyFont = label.includes("short mobile") ? 19 : label.includes("mobile") ? 23 : 24;
+  const minButtonFont = label.includes("short mobile") ? 16 : 22;
+  if (bodyFont < minBodyFont || buttonFont < minButtonFont) {
+    throw new Error(
+      `Modal text is too small in ${label}: body=${bodyFont}px min=${minBodyFont}px button=${buttonFont}px min=${minButtonFont}px ${JSON.stringify(
+        metrics
+      )}`
+    );
+  }
 };
 
 const canvasRegionMetrics = async (page, region) =>
@@ -300,6 +311,12 @@ try {
   }
   results.push(`desktop hover cursor ${hoverCursor}`);
   await desktop.screenshot({ path: join(OUT_DIR, "desktop-hover-stamp.png"), fullPage: true });
+  await clickGame(desktop, 875, 635);
+  await desktop.locator(".game-modal-panel").waitFor({ state: "visible", timeout: 5000 });
+  await desktop.screenshot({ path: join(OUT_DIR, "desktop-future-phone-modal.png"), fullPage: true });
+  await recordModal(desktop, "desktop future phone");
+  await desktop.keyboard.press("Escape");
+  await desktop.locator(".game-modal-panel").waitFor({ state: "detached", timeout: 5000 });
   await clickGame(desktop, 816, 32);
   await desktop.locator(".game-modal-panel").waitFor({ state: "visible", timeout: 5000 });
   await desktop.screenshot({ path: join(OUT_DIR, "desktop-help-normal.png"), fullPage: true });
@@ -313,6 +330,12 @@ try {
   const mobile = await openStartedPage({ width: 390, height: 844 });
   await mobile.screenshot({ path: join(OUT_DIR, "mobile-welcome-modal.png"), fullPage: true });
   await recordModal(mobile, "mobile welcome");
+  await mobile.keyboard.press("Escape");
+  await mobile.locator(".game-modal-panel").waitFor({ state: "detached", timeout: 5000 });
+  await clickGame(mobile, 875, 635);
+  await mobile.locator(".game-modal-panel").waitFor({ state: "visible", timeout: 5000 });
+  await mobile.screenshot({ path: join(OUT_DIR, "mobile-future-phone-modal.png"), fullPage: true });
+  await recordModal(mobile, "mobile future phone");
   await mobile.keyboard.press("Escape");
   await mobile.locator(".game-modal-panel").waitFor({ state: "detached", timeout: 5000 });
   await clickGame(mobile, 816, 32);

@@ -36,6 +36,17 @@ jobs:
       - name: Build and verify release
         run: npm run release
 
+      - name: Upload release archives
+        uses: actions/upload-artifact@v7
+        with:
+          name: department-of-misplaced-hours-release
+          path: |
+            release/*.zip
+            release/*.sha256
+          if-no-files-found: error
+          retention-days: 30
+          archive: false
+
       - name: Configure Pages
         uses: actions/configure-pages@v6
 

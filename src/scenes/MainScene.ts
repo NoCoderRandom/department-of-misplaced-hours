@@ -764,11 +764,15 @@ export class MainScene extends Phaser.Scene {
     this.game.canvas.focus({ preventScroll: true });
   }
 
+  private canvasFont(normal: number, large: number): string {
+    return `${this.state.largeText ? large : normal}px`;
+  }
+
   private createHud(): void {
     this.add.rectangle(GAME_W / 2, 32, GAME_W, 64, 0x080b08, 0.72).setDepth(20);
     this.roomTitle = this.add
-      .text(26, 18, ROOMS[this.state.room].name.toUpperCase(), {
-        fontSize: "20px",
+      .text(26, this.state.largeText ? 13 : 18, ROOMS[this.state.room].name.toUpperCase(), {
+        fontSize: this.canvasFont(20, 24),
         color: "#f2e8c9",
         fontStyle: "bold",
         fixedWidth: 486
@@ -776,8 +780,8 @@ export class MainScene extends Phaser.Scene {
       .setDepth(21);
 
     this.hoverLabel = this.add
-      .text(26, 50, "", {
-        fontSize: "19px",
+      .text(26, this.state.largeText ? 45 : 50, "", {
+        fontSize: this.canvasFont(19, 22),
         color: "#d4c798",
         fixedWidth: 486,
         wordWrap: { width: 486, useAdvancedWrap: true }
@@ -815,7 +819,7 @@ export class MainScene extends Phaser.Scene {
     this.add.rectangle(GAME_W / 2, 750, GAME_W, 100, 0x090c08, 0.82).setDepth(20);
     this.add
       .text(24, 710, "INVENTORY", {
-        fontSize: "17px",
+        fontSize: this.canvasFont(17, 21),
         color: "#b7af8a",
         fontStyle: "bold"
       })
@@ -825,7 +829,7 @@ export class MainScene extends Phaser.Scene {
     if (items.length === 0) {
       this.add
         .text(24, 744, "Empty. The inbox is optimistic.", {
-          fontSize: "18px",
+          fontSize: this.canvasFont(18, 22),
           color: "#e6d9b0"
         })
         .setDepth(21);
@@ -848,9 +852,10 @@ export class MainScene extends Phaser.Scene {
       const icon = this.createItemIcon(itemId, x, 738, selected, compact).setAlpha(spent && !selected ? 0.52 : 1);
       const label = this.add
         .text(x, 766, item.shortName, {
-          fontSize: compact ? "11px" : "14px",
+          fontSize: compact ? this.canvasFont(11, 15) : this.canvasFont(14, 17),
           color: spent && !selected ? "#8e876a" : "#d6c89b",
-          align: "center"
+          align: "center",
+          fixedWidth: Math.max(48, slotWidth - 6)
         })
         .setOrigin(0.5)
         .setDepth(22);
@@ -1381,12 +1386,13 @@ export class MainScene extends Phaser.Scene {
   private futurePhone(): void {
     this.state.setFlag("heardPhone");
     const started = this.audio.playPhoneClue();
+    const transcript = this.state.muted ? "\n\nAccessibility transcript: seven clicks, then three, then one." : "";
     this.state.save();
     this.showMessage(
       "Future Phone",
       started
-        ? "The receiver gnashes out three groups of clicks. Count them by ear, then write the number in your head. Beneath the clicks, a future version of you whispers, 'Do not buy the hour unless you can carry it.'"
-        : "The receiver is still speaking. Let the three click-groups finish before you replay them."
+        ? `The receiver gnashes out three groups of clicks. Count them by ear, then write the number in your head. Beneath the clicks, a future version of you whispers, 'Do not buy the hour unless you can carry it.'${transcript}`
+        : `The receiver is still speaking. Let the three click-groups finish before you replay them.${transcript}`
     );
   }
 
@@ -1639,12 +1645,13 @@ export class MainScene extends Phaser.Scene {
   private tapeRecorder(): void {
     this.state.setFlag("heardPhone");
     const started = this.audio.playPhoneClue();
+    const transcript = this.state.muted ? "\n\nAccessibility transcript: seven clicks, then three, then one." : "";
     this.state.save();
     this.showMessage(
       "Tape Recorder",
       started
-        ? "The recorder plays the same future-phone click groups, but cleaner. Three clusters. Count them carefully. The reels keep turning after the tape ends."
-        : "The reels are already turning. Let the click-groups finish, then play them again if you need."
+        ? `The recorder plays the same future-phone click groups, but cleaner. Three clusters. Count them carefully. The reels keep turning after the tape ends.${transcript}`
+        : `The reels are already turning. Let the click-groups finish, then play them again if you need.${transcript}`
     );
   }
 
@@ -2645,16 +2652,16 @@ export class MainScene extends Phaser.Scene {
       .text(0, 0, label, {
         fontSize:
           w <= 50
-            ? "22px"
+            ? this.canvasFont(22, 24)
             : h >= 52
               ? label.length > 22
-                ? "18px"
+                ? this.canvasFont(18, 20)
                 : label.length > 14
-                  ? "22px"
-                  : "29px"
+                  ? this.canvasFont(22, 24)
+                  : this.canvasFont(29, 31)
               : label.length > 18
-                ? "17px"
-                : "20px",
+                ? this.canvasFont(17, 19)
+                : this.canvasFont(20, 22),
         color: paperButton ? "#241c13" : "#fff0c5",
         align: "center",
         fontStyle: "bold",

@@ -1281,6 +1281,12 @@ async function testAudioControlsAndMutedClue(browser, issues) {
   if (data.muted !== true) {
     throw new Error(`Sound toggle did not persist muted=true: ${JSON.stringify(data)}`);
   }
+  await click(page, 875, 635);
+  await page.getByText("Accessibility transcript: seven clicks, then three, then one.").waitFor({
+    state: "visible",
+    timeout: 8_000
+  });
+  await button(page, "Close");
   await click(page, 360, 374);
   await page.getByText("Visitor Badge is selected, but the circular seal only accepts the Stamped Form.").waitFor({
     state: "visible",
@@ -1351,6 +1357,28 @@ async function testAudioControlsAndMutedClue(browser, issues) {
     throw new Error(`Muted accessibility clue route failed: ${JSON.stringify(data)}`);
   }
   await mutedClue.close();
+
+  const mutedTape = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
+  watchPage(mutedTape, issues, "muted-tape-transcript");
+  await continueSaved(mutedTape, {
+    room: "interrogation",
+    inventory: ["visitorBadge", "stampedForm"],
+    flags: {
+      introSeen: true,
+      formStamped: true,
+      clockUnlocked: true,
+      clockSolved: true
+    },
+    audioVolume: 0.72,
+    muted: true
+  });
+  await click(mutedTape, 520, 532);
+  await mutedTape.getByText("Accessibility transcript: seven clicks, then three, then one.").waitFor({
+    state: "visible",
+    timeout: 8_000
+  });
+  await button(mutedTape, "Close");
+  await mutedTape.close();
 
   const seenRainClue = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
   watchPage(seenRainClue, issues, "rain-seen-clue");
@@ -2369,7 +2397,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone/rain/muted clue paths, hand-cursor hotspot/inventory behavior, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;
