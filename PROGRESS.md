@@ -111,5 +111,6 @@
 - [x] Handless Clock and Microwave flavor now double as optional clue reinforcement, with Notes/QA coverage so final red herrings feel fair instead of arbitrary.
 - [x] Phaser now builds as a separate vendor chunk, and release checks/package manifests follow all runtime assets referenced by production HTML.
 - [x] Release checks now enforce runtime chunk size budgets for the app entry, Phaser vendor chunk, CSS, and tiny runtime helpers.
+- [x] Live GitHub Pages smoke now verifies the deployed runtime JS/CSS chunk manifest and size budgets before gameplay smoke passes.
 - [x] Deployment prepared with `.github/workflows/deploy-pages.yml`.
 - [x] Documentation written: `README.md`, `ASSETS.md`, `THIRD_PARTY_NOTICES.md`, `DESIGN_NOTES.md`, `PROGRESS.md`.

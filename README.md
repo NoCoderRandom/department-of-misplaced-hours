@@ -87,7 +87,7 @@ It also writes `release/department-of-misplaced-hours-<version>-store.zip`, a st
 npm run smoke:live
 ```
 
-This checks the public GitHub Pages build, verifies the HTML fallback copy, static-site metadata, crawler files, launches the game in a browser, starts a new shift, checks that a save is written, verifies the no-JavaScript fallback, and confirms the touch-phone portrait rotate gate appears and clears in landscape.
+This checks the public GitHub Pages build, verifies the deployed JS/CSS runtime chunk manifest and size budgets, verifies the HTML fallback copy, static-site metadata, crawler files, launches the game in a browser, starts a new shift, checks that a save is written, verifies the no-JavaScript fallback, and confirms the touch-phone portrait rotate gate appears and clears in landscape.
 
 ## Controls
 
@@ -137,7 +137,7 @@ This checks the public GitHub Pages build, verifies the HTML fallback copy, stat
 - `scripts/package-release.mjs` - creates, validates, smoke-tests, transactionally promotes, and verifies the distributable ZIP archives with platform-normalized text files and a deterministic Node-based ZIP writer.
 - `scripts/visual-audit.mjs` - screenshots desktop/mobile modal states, Credits panels, Future Phone story panels, and ending screens, including short-screen dense mobile puzzle panels, and fails on panel, minimum font size, text overflow, button-label, focus, ending readability, or Escape regressions.
 - `scripts/smoke-release-archives.mjs` - extracts standard/store ZIPs, serves the playable web roots, and browser-smoke-tests launch, no-JavaScript fallback, and touch-phone portrait orientation gating.
-- `scripts/smoke-live.mjs` - browser-smoke-tests the deployed public GitHub Pages URL, including install metadata, normal play, no-JavaScript fallback, and touch-phone portrait orientation gating.
+- `scripts/smoke-live.mjs` - browser-smoke-tests the deployed public GitHub Pages URL, including deployed runtime chunk manifest/size budgets, install metadata, normal play, no-JavaScript fallback, and touch-phone portrait orientation gating.
 - `scripts/state-tests.mjs` - fast save/load, repair-invariant, reset-preference, and storage-failure regression tests.
 - `scripts/qa-playthrough.mjs` - automated browser QA for ship checks.
 - `ASSETS.md` - asset provenance and license notes.

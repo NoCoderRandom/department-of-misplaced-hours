@@ -3,6 +3,10 @@ import { chromium } from "playwright";
 const defaultUrl = "https://nocoderrandom.github.io/department-of-misplaced-hours/";
 const saveKey = "department-misplaced-hours-save-v1";
 const preferencesKey = "department-misplaced-hours-preferences-v1";
+const maxEntryJsBytes = 200 * 1024;
+const maxPhaserVendorBytes = 1400 * 1024;
+const maxRuntimeHelperBytes = 10 * 1024;
+const maxCssBytes = 32 * 1024;
 
 function option(name, fallback) {
   const prefix = `--${name}=`;
@@ -18,6 +22,93 @@ function cacheBustedUrl(rawUrl) {
   const url = new URL(rawUrl);
   url.searchParams.set("live-smoke", `${Date.now()}`);
   return url.toString();
+}
+
+function runtimeAssetsFromHtml(html) {
+  return [
+    ...new Set([...html.matchAll(/(?:src|href)="\.\/assets\/([^"]+\.(?:js|css))"/g)].map((match) => match[1]))
+  ].sort();
+}
+
+function splitRuntimeAssets(assets) {
+  const entryJs = assets.filter((asset) => /^index-.+\.js$/.test(asset));
+  const phaserVendorJs = assets.filter((asset) => /^phaser-.+\.js$/.test(asset));
+  const css = assets.filter((asset) => /^index-.+\.css$/.test(asset));
+  const runtimeHelpers = assets.filter(
+    (asset) => asset.endsWith(".js") && !entryJs.includes(asset) && !phaserVendorJs.includes(asset)
+  );
+  return { entryJs, phaserVendorJs, css, runtimeHelpers };
+}
+
+function assertRuntimeContentType(response, kind, label) {
+  const contentType = response.headers.get("content-type") ?? "";
+  const isExpected =
+    kind === "css" ? contentType.includes("text/css") : /javascript|ecmascript/.test(contentType.toLowerCase());
+  if (!isExpected) {
+    throw new Error(`Live ${label} served with unexpected content type: ${contentType || "(none)"}.`);
+  }
+}
+
+async function assertLiveAssetBudget(label, url, maxBytes, kind) {
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error(`Live ${label} returned HTTP ${response.status} for ${url}`);
+  }
+  assertRuntimeContentType(response, kind, label);
+  const bytes = await response.arrayBuffer();
+  if (bytes.byteLength > maxBytes) {
+    throw new Error(
+      `Live ${label} is ${(bytes.byteLength / 1024).toFixed(1)} KB, above ${(maxBytes / 1024).toFixed(1)} KB budget: ${url}`
+    );
+  }
+  return bytes.byteLength;
+}
+
+async function assertLiveRuntimeAssets(rawUrl, html) {
+  const assets = runtimeAssetsFromHtml(html);
+  const { entryJs, phaserVendorJs, css, runtimeHelpers } = splitRuntimeAssets(assets);
+  if (entryJs.length !== 1 || phaserVendorJs.length !== 1 || css.length !== 1) {
+    throw new Error(
+      `Live HTML expected one entry JS, one Phaser vendor JS, and one CSS runtime asset.\nReferenced:\n${assets.join("\n")}`
+    );
+  }
+
+  const baseUrl = new URL(rawUrl);
+  const assetUrl = (asset) => {
+    const url = new URL(`assets/${asset}`, baseUrl);
+    url.searchParams.set("live-smoke", `${Date.now()}`);
+    return url;
+  };
+  const checked = {
+    assets,
+    entryJs: {
+      file: entryJs[0],
+      bytes: await assertLiveAssetBudget("entry JavaScript", assetUrl(entryJs[0]), maxEntryJsBytes, "js")
+    },
+    phaserVendorJs: {
+      file: phaserVendorJs[0],
+      bytes: await assertLiveAssetBudget(
+        "Phaser vendor JavaScript",
+        assetUrl(phaserVendorJs[0]),
+        maxPhaserVendorBytes,
+        "js"
+      )
+    },
+    css: {
+      file: css[0],
+      bytes: await assertLiveAssetBudget("entry CSS", assetUrl(css[0]), maxCssBytes, "css")
+    },
+    runtimeHelpers: []
+  };
+
+  for (const helper of runtimeHelpers) {
+    checked.runtimeHelpers.push({
+      file: helper,
+      bytes: await assertLiveAssetBudget("runtime helper JavaScript", assetUrl(helper), maxRuntimeHelperBytes, "js")
+    });
+  }
+
+  return checked;
 }
 
 function watchPage(page, issues, label) {
@@ -134,7 +225,9 @@ async function assertLiveHtml(url) {
   if (!response.ok) {
     throw new Error(`Live HTML returned HTTP ${response.status} for ${url}`);
   }
-  const html = (await response.text()).replace(/\s+/g, " ");
+  const rawHtml = await response.text();
+  const runtime = await assertLiveRuntimeAssets(url, rawHtml);
+  const html = rawHtml.replace(/\s+/g, " ");
   for (const required of [
     "The Department of Misplaced Hours",
     'http-equiv="Content-Security-Policy"',
@@ -166,6 +259,7 @@ async function assertLiveHtml(url) {
   if (/localhost|127\.0\.0\.1|ws:\/\//.test(html)) {
     throw new Error("Live HTML still exposes localhost or websocket development endpoints in its CSP.");
   }
+  return runtime;
 }
 
 async function assertPublicMetadata(rawUrl) {
@@ -386,13 +480,13 @@ for (let attempt = 1; attempt <= retries; attempt += 1) {
   const url = cacheBustedUrl(rawUrl);
   let browser;
   try {
-    await assertLiveHtml(url);
+    const runtime = await assertLiveHtml(url);
     await assertPublicMetadata(rawUrl);
     browser = await chromium.launch({ headless: true });
     const playable = await smokePlayable(browser, url);
     const noScript = await smokeNoScript(browser, url);
     const orientation = await smokeOrientationGate(browser, url);
-    console.log(JSON.stringify({ ok: true, url: rawUrl, attempts: attempt, playable, noScript, orientation }, null, 2));
+    console.log(JSON.stringify({ ok: true, url: rawUrl, attempts: attempt, runtime, playable, noScript, orientation }, null, 2));
     await browser.close();
     passed = true;
     break;
