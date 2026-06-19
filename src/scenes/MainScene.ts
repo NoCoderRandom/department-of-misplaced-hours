@@ -53,6 +53,13 @@ type SequenceButton = {
   value: string;
 };
 
+type HintStep =
+  | string
+  | {
+      nudge: string;
+      answer: string;
+    };
+
 type LoadFailureFile = {
   key?: string;
   url?: string;
@@ -2908,7 +2915,7 @@ export class MainScene extends Phaser.Scene {
   }
 
   private showHint(): void {
-    const hints: Record<RoomId, string[]> = {
+    const hints: Record<RoomId, HintStep[]> = {
       reception: [
         "The circular door wants official red ink.",
         "Try taking a blank form and the stamp. Select either one, then click the other.",
@@ -2917,7 +2924,10 @@ export class MainScene extends Phaser.Scene {
       clock: [
         "The mood clocks need the clerk-processing order.",
         "Reception tells you the first and last moods. The calendar confirms the middle.",
-        "The order is Regret, Hunger, Calm, Joy. Solving it opens Security, Interrogation, Archive, and Break Room."
+        {
+          nudge: "If you have read both documents, the order can be rebuilt from first, middle, and last clues.",
+          answer: "The clock order is Regret, Hunger, Calm, Joy. Solving it opens Security, Interrogation, Archive, and Break Room."
+        }
       ],
       security: [
         "Security is about authorization and evidence, not another number code.",
@@ -2927,29 +2937,53 @@ export class MainScene extends Phaser.Scene {
       interrogation: [
         "The booth gives an alternate clue for the vending code.",
         "The tape recorder replays the phone clue; the rain window shows it visually.",
-        "The rain groups are seven, three, one."
+        {
+          nudge: "The rain clue is counted in three visible groups, just like the phone and tape.",
+          answer: "The rain groups are seven, three, one."
+        }
       ],
       archive: [
         "The archive drawers want category order, then symbols.",
         "The archive table maps symbols to categories. The break-room board gives category order. Security monitor footage can support a warrant override.",
-        "Triangle, Circle, Eye, Square unlocks the glass case. Or use an Audit Warrant after viewing the security footage."
+        {
+          nudge: "Match each category in the break-room order to its symbol on the archive table. The warrant route needs camera evidence first.",
+          answer: "Triangle, Circle, Eye, Square unlocks the glass case. Or use an Audit Warrant after viewing the security footage."
+        }
       ],
       break: [
         "The vending machine needs a token, a cup, your recovered file, and a number.",
         "The token is in the archive, the cup is in this room, and the archive glass case proves who the hour belongs to. The number can come from the phone, tape recorder, or rain cipher.",
-        "The vending code is 731."
+        {
+          nudge: "The machine accepts the three groups in order; type or click the digits once you are sure.",
+          answer: "The vending code is 731."
+        }
       ],
       mirror: [
         "You need authorization, power, identity, the missing hour, and the reflected sequence.",
         "Use the shard on the black mirror and the fuse on the server console. Use the file or Audit Warrant on the intercom, then the Cup of Missing Hour.",
-        "Final order: install fuse, verify file, verify hour, read mirror, run console. At the exit, file, hour, and warrant each lead somewhere different."
+        {
+          nudge: "The final office is physical: repair what is broken, prove who you are, prove what was missing, then run the reflected sequence.",
+          answer:
+            "Final order: install fuse, verify file, verify hour, read mirror, run console. At the exit, file, hour, and warrant each lead somewhere different."
+        }
       ]
     };
     const pool = hints[this.state.room];
     const hintLevel = this.hintLevels[this.state.room] ?? 0;
-    const hint = pool[hintLevel % pool.length];
+    const hint = pool[Math.min(hintLevel, pool.length - 1)];
     this.hintLevels[this.state.room] = hintLevel + 1;
-    this.showMessage("Hint", hint);
+    if (typeof hint === "string") {
+      this.showMessage("Hint", hint);
+      return;
+    }
+    this.showMessage("Hint", hint.nudge, [
+      { label: "Show Answer", action: () => this.showHintAnswer(hint.answer) },
+      { label: "Close", action: () => this.closeOverlay() }
+    ]);
+  }
+
+  private showHintAnswer(answer: string): void {
+    this.showMessage("Hint Answer", answer, [{ label: "Close", action: () => this.closeOverlay() }]);
   }
 
   private showHelp(): void {
