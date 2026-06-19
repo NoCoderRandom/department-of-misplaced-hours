@@ -55,6 +55,7 @@
 - [x] Release promotion now backs up existing final artifacts, rolls back on promotion or checksum failure, and verifies promoted final ZIP checksum files before reporting success.
 - [x] Visual readability audit added to the release gate, with desktop/mobile screenshots for modal text size, hover feedback, and Large Text layout.
 - [x] Visual readability audit now covers dense mobile keypad/puzzle panels and fails on individual button-label overflow, not just panel overflow.
+- [x] Visual readability audit now screenshots and checks desktop/mobile ending screens so final text and buttons cannot silently disappear or become unreadable.
 - [x] Release checks now reject unexpected `dist/` files, and package promotion includes expanded release folders in the same rollback transaction as ZIP/checksum files.
 - [x] Visual readability audit now covers short mobile dense keypad panels and verifies focus wrapping plus Escape-close behavior.
 - [x] Badge Drawer now gives explicit feedback when recovering the Visitor Badge after the intro modal is dismissed, with QA coverage for that edge case.

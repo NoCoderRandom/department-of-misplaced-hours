@@ -54,7 +54,7 @@ The production files are written to `dist/`.
 npm run verify
 ```
 
-This runs TypeScript, production build, exact release content checks, automated browser QA against the production preview, and a visual readability audit. The QA covers asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, three endings, canvas paint and accessibility attributes, mid-game reloads, phone/rain/muted clue paths, hand-cursor hotspot/inventory behavior, audio controls, keyboard shortcuts, controller title/object/modal navigation, large-text and reduced-motion preference persistence, reset survival, protected Start New behavior, clue-gated Mood Clocks, wrong-item feedback, Auditor consultation notes, failed-puzzle recovery, reward Escape checks including rain/glass/vending take prompts, save repair, invalid-room save recovery, corrupt/unavailable storage recovery, Recover Position, malformed save handling, scaled/mobile canvas interaction, modal focus/Escape behavior, late-game Notes scrolling, and answer-order anti-spoiler checks.
+This runs TypeScript, production build, exact release content checks, automated browser QA against the production preview, and a visual readability audit. The QA covers asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, three endings, canvas paint and accessibility attributes, mid-game reloads, phone/rain/muted clue paths, hand-cursor hotspot/inventory behavior, audio controls, keyboard shortcuts, controller title/object/modal navigation, large-text and reduced-motion preference persistence, reset survival, protected Start New behavior, clue-gated Mood Clocks, wrong-item feedback, Auditor consultation notes, ending-screen visual checks, failed-puzzle recovery, reward Escape checks including rain/glass/vending take prompts, save repair, invalid-room save recovery, corrupt/unavailable storage recovery, Recover Position, malformed save handling, scaled/mobile canvas interaction, modal focus/Escape behavior, late-game Notes scrolling, and answer-order anti-spoiler checks.
 
 ## Preview Production Build
 
@@ -127,7 +127,7 @@ This checks the public GitHub Pages build, verifies the HTML fallback copy, stat
 - `scripts/optimize-images.mjs` - reproducible WebP export for generated room art.
 - `scripts/check-release.mjs` - verifies exact required `dist/` assets and release package contents.
 - `scripts/package-release.mjs` - creates, validates, smoke-tests, transactionally promotes, and verifies the distributable ZIP archives with a deterministic Node-based ZIP writer.
-- `scripts/visual-audit.mjs` - screenshots desktop/mobile modal states, including short-screen dense mobile puzzle panels, and fails on panel, text, button-label, focus, or Escape regressions.
+- `scripts/visual-audit.mjs` - screenshots desktop/mobile modal states and ending screens, including short-screen dense mobile puzzle panels, and fails on panel, text, button-label, focus, ending readability, or Escape regressions.
 - `scripts/smoke-release-archives.mjs` - extracts standard/store ZIPs, serves the playable web roots, and browser-smoke-tests launch.
 - `scripts/smoke-live.mjs` - browser-smoke-tests the deployed public GitHub Pages URL, including normal play and the no-JavaScript fallback.
 - `scripts/qa-playthrough.mjs` - automated browser QA for ship checks.

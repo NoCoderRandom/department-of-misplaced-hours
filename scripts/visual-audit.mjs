@@ -199,6 +199,74 @@ const recordModal = async (page, label) => {
   }
 };
 
+const canvasRegionMetrics = async (page, region) =>
+  page.evaluate(({ sampleRegion }) => {
+    const canvas = document.querySelector("canvas");
+    if (!(canvas instanceof HTMLCanvasElement)) {
+      throw new Error("Missing Phaser canvas for visual metrics.");
+    }
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    if (!context) {
+      throw new Error("2D canvas context unavailable for visual metrics.");
+    }
+
+    const { x, y, w, h, step } = sampleRegion;
+    let samples = 0;
+    let bright = 0;
+    let visible = 0;
+    const buckets = new Set();
+    const luminanceValues = [];
+
+    for (let sampleY = y; sampleY <= y + h; sampleY += step) {
+      for (let sampleX = x; sampleX <= x + w; sampleX += step) {
+        const [r, g, b, a] = context.getImageData(sampleX, sampleY, 1, 1).data;
+        samples += 1;
+        if (a > 0) {
+          visible += 1;
+        }
+        if (r + g + b > 245) {
+          bright += 1;
+        }
+        buckets.add(`${r >> 4},${g >> 4},${b >> 4}`);
+        luminanceValues.push(0.2126 * r + 0.7152 * g + 0.0722 * b);
+      }
+    }
+
+    const mean = luminanceValues.reduce((sum, value) => sum + value, 0) / luminanceValues.length;
+    const variance = luminanceValues.reduce((sum, value) => sum + (value - mean) ** 2, 0) / luminanceValues.length;
+
+    return {
+      width: canvas.width,
+      height: canvas.height,
+      samples,
+      visible,
+      bright,
+      uniqueBuckets: buckets.size,
+      variance: Math.round(variance)
+    };
+  }, { sampleRegion: region });
+
+const recordEnding = async (page, label) => {
+  const title = await canvasRegionMetrics(page, { x: 250, y: 80, w: 700, h: 85, step: 12 });
+  const body = await canvasRegionMetrics(page, { x: 200, y: 175, w: 800, h: 165, step: 12 });
+  const buttons = await canvasRegionMetrics(page, { x: 395, y: 575, w: 450, h: 85, step: 10 });
+  const metrics = { title, body, buttons };
+  results.push(`${label} ${JSON.stringify(metrics)}`);
+
+  for (const [regionName, region] of Object.entries(metrics)) {
+    if (region.width !== GAME_W || region.height !== GAME_H) {
+      throw new Error(`${label} ${regionName} canvas has wrong internal size: ${JSON.stringify(region)}`);
+    }
+    if (region.visible < region.samples || region.uniqueBuckets < 5 || region.variance < 24) {
+      throw new Error(`${label} ${regionName} region lacks visible detail: ${JSON.stringify(region)}`);
+    }
+  }
+
+  if (title.bright < 10 || body.bright < 10 || buttons.bright < 12) {
+    throw new Error(`${label} ending text/buttons are not bright enough to read: ${JSON.stringify(metrics)}`);
+  }
+};
+
 const assertDenseModalKeyboard = async (page, label) => {
   const initialFocus = await page.evaluate(() => document.activeElement?.textContent?.trim() ?? "");
   if (initialFocus !== "1") {
@@ -288,6 +356,44 @@ try {
     await page.screenshot({ path: join(OUT_DIR, scenario.file), fullPage: true });
     await recordModal(page, scenario.label);
     await assertDenseModalKeyboard(page, scenario.label);
+    await page.close();
+  }
+
+  const endingBaseState = {
+    room: "mirror",
+    inventory: ["visitorBadge", "stampedForm", "auditWarrant", "selfFile", "memoryCup"],
+    flags: {
+      introSeen: true,
+      formStamped: true,
+      clockUnlocked: true,
+      clockSolved: true,
+      evidenceSafeOpened: true,
+      archiveSolved: true,
+      glassCaseCollected: true,
+      vendingSolved: true,
+      mirrorShardInstalled: true,
+      fuseInstalled: true,
+      identityVerified: true,
+      hourVerified: true,
+      mirrorClueSeen: true,
+      serverSolved: true
+    },
+    audioVolume: 0.72,
+    muted: false,
+    largeText: false,
+    reducedMotion: true
+  };
+  const endingScenarios = [
+    { label: "desktop filed ending", viewport: { width: 1536, height: 1000 }, ending: "filed", file: "desktop-ending-filed.png" },
+    { label: "desktop escaped ending", viewport: { width: 1536, height: 1000 }, ending: "escaped", file: "desktop-ending-escaped.png" },
+    { label: "desktop audit ending", viewport: { width: 1536, height: 1000 }, ending: "audited", file: "desktop-ending-audit.png" },
+    { label: "mobile escaped ending", viewport: { width: 390, height: 844 }, ending: "escaped", file: "mobile-ending-escaped.png" }
+  ];
+
+  for (const scenario of endingScenarios) {
+    const page = await openSavedPage(scenario.viewport, { ...endingBaseState, ending: scenario.ending });
+    await page.screenshot({ path: join(OUT_DIR, scenario.file), fullPage: true });
+    await recordEnding(page, scenario.label);
     await page.close();
   }
 } finally {

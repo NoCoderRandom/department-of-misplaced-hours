@@ -56,7 +56,7 @@ Expected results:
 - Map fast travel lists unlocked rooms and does not overlap Notes.
 - Hovering useful objects shows a hand cursor, focus bracket, and label, but no hotspot markers are visible at rest.
 - Known clues can be reviewed from relevant puzzle panels.
-- The Phaser canvas is painted with varied room art on title, room, reload, map, and ending states.
+- The Phaser canvas is painted with varied room art on title, room, reload, map, and ending states; ending screens keep readable title, body, and action buttons.
 - Filed, Escaped, and Audit endings each save a distinct ending id.
 - After final verification, the Red Intercom offers optional Auditor questions about the file, hour, and warrant choices, and Notes remember those answers.
 - Wrong puzzle entries recover cleanly and allow another attempt.
