@@ -465,8 +465,9 @@ await writeFile(
     "",
     "- Move the cursor around the room. It changes to a hand and the status line names usable objects.",
     "- Click inventory items at the bottom, then click room objects to try using them.",
+    "- Press Escape, right-click the game, or press controller B to put away a selected inventory item.",
     "- Keyboard object mode: Tab / Shift+Tab cycles room objects and inventory; Enter / Space activates the focused target.",
-    "- Controller mode: D-pad or left stick cycles title actions, room objects, inventory, and modal buttons; A selects; B closes panels.",
+    "- Controller mode: D-pad or left stick cycles title actions, room objects, inventory, and modal buttons; A selects; B cancels selected items or closes panels.",
     "- Use Map, Notes, Hint, Help, Sound, - and + from the top bar.",
     "- Help includes Large Text for bigger dialogue, document, and puzzle panels, plus Reduced Motion for static atmosphere. Browser/OS reduced-motion settings are honored on first launch.",
     "- Keyboard shortcuts: M Map, N Notes, H Hint, F1 Help, S Sound, [ and ] volume.",
@@ -485,6 +486,17 @@ await writeFile(
     "This archive was produced by the release packager, which validates archive contents, smoke-tests pending archives in a browser, promotes artifacts transactionally, and verifies final checksums. The normal `npm run release` command runs TypeScript checks, a production build, automated browser QA, and visual readability QA before packaging."
   ].join("\n")
 );
+
+const stagedReadme = await readFile(join(tempStageDir, "README.md"), "utf8");
+for (const required of [
+  "B cancels selected items or closes panels",
+  "Press Escape, right-click the game, or press controller B",
+  "Keyboard shortcuts: M Map, N Notes, H Hint, F1 Help, S Sound, [ and ] volume"
+]) {
+  if (!stagedReadme.includes(required)) {
+    throw new Error(`Generated release README is missing required controls text: ${required}`);
+  }
+}
 
 await writeFile(
   join(tempStageDir, "PLAY.txt"),

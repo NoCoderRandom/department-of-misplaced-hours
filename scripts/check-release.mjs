@@ -115,6 +115,9 @@ async function assertStaticSiteMetadata() {
     "Interactive point-and-click mystery game canvas",
     "Tab and Shift+Tab",
     "Arrow keys move between modal buttons",
+    "Escape closes panels or puts away a selected inventory item",
+    "F1 opens Help",
+    "[ / ] adjust volume",
     "The Department of Misplaced Hours"
   ]) {
     if (!html.includes(required)) {

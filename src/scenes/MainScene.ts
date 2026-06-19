@@ -90,6 +90,7 @@ export class MainScene extends Phaser.Scene {
   private gamepadNavAt = 0;
   private handleCanvasContextMenu = (event: MouseEvent): void => {
     event.preventDefault();
+    this.focusGameCanvas();
     this.cancelSelectedItem();
   };
   private handleDocumentCancelKey = (event: KeyboardEvent): void => {
@@ -140,15 +141,15 @@ export class MainScene extends Phaser.Scene {
     this.game.canvas.setAttribute("aria-describedby", "game-accessibility-summary");
     this.game.canvas.setAttribute(
       "aria-keyshortcuts",
-      "Tab Shift+Tab Enter Space Escape ArrowLeft ArrowRight ArrowUp ArrowDown M N H F1 S"
+      "Tab Shift+Tab Enter Space Escape ArrowLeft ArrowRight ArrowUp ArrowDown M N H F1 S BracketLeft BracketRight Minus Equal"
     );
     this.game.canvas.removeEventListener("contextmenu", this.handleCanvasContextMenu);
     this.game.canvas.addEventListener("contextmenu", this.handleCanvasContextMenu);
-    document.removeEventListener("keydown", this.handleDocumentCancelKey);
-    document.addEventListener("keydown", this.handleDocumentCancelKey);
+    document.removeEventListener("keydown", this.handleDocumentCancelKey, true);
+    document.addEventListener("keydown", this.handleDocumentCancelKey, true);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.game.canvas.removeEventListener("contextmenu", this.handleCanvasContextMenu);
-      document.removeEventListener("keydown", this.handleDocumentCancelKey);
+      document.removeEventListener("keydown", this.handleDocumentCancelKey, true);
     });
     this.input.setDefaultCursor("default");
     this.input.keyboard?.on("keydown", this.handleKeyboardShortcut, this);
@@ -756,6 +757,10 @@ export class MainScene extends Phaser.Scene {
     this.game.canvas.style.cursor = "default";
   }
 
+  private focusGameCanvas(): void {
+    this.game.canvas.focus({ preventScroll: true });
+  }
+
   private createHud(): void {
     this.add.rectangle(GAME_W / 2, 32, GAME_W, 64, 0x080b08, 0.72).setDepth(20);
     this.roomTitle = this.add
@@ -796,6 +801,7 @@ export class MainScene extends Phaser.Scene {
     });
     zone.on("pointerout", () => this.input.setDefaultCursor("default"));
     zone.on("pointerdown", () => {
+      this.focusGameCanvas();
       this.audio.click();
       action();
     });
@@ -860,6 +866,7 @@ export class MainScene extends Phaser.Scene {
         slot.setStrokeStyle(2, selected ? 0xf0d079 : spent ? 0x4e4c3c : 0x7f7a5d, selected ? 1 : spent ? 0.48 : 0.74);
       });
       hit.on("pointerdown", () => {
+        this.focusGameCanvas();
         this.audio.click();
         this.toggleInventoryItem(itemId);
       });
@@ -1028,6 +1035,7 @@ export class MainScene extends Phaser.Scene {
         this.setHover("");
       });
       zone.on("pointerdown", () => {
+        this.focusGameCanvas();
         this.audio.click();
         this.hideHotspotFocus();
         spot.action();
@@ -2649,6 +2657,7 @@ export class MainScene extends Phaser.Scene {
       rect.setStrokeStyle(2, paperButton ? 0x806036 : 0xbba05b, 0.8);
     });
     container.on("pointerdown", () => {
+      this.focusGameCanvas();
       this.audio.click();
       action();
     });
@@ -2903,7 +2912,7 @@ export class MainScene extends Phaser.Scene {
     this.state.muted = !this.state.muted;
     this.audio.setMuted(this.state.muted);
     this.state.save();
-    this.showRoom(this.state.room);
+    this.showRoom(this.state.room, true);
   }
 
   private adjustVolume(delta: number): void {

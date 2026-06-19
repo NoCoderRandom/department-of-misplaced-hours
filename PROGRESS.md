@@ -79,5 +79,7 @@
 - [x] Storage-disabled play now shows a one-time save warning, and legacy saves preserve OS reduced-motion defaults during migration.
 - [x] Direct release packaging now refuses stale production builds if source/public build inputs are newer than `dist/index.html`; the normal `npm run release` path rebuilds, verifies, and packages together.
 - [x] Selected inventory can now be put away with Escape, right-click, or controller B, with QA proving the next object click is empty-handed rather than wrong-item use.
+- [x] Sound toggles now preserve selected inventory instead of silently emptying the player's hand, with pointer and keyboard QA coverage.
+- [x] Canvas accessibility metadata, live smoke, and generated release README controls now stay synchronized for sound, volume, and controller cancel behavior.
 - [x] Deployment prepared with `.github/workflows/deploy-pages.yml`.
 - [x] Documentation written: `README.md`, `ASSETS.md`, `THIRD_PARTY_NOTICES.md`, `DESIGN_NOTES.md`, `PROGRESS.md`.
