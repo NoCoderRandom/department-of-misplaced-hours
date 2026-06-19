@@ -2773,13 +2773,15 @@ export class MainScene extends Phaser.Scene {
     this.closeOverlay();
     this.announceStatus(`${title} dialog opened.`);
     const actualButtons = buttons ?? [{ label: "Close", action: () => this.closeOverlay() }];
+    const hasSixButtons = actualButtons.length === 6;
+    const hasManyButtons = actualButtons.length > 6;
     const backdrop = document.createElement("div");
     backdrop.className = `game-modal-backdrop${documentStyle ? " game-modal-document" : ""}`;
     backdrop.addEventListener("pointerdown", (event) => event.stopPropagation());
     backdrop.addEventListener("pointerup", (event) => event.stopPropagation());
     backdrop.addEventListener("click", (event) => event.stopPropagation());
     const panel = document.createElement("section");
-    panel.className = `game-modal-panel${actualButtons.length > 3 ? " game-modal-panel-grid" : ""}${actualButtons.length > 6 ? " game-modal-panel-many" : ""}`;
+    panel.className = `game-modal-panel${actualButtons.length > 3 ? " game-modal-panel-grid" : ""}${hasSixButtons ? " game-modal-panel-six" : ""}${hasManyButtons ? " game-modal-panel-many" : ""}`;
     panel.setAttribute("role", "dialog");
     panel.setAttribute("aria-modal", "true");
     const modalId = `game-modal-${++this.modalSerial}`;
@@ -2798,7 +2800,7 @@ export class MainScene extends Phaser.Scene {
     message.textContent = body;
 
     const actions = document.createElement("div");
-    actions.className = `game-modal-actions${actualButtons.length > 6 ? " game-modal-actions-many" : ""}${actualButtons.length === 4 ? " game-modal-actions-even" : ""}`;
+    actions.className = `game-modal-actions${hasSixButtons ? " game-modal-actions-six" : ""}${hasManyButtons ? " game-modal-actions-many" : ""}${actualButtons.length === 4 ? " game-modal-actions-even" : ""}`;
     const messageCanTakeFocus = actualButtons.length <= 3;
 
     const updateMessageScrollFocus = () => {
@@ -3158,6 +3160,7 @@ export class MainScene extends Phaser.Scene {
         { label: this.state.largeText ? "Normal Text" : "Large Text", action: () => this.toggleLargeText() },
         { label: this.state.reducedMotion ? "Full Motion" : "Reduced Motion", action: () => this.toggleReducedMotion() },
         { label: "Recover Position", action: () => this.recoverPosition() },
+        { label: "Reset Shift", action: () => this.confirmReset() },
         { label: "Credits", action: () => this.showCredits() },
         { label: "Close", action: () => this.closeOverlay() }
       ]

@@ -524,7 +524,7 @@ await writeFile(
     "- Screen readers receive hidden live status updates when keyboard focus moves between room objects, inventory, title actions, and ending actions.",
     "- Controller mode: D-pad or left stick cycles title actions, ending actions, room objects, inventory, and modal buttons; A selects; B cancels selected items or closes panels.",
     "- Use Map, Notes, Hint, Help, Sound, - and + from the top bar.",
-    "- Help includes Large Text for bigger dialogue, document, and puzzle panels, plus Reduced Motion for static atmosphere. Browser/OS reduced-motion settings are honored on first launch.",
+    "- Help includes Large Text for bigger dialogue, document, and puzzle panels, Reduced Motion for static atmosphere, Recover Position for save repair, and Reset Shift behind a confirmation prompt. Browser/OS reduced-motion settings are honored on first launch.",
     "- Credits are available from the title screen, Help, and ending screen, with source-document buttons for asset and license details.",
     "- Keyboard shortcuts: M Map, N Notes, H Hint, F1 Help, S Sound, [ and ] volume.",
     "- Progress saves in browser localStorage when available. Audio, Large Text, and Reduced Motion preferences survive Reset Shift.",

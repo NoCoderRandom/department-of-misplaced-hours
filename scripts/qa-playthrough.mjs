@@ -2027,7 +2027,24 @@ async function testKeyboardShortcuts(browser, issues) {
 
   await page.keyboard.press("F1");
   await page.getByRole("dialog", { name: "Help" }).waitFor({ state: "visible", timeout: 8_000 });
-  await button(page, "Close");
+  const beforeHelpReset = await save(page);
+  await page.waitForFunction(() => document.activeElement?.textContent?.trim() === "Large Text", null, { timeout: 8_000 });
+  for (let i = 0; i < 3; i += 1) {
+    await page.keyboard.press("Tab");
+  }
+  const focusedResetPrompt = await page.evaluate(() => document.activeElement?.textContent?.trim() ?? "");
+  if (focusedResetPrompt !== "Reset Shift") {
+    throw new Error(`Keyboard Help reset path did not focus Reset Shift: ${focusedResetPrompt || "nothing"}`);
+  }
+  await page.keyboard.press("Enter");
+  await page.getByRole("dialog", { name: "Reset Shift" }).waitFor({ state: "visible", timeout: 8_000 });
+  await page.waitForFunction(() => document.activeElement?.textContent?.trim() === "Cancel", null, { timeout: 8_000 });
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => !document.querySelector(".game-modal-panel"), null, { timeout: 8_000 });
+  const afterHelpResetCancel = await save(page);
+  if (JSON.stringify(afterHelpResetCancel) !== JSON.stringify(beforeHelpReset)) {
+    throw new Error(`Cancelling keyboard Help reset prompt changed progress: before=${JSON.stringify(beforeHelpReset)} after=${JSON.stringify(afterHelpResetCancel)}`);
+  }
 
   await page.keyboard.press("]");
   let data = await save(page);
