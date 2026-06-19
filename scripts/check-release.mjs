@@ -5,9 +5,17 @@ import { createHash } from "node:crypto";
 
 const distDir = "dist";
 const maxDistBytes = 5 * 1024 * 1024;
-const forbiddenDistExtensions = [".map", ".png"];
+const forbiddenDistExtensions = [".map"];
 const forbiddenPackagePrefixes = ["public/", "release/", "release_backups/", "scripts/", "src/", "tmp/"];
 const forbiddenPackageNames = ["promt.txt", "DESIGN_NOTES.md", "PROGRESS.md", "docs/QA_WALKTHROUGH.md"];
+const requiredPackageFiles = [
+  "dist/index.html",
+  "dist/favicon.svg",
+  "dist/icon-192.png",
+  "dist/icon-512.png",
+  "dist/site.webmanifest",
+  "dist/assets/images/title-department.webp"
+];
 const requiredReleaseDocs = [
   "ASSETS.md",
   "NOTICE.md",
@@ -26,6 +34,8 @@ const requiredThirdPartyNoticeTerms = [
 const requiredDistFiles = [
   "dist/index.html",
   "dist/favicon.svg",
+  "dist/icon-192.png",
+  "dist/icon-512.png",
   "dist/site.webmanifest",
   "dist/robots.txt",
   "dist/sitemap.xml",
@@ -100,6 +110,7 @@ async function assertStaticSiteMetadata() {
   const html = await readFile("dist/index.html", "utf8");
   for (const required of [
     'rel="canonical"',
+    'rel="apple-touch-icon"',
     'rel="manifest"',
     'http-equiv="Content-Security-Policy"',
     "default-src 'self'",
@@ -124,6 +135,9 @@ async function assertStaticSiteMetadata() {
       throw new Error(`Release check failed: dist/index.html is missing metadata marker ${required}.`);
     }
   }
+  if (/localhost|127\.0\.0\.1|ws:\/\//.test(html)) {
+    throw new Error("Release check failed: production CSP still exposes localhost or websocket development endpoints.");
+  }
 
   const manifest = JSON.parse(await readFile("dist/site.webmanifest", "utf8"));
   const requiredManifest = {
@@ -143,6 +157,18 @@ async function assertStaticSiteMetadata() {
   }
   if (!Array.isArray(manifest.icons) || !manifest.icons.some((icon) => icon.src === "./favicon.svg" && icon.type === "image/svg+xml")) {
     throw new Error("Release check failed: site.webmanifest is missing the SVG favicon icon.");
+  }
+  for (const expectedIcon of [
+    { src: "./icon-192.png", sizes: "192x192", type: "image/png" },
+    { src: "./icon-512.png", sizes: "512x512", type: "image/png" }
+  ]) {
+    if (
+      !manifest.icons.some(
+        (icon) => icon.src === expectedIcon.src && icon.sizes === expectedIcon.sizes && icon.type === expectedIcon.type
+      )
+    ) {
+      throw new Error(`Release check failed: site.webmanifest is missing app icon ${expectedIcon.src}.`);
+    }
   }
 
   const robots = await readFile("dist/robots.txt", "utf8");
@@ -273,6 +299,10 @@ if (distBytes > maxDistBytes) {
 }
 
 const packageFiles = runNpmPackDryRun();
+const missingPackageFiles = requiredPackageFiles.filter((file) => !packageFiles.includes(file));
+if (missingPackageFiles.length > 0) {
+  throw new Error(`Release check failed: npm package would miss playable release files:\n${missingPackageFiles.join("\n")}`);
+}
 const badPackageFiles = packageFiles.filter(
   (file) =>
     forbiddenPackageNames.includes(file) ||

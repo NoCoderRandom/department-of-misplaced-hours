@@ -713,6 +713,10 @@ async function solveIntroAndClock(page, options = {}) {
   if (options.phone) {
     await click(page, 875, 635);
     await button(page, "Close");
+    await click(page, 638, 32);
+    await page.getByRole("dialog", { name: "Notes" }).waitFor({ state: "visible", timeout: 8_000 });
+    await page.getByText("Future phone / tape groups: 7, 3, 1.").waitFor({ state: "visible", timeout: 8_000 });
+    await button(page, "Close");
   }
   await click(page, 226, 650);
   await click(page, 590, 660);
@@ -816,6 +820,14 @@ async function getPhoneAndVending(page, exerciseRewardEscape = false) {
 async function solveVending(page, exerciseRewardEscape = false) {
   await click(page, 398, 606);
   await click(page, 854, 396);
+  const clueState = await save(page);
+  if (clueState.flags.heardPhone && !clueState.flags.rainCipherSeen) {
+    await button(page, "Review Clue");
+    await page
+      .getByText("Future Phone / Tape Recorder: seven clicks, then three clicks, then one click.")
+      .waitFor({ state: "visible", timeout: 8_000 });
+    await button(page, "Back");
+  }
   for (const digit of ["1", "2", "3"]) {
     await button(page, digit);
   }
@@ -859,6 +871,16 @@ async function finishFinalAct(page, identityItem, endingItem) {
   await button(page, "Continue");
   await selectItem(page, "memoryCup");
   await click(page, 612, 596);
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(200);
+  const interruptedAudit = await save(page);
+  if (!interruptedAudit.flags.hourPresented || interruptedAudit.flags.hourVerified) {
+    throw new Error(`Auditor hour-presentation recovery state was not saved cleanly: ${JSON.stringify(interruptedAudit)}`);
+  }
+  await click(page, 612, 596);
+  await page
+    .getByText("The Auditor still has the Cup of Missing Hour.")
+    .waitFor({ state: "visible", timeout: 8_000 });
   await button(page, "Answer");
   await expectLeadingButtonOrderNot(
     page,
@@ -2466,7 +2488,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone clue recall/review, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;

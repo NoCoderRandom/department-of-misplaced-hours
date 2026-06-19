@@ -47,7 +47,7 @@
 - [x] QA clicks now map through the scaled canvas, with desktop and mobile interaction smoke tests.
 - [x] QA now reloads and continues at mid-game checkpoints to verify save persistence during a normal route.
 - [x] QA now samples the Phaser canvas to catch blank, uniform, or wrongly sized rendered states after asset and room transitions.
-- [x] Release content check added to validate exact required assets and block sourcemaps, PNG regressions, oversized `dist/`, and accidental package contents.
+- [x] Release content check added to validate exact required assets and block sourcemaps, unapproved payload regressions, oversized `dist/`, and accidental package contents.
 - [x] Reproducible release ZIP packaging added with a deterministic Node ZIP writer, SHA-256 output, archive-content validation, release-specific README, third-party notices, and safer temporary staging before final artifact replacement.
 - [x] Store-ready release ZIP added with `index.html` at archive root, while the archival ZIP keeps legal/provenance docs and excludes spoiler/internal QA documents.
 - [x] Release archive smoke tests added: release extracts both standard and store ZIPs, serves their playable web roots, verifies the canvas paints, and starts a new shift in browser.
@@ -88,5 +88,8 @@
 - [x] GitHub Pages CI now retains generated release ZIP/SHA files as a downloadable workflow artifact instead of only deploying `dist/`.
 - [x] Touch hotspots now preview on first tap and activate on second tap, while selected inventory still uses immediately; mobile QA covers both paths.
 - [x] Ordered-choice puzzles now support Undo and Backspace/Delete for the last entry, with QA covering recovery before solving Mood Clocks.
+- [x] Phone/tape clue recall now appears in Notes and Memory Vending review after discovery, with QA proving the non-rain audio route remains fair.
+- [x] Red Intercom now resumes Auditor verification after the player presents the missing hour and closes the prompt, with QA guarding the recovery state.
+- [x] Static release metadata now includes relative favicon/manifest links, generated PNG app icons, production CSP hardening, and npm-package checks for playable `dist/index.html`.
 - [x] Deployment prepared with `.github/workflows/deploy-pages.yml`.
 - [x] Documentation written: `README.md`, `ASSETS.md`, `THIRD_PARTY_NOTICES.md`, `DESIGN_NOTES.md`, `PROGRESS.md`.

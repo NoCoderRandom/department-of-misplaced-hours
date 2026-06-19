@@ -16,3 +16,4 @@ public/
 index.html
 tsconfig.json
 vite.config.ts
+!dist/index.html

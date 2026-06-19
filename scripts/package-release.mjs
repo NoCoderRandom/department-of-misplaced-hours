@@ -37,6 +37,8 @@ const buildInputs = ["src", "public", "index.html", "package.json", "package-loc
 const requiredDistFiles = [
   "dist/index.html",
   "dist/favicon.svg",
+  "dist/icon-192.png",
+  "dist/icon-512.png",
   "dist/site.webmanifest",
   "dist/robots.txt",
   "dist/sitemap.xml",
@@ -79,8 +81,7 @@ const forbiddenArchivePatterns = [
   /^DESIGN_NOTES\.md$/,
   /^PROGRESS\.md$/,
   /promt\.txt$/,
-  /\.map$/,
-  /\.png$/
+  /\.map$/
 ];
 
 async function referencedBuildAssets() {

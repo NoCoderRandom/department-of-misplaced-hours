@@ -2144,6 +2144,15 @@ export class MainScene extends Phaser.Scene {
       return;
     }
     if (!this.state.flag("hourVerified")) {
+      if (this.state.flag("hourPresented")) {
+        this.selectedItem = undefined;
+        this.showMessage(
+          "Red Intercom",
+          "The Auditor still has the Cup of Missing Hour. The grille hums with your childhood voice, waiting for the final verification.",
+          [{ label: "Answer", action: () => this.dialogueQuestion(0) }]
+        );
+        return;
+      }
       if (this.selectedItem === "memoryCup" && this.state.has("memoryCup")) {
         this.state.setFlag("hourPresented");
         this.selectedItem = undefined;
@@ -2536,7 +2545,7 @@ export class MainScene extends Phaser.Scene {
       } else if (this.state.flag("vendingFailed")) {
         body = "Wrong guesses clear the keypad. Recheck the phone/tape clicks, the rain clue, Notes, or Hint before trying again.";
       } else if (this.state.flag("heardPhone")) {
-        body = "Future Phone / Tape Recorder: three groups of clicks. Count each group.";
+        body = "Future Phone / Tape Recorder: seven clicks, then three clicks, then one click.";
       } else {
         body = "The vending keypad needs a three-digit clue. The future phone, tape recorder, or rain window can provide it.";
       }
@@ -2871,8 +2880,8 @@ export class MainScene extends Phaser.Scene {
         "Triangle, Circle, Eye, Square unlocks the glass case. Or use an Audit Warrant after viewing the security footage."
       ],
       break: [
-        "The vending machine needs a token, a cup, and a number.",
-        "The token is in the archive. The cup is in this room. The number can come from the phone, tape recorder, or rain cipher.",
+        "The vending machine needs a token, a cup, your recovered file, and a number.",
+        "The token is in the archive, the cup is in this room, and the archive glass case proves who the hour belongs to. The number can come from the phone, tape recorder, or rain cipher.",
         "The vending code is 731."
       ],
       mirror: [
@@ -2950,7 +2959,11 @@ export class MainScene extends Phaser.Scene {
       this.state.flag("securityLogSeen") ? "Security log says Mirror Office wants warrant, identity, hour, and power." : "",
       this.state.flag("archiveTableSeen") ? "Archive table: Triangle=Apology, Circle=Appetite, Eye=Witness, Square=Rest." : "",
       this.state.flag("breakBoardSeen") ? "Break board order: Apology, Appetite, Witness, Rest." : "",
-      this.state.flag("rainCipherSeen") ? "Rain cipher / phone groups: 7, 3, 1." : "",
+      this.state.flag("rainCipherSeen")
+        ? "Rain cipher / phone groups: 7, 3, 1."
+        : this.state.flag("heardPhone")
+          ? "Future phone / tape groups: 7, 3, 1."
+          : "",
       this.state.flag("glassCaseCollected") ? "Your file, mirror shard, and misfiled folder came from the glass case." : "",
       this.state.flag("selfFileReviewed") ? "Your file proves who the Department is correcting, even if the warrant authorizes the correction." : "",
       this.state.flag("vendingSolved") ? "Memory Vending dispensed the missing hour and server fuse." : "",

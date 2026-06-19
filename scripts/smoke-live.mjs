@@ -147,6 +147,9 @@ async function assertLiveHtml(url) {
       throw new Error(`Live HTML is missing required text: ${required}`);
     }
   }
+  if (/localhost|127\.0\.0\.1|ws:\/\//.test(html)) {
+    throw new Error("Live HTML still exposes localhost or websocket development endpoints in its CSP.");
+  }
 }
 
 async function assertPublicMetadata(rawUrl) {
@@ -164,9 +167,29 @@ async function assertPublicMetadata(rawUrl) {
           manifest.scope !== "./" ||
           manifest.display !== "fullscreen" ||
           manifest.orientation !== "landscape" ||
-          !manifest.icons?.some((icon) => icon.src === "./favicon.svg" && icon.type === "image/svg+xml")
+          !manifest.icons?.some((icon) => icon.src === "./favicon.svg" && icon.type === "image/svg+xml") ||
+          !manifest.icons?.some((icon) => icon.src === "./icon-192.png" && icon.sizes === "192x192" && icon.type === "image/png") ||
+          !manifest.icons?.some((icon) => icon.src === "./icon-512.png" && icon.sizes === "512x512" && icon.type === "image/png")
         ) {
           throw new Error(`Live manifest content is incomplete: ${JSON.stringify(manifest)}`);
+        }
+      }
+    },
+    {
+      label: "app icon 192",
+      url: new URL("icon-192.png", baseUrl),
+      assert: async (response) => {
+        if (!response.headers.get("content-type")?.includes("image/png")) {
+          throw new Error("Live icon-192.png did not serve as PNG.");
+        }
+      }
+    },
+    {
+      label: "app icon 512",
+      url: new URL("icon-512.png", baseUrl),
+      assert: async (response) => {
+        if (!response.headers.get("content-type")?.includes("image/png")) {
+          throw new Error("Live icon-512.png did not serve as PNG.");
         }
       }
     },
