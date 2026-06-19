@@ -83,6 +83,25 @@ async function click(page, x, y, wait = 140) {
   await page.waitForTimeout(wait);
 }
 
+async function rightClick(page, x, y, wait = 140) {
+  const point = await page.evaluate(
+    ({ gameX, gameY, gameW, gameH }) => {
+      const canvas = document.querySelector("canvas");
+      if (!canvas) {
+        throw new Error("Canvas not found for game-coordinate right-click.");
+      }
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: rect.left + (gameX / gameW) * rect.width,
+        y: rect.top + (gameY / gameH) * rect.height
+      };
+    },
+    { gameX: x, gameY: y, gameW: GAME_W, gameH: GAME_H }
+  );
+  await page.mouse.click(point.x, point.y, { button: "right" });
+  await page.waitForTimeout(wait);
+}
+
 async function move(page, x, y, wait = 120) {
   const point = await page.evaluate(
     ({ gameX, gameY, gameW, gameH }) => {
@@ -1840,7 +1859,7 @@ async function testSelectedItemCancel(browser, issues) {
   await expectCircleDoorNeedsStampedForm(page, "Escape selected-item cancel");
 
   await selectItem(page, "visitorBadge");
-  await page.mouse.click(900, 500, { button: "right" });
+  await rightClick(page, 900, 500);
   await expectCircleDoorNeedsStampedForm(page, "Right-click selected-item cancel");
 
   await page.close();
