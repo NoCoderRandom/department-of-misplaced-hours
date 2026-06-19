@@ -2799,9 +2799,10 @@ export class MainScene extends Phaser.Scene {
 
     const actions = document.createElement("div");
     actions.className = `game-modal-actions${actualButtons.length > 6 ? " game-modal-actions-many" : ""}${actualButtons.length === 4 ? " game-modal-actions-even" : ""}`;
+    const messageCanTakeFocus = actualButtons.length <= 3;
 
     const updateMessageScrollFocus = () => {
-      const isScrollable = message.scrollHeight > message.clientHeight + 1;
+      const isScrollable = messageCanTakeFocus && message.scrollHeight > message.clientHeight + 1;
       if (isScrollable) {
         message.tabIndex = 0;
         message.setAttribute("aria-label", `${title} text`);
