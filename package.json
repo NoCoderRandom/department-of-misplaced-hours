@@ -1,0 +1,32 @@
+{
+  "name": "department-of-misplaced-hours",
+  "version": "1.0.0",
+  "description": "A surreal point-and-click mystery puzzle game for static web hosting.",
+  "type": "module",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc && vite build",
+    "optimize:images": "node scripts/optimize-images.mjs",
+    "package:release": "npm run verify && node scripts/package-release.mjs",
+    "preview": "vite preview --host 127.0.0.1",
+    "release:check": "node scripts/check-release.mjs",
+    "release:smoke-archives": "node scripts/smoke-release-archives.mjs",
+    "release": "npm run package:release",
+    "typecheck": "tsc --noEmit",
+    "qa": "node scripts/qa-playthrough.mjs",
+    "qa:preview": "node scripts/qa-playthrough.mjs --preview",
+    "qa:visual": "node scripts/visual-audit.mjs",
+    "verify": "npm run typecheck && npm run build && npm run release:check && npm run qa:preview && npm run qa:visual"
+  },
+  "dependencies": {
+    "phaser": "^3.90.0"
+  },
+  "devDependencies": {
+    "playwright": "^1.61.0",
+    "sharp": "^0.35.1",
+    "typescript": "^5.8.3",
+    "vite": "^8.0.16"
+  }
+}

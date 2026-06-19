@@ -1,0 +1,76 @@
+# Progress Log
+
+- [x] Workspace inspected: repository initially contained only `promt.txt`.
+- [x] Research completed: Phaser/Vite static deployment, GitHub Pages workflows, point-and-click puzzle structure, permissive asset sources, and surreal/horror puzzle pacing.
+- [x] Concept chosen: **The Department of Misplaced Hours**.
+- [x] Project scaffolded with Vite, TypeScript, Phaser 3, GitHub Pages workflow, and static asset structure.
+- [x] Generated visual assets copied into `public/assets/images/`.
+- [x] Core engine working: title screen, room rendering, Phaser input, responsive scaling.
+- [x] Rooms implemented: Reception, Clock Hall, Security Office, Interrogation Booth, Records Archive, Break Room, Mirror Office.
+- [x] Inventory implemented with selectable items, compact pictogram icons, and item/object use.
+- [x] Puzzles implemented: form stamping, mood clocks, Security Office audit warrant, rain/phone vending clue, archive sorting plus security override, glass-case reward, physical final-act item verification, Auditor quiz, mirror/server sequence.
+- [x] Documents and clues implemented through in-game document panels.
+- [x] Audio implemented with procedural ambience, CC0 Kenney UI/SFX, pickup, document/glass/safe/machine feedback, phone/tape clue, stingers, and ending tones.
+- [x] Visual polish implemented: generated backgrounds, hidden hand-cursor hotspots, status-line interaction feedback, particles, scanline/rain movement, vignettes, modal panels.
+- [x] Save/load implemented through `localStorage`.
+- [x] Hint and help panels implemented.
+- [x] Two endings implemented.
+- [x] Build tested with `npm run build`.
+- [x] Automated QA added with `npm run qa` and combined release gate `npm run verify`.
+- [x] Dependency audit checked and resolved.
+- [x] Browser smoke tested with Playwright/Chrome against `http://127.0.0.1:5173/`.
+- [x] Full puzzle walkthrough verified through the escaped ending and alternate filed ending.
+- [x] Audio controls and muted accessibility clue route verified in browser.
+- [x] Volume HUD hit targets enlarged and covered by QA so `+` / `-` reliably persist changes.
+- [x] Desktop keyboard shortcuts added for Map, Notes, Hint, Help, Sound, and volume; QA verifies shortcuts do not fire through modals.
+- [x] Keyboard focus added for room objects and inventory slots; QA solves the opening form/stamp/door chain with Tab and Enter.
+- [x] Large Text preference added through Help; QA verifies computed font-size increase, viewport fit, save persistence, reload/Continue restoration, Reset Shift survival, and fresh-shift inheritance.
+- [x] Reduced Motion preference added through Help; QA verifies static room atmosphere, body/UI state, browser/OS reduced-motion default, save persistence, Reset Shift survival, and fresh-shift inheritance.
+- [x] Reset, Escape panels, corrupt-save handling, malformed numeric save normalization, mobile fit, and muted accessibility clue path verified in browser.
+- [x] Corrupt JSON saves and blocked localStorage modes verified to fail gracefully without trapping the player.
+- [x] Hover-only hotspot focus and Escape-to-close modal polish implemented.
+- [x] Stronger hover labels, contextual clue review buttons, late-game Notes scrolling, and spent-item inventory dimming implemented.
+- [x] Release verification now runs Playwright against the production preview build, and production sourcemaps are disabled for shipping.
+- [x] GitHub Pages deployment now runs the full `npm run release` gate, including archive packaging and smoke tests, before uploading `dist/`.
+- [x] Save repair added for implied rewards and invalid loaded rooms, preventing corrupted-save softlocks and progression bypasses.
+- [x] Help panel now includes non-destructive Recover Position to repair progress and return to a valid room without clearing the save.
+- [x] Reward modals now wait for explicit Take actions; QA verifies Escape before Take does not grant key items.
+- [x] Glass-case reward now forces a short Missing-Person File story beat so the self-file matters before either ending route.
+- [x] Archive drawer logic now blocks blind oracle attempts and explains warrant override requirements.
+- [x] QA now covers phone-only and rain-clue vending paths, failed puzzle recovery, save repair, archive gates, and production preview behavior.
+- [x] Background art optimized from large PNGs to 1200x800 WebP files with a reproducible Sharp script and asset provenance hashes.
+- [x] Static boot screen and Phaser loading progress added before the title screen.
+- [x] Missing release assets now show a readable in-canvas failure screen with the missing asset named, and QA verifies this path.
+- [x] Optional UI audio failures now fall back to procedural sound instead of blocking play, and QA verifies the missing-audio path.
+- [x] QA clicks now map through the scaled canvas, with desktop and mobile interaction smoke tests.
+- [x] QA now reloads and continues at mid-game checkpoints to verify save persistence during a normal route.
+- [x] QA now samples the Phaser canvas to catch blank, uniform, or wrongly sized rendered states after asset and room transitions.
+- [x] Release content check added to validate exact required assets and block sourcemaps, PNG regressions, oversized `dist/`, and accidental package contents.
+- [x] Reproducible release ZIP packaging added with a deterministic Node ZIP writer, SHA-256 output, archive-content validation, release-specific README, third-party notices, and safer temporary staging before final artifact replacement.
+- [x] Store-ready release ZIP added with `index.html` at archive root, while the archival ZIP keeps legal/provenance docs and excludes spoiler/internal QA documents.
+- [x] Release archive smoke tests added: release extracts both standard and store ZIPs, serves their playable web roots, verifies the canvas paints, and starts a new shift in browser.
+- [x] Release archive smoke server now uses OS-assigned local ports to avoid false failures from port collisions.
+- [x] Release packaging now smoke-tests pending ZIPs before promoting final release filenames, so failed archive smoke cannot leave fresh-looking final artifacts.
+- [x] Release promotion now backs up existing final artifacts, rolls back on promotion or checksum failure, and verifies promoted final ZIP checksum files before reporting success.
+- [x] Visual readability audit added to the release gate, with desktop/mobile screenshots for modal text size, hover feedback, and Large Text layout.
+- [x] Visual readability audit now covers dense mobile keypad/puzzle panels and fails on individual button-label overflow, not just panel overflow.
+- [x] Release checks now reject unexpected `dist/` files, and package promotion includes expanded release folders in the same rollback transaction as ZIP/checksum files.
+- [x] Visual readability audit now covers short mobile dense keypad panels and verifies focus wrapping plus Escape-close behavior.
+- [x] Badge Drawer now gives explicit feedback when recovering the Visitor Badge after the intro modal is dismissed, with QA coverage for that edge case.
+- [x] Rain Cipher collection now waits for the explicit `Take Note` action, and QA verifies Escape cannot grant it early.
+- [x] Title-screen Start New now confirms before overwriting an existing save; invalid room IDs repair to Reception without wiping inventory/flags; Mood Clocks now require the Reception Memo and Personnel Calendar.
+- [x] Title-screen Enter-to-start now uses the same Start New confirmation as the pointer button when a save exists, with QA guarding against keyboard save wipes.
+- [x] Destructive confirmation dialogs now focus safe defaults first (`Continue` for Start New, `Cancel` for Reset), and QA verifies default Enter cannot wipe progress.
+- [x] Third-party notices and release checks now cover Phaser-bundled Earcut and Simplify.js notices.
+- [x] Title/corrupt-save flow hardened: failed Continue clears stale canvas input, redraws without Continue, and supports Enter-to-start keyboard activation.
+- [x] Modal keyboard handling hardened: Tab focus is trapped in DOM panels and Escape closes even if focus leaves the button.
+- [x] Modal focus recovery hardened: Tab returns focus to the first modal button if browser focus escapes the dialog, with QA coverage before Escape-close.
+- [x] Canvas keyboard focus recovery added after DOM modals close, so shortcuts continue working on production static builds.
+- [x] Major puzzle answer buttons now avoid solution order, and QA guards against top-to-bottom puzzle regressions.
+- [x] Late-game save repair now restores upstream access gates for damaged archive, vending, mirror, and ending saves.
+- [x] Mirror Office and Map feedback now name exactly which prerequisite is still missing.
+- [x] Vending flow now requires the glass-case file beat before dispensing the missing hour, accepts seen rain-clue knowledge consistently, and avoids revealing the exact code after one wrong unmuted guess.
+- [x] Storage-disabled play now shows a one-time save warning, and legacy saves preserve OS reduced-motion defaults during migration.
+- [x] Direct release packaging now refuses stale production builds if source/public build inputs are newer than `dist/index.html`; the normal `npm run release` path rebuilds, verifies, and packages together.
+- [x] Deployment prepared with `.github/workflows/deploy-pages.yml`.
+- [x] Documentation written: `README.md`, `ASSETS.md`, `THIRD_PARTY_NOTICES.md`, `DESIGN_NOTES.md`, `PROGRESS.md`.
