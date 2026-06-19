@@ -2,6 +2,8 @@
 
 A surreal point-and-click mystery puzzle game for the browser. You play a night-shift clerk in a bureaucratic office that processes missing hours, impossible forms, and evidence that your own life has been misfiled.
 
+**Play now:** https://nocoderrandom.github.io/department-of-misplaced-hours/
+
 The game is built as a static web app with Phaser 3, TypeScript, and Vite. It has no backend and is ready for GitHub Pages.
 
 ## Features
