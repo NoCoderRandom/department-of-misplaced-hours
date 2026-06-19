@@ -38,6 +38,7 @@ This is the intended complete path through the game.
 
 Expected results:
 
+- Fast state tests pass for save/load normalization, repair invariants, reset preference preservation, and storage write failures.
 - The boot screen is removed after Phaser startup and the title canvas is painted.
 - The game canvas has a keyboard-focusable accessible name, keyboard shortcut metadata, and a screen-reader summary for keyboard controls.
 - Dialogs expose their visible title and body through accessible name/description relationships.
