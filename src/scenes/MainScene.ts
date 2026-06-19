@@ -83,6 +83,7 @@ export class MainScene extends Phaser.Scene {
   private loadErrors: string[] = [];
   private optionalLoadErrors: string[] = [];
   private titleActive = false;
+  private endingActive = false;
   private keyboardHotspots: Hotspot[] = [];
   private keyboardInventoryTargets: InventoryFocusTarget[] = [];
   private keyboardFocusIndex = -1;
@@ -104,7 +105,14 @@ export class MainScene extends Phaser.Scene {
     this.cancelSelectedItem();
   };
   private handleDocumentCancelKey = (event: KeyboardEvent): void => {
-    if (event.key !== "Escape" || event.defaultPrevented) {
+    if (event.defaultPrevented) {
+      return;
+    }
+    if (this.handleActionScreenKey(event)) {
+      event.stopPropagation();
+      return;
+    }
+    if (event.key !== "Escape") {
       return;
     }
     if (this.cancelSelectedItem()) {
@@ -190,7 +198,14 @@ export class MainScene extends Phaser.Scene {
   }
 
   private warnIfSaveUnavailable(): void {
-    if (this.saveUnavailableWarned || !this.state.storageUnavailable() || this.domOverlay || this.loadFailed || this.titleActive) {
+    if (
+      this.saveUnavailableWarned ||
+      !this.state.storageUnavailable() ||
+      this.domOverlay ||
+      this.loadFailed ||
+      this.titleActive ||
+      this.endingActive
+    ) {
       return;
     }
     this.saveUnavailableWarned = true;
@@ -208,24 +223,8 @@ export class MainScene extends Phaser.Scene {
 
     const key = event.key.toLowerCase();
     const code = event.code.toLowerCase();
-    if (this.titleActive) {
-      if (key === "tab") {
-        event.preventDefault();
-        this.cycleTitleFocus(event.shiftKey ? -1 : 1);
-      } else if (key === "enter" || event.key === " ") {
-        event.preventDefault();
-        if (this.activateTitleFocus()) {
-          return;
-        }
-        if (GameState.hasSave()) {
-          this.confirmStartNewShift();
-          return;
-        }
-        this.startNewShift();
-      } else if ((key === "c" || code === "keyc") && GameState.hasSave()) {
-        event.preventDefault();
-        this.continueShift();
-      }
+    if (this.titleActive || this.endingActive) {
+      this.handleActionScreenKey(event);
       return;
     }
 
@@ -305,6 +304,42 @@ export class MainScene extends Phaser.Scene {
     this.lastShortcutKey = shortcutKey;
     this.lastShortcutAt = now;
     return true;
+  }
+
+  private handleActionScreenKey(event: KeyboardEvent): boolean {
+    if (this.domOverlay || this.loadFailed || (!this.titleActive && !this.endingActive)) {
+      return false;
+    }
+
+    const key = event.key.toLowerCase();
+    const code = event.code.toLowerCase();
+    if (key === "tab") {
+      event.preventDefault();
+      this.cycleTitleFocus(event.shiftKey ? -1 : 1);
+      return true;
+    }
+    if (key === "enter" || event.key === " ") {
+      event.preventDefault();
+      if (this.activateTitleFocus()) {
+        return true;
+      }
+      if (this.endingActive) {
+        this.activateTitleFocusOrDefault();
+        return true;
+      }
+      if (GameState.hasSave()) {
+        this.confirmStartNewShift();
+        return true;
+      }
+      this.startNewShift();
+      return true;
+    }
+    if (this.titleActive && (key === "c" || code === "keyc") && GameState.hasSave()) {
+      event.preventDefault();
+      this.continueShift();
+      return true;
+    }
+    return false;
   }
 
   private pollGamepadControls(): void {
@@ -389,6 +424,10 @@ export class MainScene extends Phaser.Scene {
       this.cycleTitleFocus(direction);
       return;
     }
+    if (this.endingActive) {
+      this.cycleTitleFocus(direction);
+      return;
+    }
     if (this.roomTitle) {
       this.cycleKeyboardFocus(direction);
     }
@@ -400,6 +439,10 @@ export class MainScene extends Phaser.Scene {
       return;
     }
     if (this.titleActive) {
+      this.activateTitleFocusOrDefault();
+      return;
+    }
+    if (this.endingActive) {
       this.activateTitleFocusOrDefault();
       return;
     }
@@ -420,7 +463,7 @@ export class MainScene extends Phaser.Scene {
   }
 
   private handleGamepadPanelShortcut(action: () => void): void {
-    if (this.domOverlay || this.loadFailed || this.titleActive || !this.roomTitle) {
+    if (this.domOverlay || this.loadFailed || this.titleActive || this.endingActive || !this.roomTitle) {
       return;
     }
     this.audio.click();
@@ -617,7 +660,7 @@ export class MainScene extends Phaser.Scene {
         action: () => {
           this.showMessage(
             "Controls",
-            "Move the cursor around the room. When it becomes a hand and the status line names something, click to inspect it. Select an inventory item first to try using it on the room. Right-click, Escape, or controller B puts the item away.\n\nKeyboard: Tab cycles targets, Enter or Space activates. Controller: D-pad or stick cycles focus, A selects, B cancels selected items or closes panels.",
+            "Move the cursor around the room. When it becomes a hand and the status line names something, click to inspect it. Touch once to name an object, then tap again to inspect it. Select an inventory item first to try using it on the room. Right-click, Escape, or controller B puts the item away.\n\nKeyboard: Tab cycles targets, Enter or Space activates. Controller: D-pad or stick cycles focus, A selects, B cancels selected items or closes panels.",
             [{ label: "Close", action: () => this.closeOverlay() }]
           );
         }
@@ -647,6 +690,7 @@ export class MainScene extends Phaser.Scene {
         ? "Title screen. Start New Shift, Continue Shift, Controls, and Credits are available."
         : "Title screen. Start New Shift, Controls, and Credits are available."
     );
+    window.setTimeout(() => this.focusGameCanvas(), 0);
   }
 
   private startNewShift(): void {
@@ -782,6 +826,7 @@ export class MainScene extends Phaser.Scene {
     this.roomTitle = undefined;
     this.hoverFocus = undefined;
     this.titleActive = false;
+    this.endingActive = false;
     this.keyboardHotspots = [];
     this.keyboardInventoryTargets = [];
     this.keyboardFocusIndex = -1;
@@ -931,7 +976,7 @@ export class MainScene extends Phaser.Scene {
   }
 
   private cancelSelectedItem(): boolean {
-    if (this.domOverlay || this.loadFailed || this.titleActive || !this.roomTitle || !this.selectedItem) {
+    if (this.domOverlay || this.loadFailed || this.titleActive || this.endingActive || !this.roomTitle || !this.selectedItem) {
       return false;
     }
     const item = ITEMS[this.selectedItem];
@@ -1596,6 +1641,7 @@ export class MainScene extends Phaser.Scene {
     if (this.selectedItem === "misfiledFolder" && this.state.has("misfiledFolder")) {
       this.state.setFlag("folderCrossReferenced");
       this.state.setFlag("securityFootageSeen");
+      this.selectedItem = undefined;
       this.audio.success();
       this.state.save();
       this.showDocument(
@@ -2367,6 +2413,7 @@ export class MainScene extends Phaser.Scene {
 
   private showEnding(ending: EndingId, fromSave: boolean): void {
     this.clearScene();
+    this.endingActive = true;
     this.audio.stopAmbience();
     this.add.image(GAME_W / 2, GAME_H / 2, "bg-ending").setDisplaySize(GAME_W, GAME_H);
     this.add.rectangle(GAME_W / 2, GAME_H / 2, GAME_W, GAME_H, 0x050705, 0.36);
@@ -2400,19 +2447,58 @@ export class MainScene extends Phaser.Scene {
         lineSpacing: 9
       })
       .setOrigin(0.5);
-    this.makeButton(510, 610, 210, 52, "Play Again", () => {
-      this.state.reset();
-      this.showTitle();
+    this.titleFocusTargets = fromSave
+      ? [
+          {
+            label: "Play Again",
+            x: 390,
+            y: 610,
+            w: 190,
+            h: 52,
+            action: () => {
+              this.state.reset();
+              this.showTitle();
+            }
+          },
+          { label: "Credits", x: 600, y: 610, w: 190, h: 52, action: () => this.showCredits() },
+          { label: "Title", x: 810, y: 610, w: 190, h: 52, action: () => this.showTitle() }
+        ]
+      : [
+          {
+            label: "Play Again",
+            x: 510,
+            y: 610,
+            w: 210,
+            h: 52,
+            action: () => {
+              this.state.reset();
+              this.showTitle();
+            }
+          },
+          { label: "Credits", x: 735, y: 610, w: 210, h: 52, action: () => this.showCredits() }
+        ];
+    this.titleFocusTargets.forEach((target) => {
+      this.makeButton(target.x, target.y, target.w, target.h, target.label, target.action);
     });
-    this.makeButton(735, 610, 210, 52, fromSave ? "Title" : "Credits", fromSave ? () => this.showTitle() : () => this.showCredits());
-    this.announceStatus(`${title} ending screen.`);
+    this.announceStatus(`${title} ending screen. Play Again${fromSave ? ", Credits, and Title" : " and Credits"} are available.`);
+    window.setTimeout(() => this.focusGameCanvas(), 0);
   }
 
   private showCredits(): void {
     this.showMessage(
       "Credits",
-      "A static Phaser web game with TypeScript and Vite.\n\nArt generated and optimized locally. Sound uses procedural ambience plus selected CC0 Kenney interface effects.\n\nDetails: ASSETS.md, NOTICE.md, and THIRD_PARTY_NOTICES.md."
+      "A static Phaser web game with TypeScript and Vite.\n\nArt generated locally. Audio: procedural ambience plus selected CC0 Kenney interface effects.\n\nButtons open asset/license docs in the source repository.",
+      [
+        { label: "Assets", action: () => this.openSourceDoc("ASSETS.md") },
+        { label: "Notice", action: () => this.openSourceDoc("NOTICE.md") },
+        { label: "3rd Party", action: () => this.openSourceDoc("THIRD_PARTY_NOTICES.md") },
+        { label: "Close", action: () => this.closeOverlay() }
+      ]
     );
+  }
+
+  private openSourceDoc(path: string): void {
+    window.open(`https://github.com/NoCoderRandom/department-of-misplaced-hours/blob/main/${path}`, "_blank", "noopener,noreferrer");
   }
 
   private showSequencePuzzle(
@@ -2976,7 +3062,7 @@ export class MainScene extends Phaser.Scene {
         {
           nudge: "The final office is physical: repair what is broken, prove who you are, prove what was missing, then run the reflected sequence.",
           answer:
-            "Final order: install fuse, verify file, verify hour, read mirror, run console. At the exit, file, hour, and warrant each lead somewhere different."
+            "Final order: install fuse, verify identity, verify hour, read mirror, run console. At the exit, file, hour, and warrant each lead somewhere different."
         }
       ]
     };
@@ -3001,7 +3087,7 @@ export class MainScene extends Phaser.Scene {
   private showHelp(): void {
     this.showMessage(
       "Help",
-      "Hand cursor = usable. Touch once names, twice uses. Inventory + object uses item. Esc/right-click/B cancels. Tab/D-pad + Enter/Space/A use.",
+      "Hand = usable. Touch: tap once to name, twice inspect; selected item uses. Esc/right-click/B cancels. Tab/D-pad cycles; Enter/Space/A uses.",
       [
         { label: this.state.largeText ? "Normal Text" : "Large Text", action: () => this.toggleLargeText() },
         { label: this.state.reducedMotion ? "Full Motion" : "Reduced Motion", action: () => this.toggleReducedMotion() },

@@ -86,7 +86,8 @@ The soundscape mixes procedural Web Audio ambience with CC0 Kenney UI/SFX files.
 - Keyboard focus uses the same temporary bracket/status feedback plus a hidden live status region, so room objects and inventory can be cycled and activated without pointer coordinates.
 - Standard controller/gamepad input reuses the same focus targets: D-pad or left stick cycles title actions, room objects, inventory, and modal buttons; A selects; B cancels selected items or closes panels; face/menu buttons open common panels.
 - Help includes Large Text and Reduced Motion preferences that scale dialogue, document, puzzle, action-button, HUD, and inventory text while allowing ambient animation to be replaced by static atmosphere layers. First launch also honors browser/OS reduced-motion settings unless the player overrides them in Help.
-- Credits are reachable from title, Help, and endings, giving in-game pointers to the shipped asset/license documents instead of hiding attribution only in repository files.
+- Credits are reachable from title, Help, and endings, giving in-game pointers and direct source-document buttons for the shipped asset/license documents instead of hiding attribution only in repository files.
+- Ending actions reuse the keyboard/controller focus path from the title screen, so saved ending screens remain operable without a mouse after reload.
 - Puzzle modals can offer contextual clue review so players do not need to close a keypad/order puzzle just to reread known evidence.
 - DOM dialogs connect their visible heading and body to assistive technology with `aria-labelledby` and `aria-describedby`.
 - Ordered-choice puzzle modals include Undo plus Backspace/Delete support so one misclick does not force a failed submission or full reset.

@@ -112,5 +112,7 @@
 - [x] Phaser now builds as a separate vendor chunk, and release checks/package manifests follow all runtime assets referenced by production HTML.
 - [x] Release checks now enforce runtime chunk size budgets for the app entry, Phaser vendor chunk, CSS, and tiny runtime helpers.
 - [x] Live GitHub Pages smoke now verifies the deployed runtime JS/CSS chunk manifest and size budgets before gameplay smoke passes.
+- [x] Ending screens now keep Credits available after reload and support keyboard/controller action focus, with QA coverage for reloaded endings.
+- [x] Credits now expose direct source-document buttons for web players, and the Monitor Bank clears the spent Misfiled Folder selection after cross-reference.
 - [x] Deployment prepared with `.github/workflows/deploy-pages.yml`.
 - [x] Documentation written: `README.md`, `ASSETS.md`, `THIRD_PARTY_NOTICES.md`, `DESIGN_NOTES.md`, `PROGRESS.md`.

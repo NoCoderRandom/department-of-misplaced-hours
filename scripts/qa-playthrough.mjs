@@ -716,7 +716,10 @@ async function testCreditsAccess(browser, issues) {
   await page.getByRole("dialog", { name: "Credits" }).waitFor({ state: "visible", timeout: 8_000 });
   await expectDialogSemantics(page, "title Credits", "Credits");
   await page.getByText("static Phaser web game with TypeScript and Vite").waitFor({ state: "visible", timeout: 8_000 });
-  await page.getByText("ASSETS.md, NOTICE.md, and THIRD_PARTY_NOTICES.md").waitFor({ state: "visible", timeout: 8_000 });
+  await page.getByText("source repository").waitFor({ state: "visible", timeout: 8_000 });
+  for (const creditButton of ["Assets", "Notice", "3rd Party"]) {
+    await page.getByRole("button", { name: creditButton }).waitFor({ state: "visible", timeout: 8_000 });
+  }
   await button(page, "Close");
 
   await click(page, 600, 390, 300);
@@ -729,6 +732,7 @@ async function testCreditsAccess(browser, issues) {
   await page.getByRole("dialog", { name: "Credits" }).waitFor({ state: "visible", timeout: 8_000 });
   await expectDialogSemantics(page, "Help Credits", "Credits");
   await page.getByText("selected CC0 Kenney interface effects").waitFor({ state: "visible", timeout: 8_000 });
+  await page.getByRole("button", { name: "3rd Party" }).waitFor({ state: "visible", timeout: 8_000 });
   await button(page, "Close");
   await page.close();
 }
@@ -786,6 +790,34 @@ async function testPuzzlePolish(browser, issues) {
       await button(page, "Show Answer");
       await page.getByRole("dialog", { name: "Hint Answer" }).waitFor({ state: "visible", timeout: 8_000 });
       await page.getByText("Regret, Hunger, Calm, Joy").waitFor({ state: "visible", timeout: 8_000 });
+    }
+    await button(page, "Close");
+  }
+
+  await continueSaved(page, {
+    room: "mirror",
+    inventory: ["auditWarrant", "memoryCup"],
+    flags: {
+      introSeen: true,
+      formStamped: true,
+      clockUnlocked: true,
+      clockSolved: true,
+      glassCaseCollected: true,
+      vendingSolved: true
+    },
+    audioVolume: 0.72,
+    muted: false
+  });
+  for (let hintPress = 0; hintPress < 3; hintPress += 1) {
+    await click(page, 730, 32);
+    await page.getByRole("dialog", { name: "Hint" }).waitFor({ state: "visible", timeout: 8_000 });
+    if (hintPress === 2) {
+      await button(page, "Show Answer");
+      await page.getByRole("dialog", { name: "Hint Answer" }).waitFor({ state: "visible", timeout: 8_000 });
+      const hintAnswer = await page.locator(".game-modal-body").innerText();
+      if (!hintAnswer.includes("verify identity") || hintAnswer.includes("verify file")) {
+        throw new Error(`Mirror hint answer did not support both identity routes: ${hintAnswer}`);
+      }
     }
     await button(page, "Close");
   }
@@ -1263,6 +1295,13 @@ async function playSecurityOverrideRoute(page) {
   if (data.ending !== "escaped") {
     throw new Error(`Security override route did not save escaped ending: ${JSON.stringify(data)}`);
   }
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Enter");
+  await page.getByRole("dialog", { name: "Credits" }).waitFor({ state: "visible", timeout: 8_000 });
+  await expectDialogSemantics(page, "ending keyboard Credits", "Credits");
+  await page.getByRole("button", { name: "Assets" }).waitFor({ state: "visible", timeout: 8_000 });
+  await button(page, "Close");
   for (const flag of [
     "securityFootageSeen",
     "evidenceSafeOpened",
@@ -2271,6 +2310,93 @@ async function testAuditEndingFromLateSave(browser, issues) {
   await page.close();
 }
 
+async function testEndingReloadControls(browser, issues) {
+  const keyboardPage = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
+  watchPage(keyboardPage, issues, "ending-reload-keyboard");
+  const restoredEnding = await continueSaved(keyboardPage, {
+    room: "mirror",
+    inventory: [],
+    flags: {},
+    ending: "escaped",
+    audioVolume: 0.72,
+    muted: false
+  });
+  if (restoredEnding.ending !== "escaped") {
+    throw new Error(`Reloaded ending save did not restore escaped ending: ${JSON.stringify(restoredEnding)}`);
+  }
+
+  await keyboardPage.keyboard.press("Tab");
+  await keyboardPage.keyboard.press("Tab");
+  await keyboardPage.keyboard.press("Enter");
+  await keyboardPage.getByRole("dialog", { name: "Credits" }).waitFor({ state: "visible", timeout: 8_000 });
+  await expectDialogSemantics(keyboardPage, "reloaded ending keyboard Credits", "Credits");
+  await keyboardPage.getByRole("button", { name: "Notice" }).waitFor({ state: "visible", timeout: 8_000 });
+  await button(keyboardPage, "Close");
+  await click(keyboardPage, 600, 610);
+  await keyboardPage.getByRole("dialog", { name: "Credits" }).waitFor({ state: "visible", timeout: 8_000 });
+  await keyboardPage.getByRole("button", { name: "3rd Party" }).waitFor({ state: "visible", timeout: 8_000 });
+  await button(keyboardPage, "Close");
+  await click(keyboardPage, 810, 610);
+  await expectCanvasPainted(keyboardPage, "title after ending Title");
+  await keyboardPage.close();
+
+  const gamepadPage = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
+  watchPage(gamepadPage, issues, "ending-reload-gamepad");
+  await installQaGamepad(gamepadPage);
+  const restoredGamepadEnding = await continueSaved(gamepadPage, {
+    room: "mirror",
+    inventory: [],
+    flags: {},
+    ending: "filed",
+    audioVolume: 0.72,
+    muted: false
+  });
+  if (restoredGamepadEnding.ending !== "filed") {
+    throw new Error(`Reloaded ending save did not restore filed ending: ${JSON.stringify(restoredGamepadEnding)}`);
+  }
+  await pressGamepadButton(gamepadPage, 15);
+  await pressGamepadButton(gamepadPage, 15);
+  await pressGamepadButton(gamepadPage, 0);
+  await gamepadPage.getByRole("dialog", { name: "Credits" }).waitFor({ state: "visible", timeout: 8_000 });
+  await expectDialogSemantics(gamepadPage, "reloaded ending gamepad Credits", "Credits");
+  await gamepadPage.getByRole("button", { name: "Assets" }).waitFor({ state: "visible", timeout: 8_000 });
+  await button(gamepadPage, "Close");
+  await gamepadPage.close();
+}
+
+async function testSpentFolderClearsSelection(browser, issues) {
+  const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
+  watchPage(page, issues, "spent-folder-selection");
+  await continueSaved(page, {
+    room: "security",
+    inventory: ["misfiledFolder"],
+    flags: {
+      introSeen: true,
+      formStamped: true,
+      clockUnlocked: true,
+      clockSolved: true,
+      glassCaseCollected: true
+    },
+    audioVolume: 0.72,
+    muted: false
+  });
+  await selectItem(page, "misfiledFolder");
+  await click(page, 200, 386);
+  await page.getByRole("dialog", { name: "Monitor Cross-Reference" }).waitFor({ state: "visible", timeout: 8_000 });
+  await button(page, "Close");
+  const crossReferenced = await save(page);
+  if (!crossReferenced.flags.folderCrossReferenced || !crossReferenced.flags.securityFootageSeen) {
+    throw new Error(`Monitor folder use did not save cross-reference flags: ${JSON.stringify(crossReferenced)}`);
+  }
+  await click(page, 522, 392);
+  await page.getByText("The safe has no keypad").waitFor({ state: "visible", timeout: 8_000 });
+  if (await textVisible(page, "Misfiled Folder is selected", 400)) {
+    throw new Error("Spent Misfiled Folder stayed selected after monitor cross-reference.");
+  }
+  await button(page, "Close");
+  await page.close();
+}
+
 async function testWrongItemFeedback(browser, issues) {
   const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
   watchPage(page, issues, "wrong-item-feedback");
@@ -2889,6 +3015,8 @@ async function run() {
     await testKeyboardObjectInteraction(browser, issues);
     await testGamepadNavigation(browser, issues);
     await testAuditEndingFromLateSave(browser, issues);
+    await testEndingReloadControls(browser, issues);
+    await testSpentFolderClearsSelection(browser, issues);
     await testWrongItemFeedback(browser, issues);
     await testSelectedItemCancel(browser, issues);
     await testAuditorConsultation(browser, issues);
@@ -2900,7 +3028,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help Credits access with dialog semantics, puzzle-polish checks for Notes/objectives/side-room clue recall/hint answer reveal/Auditor feedback, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game and late-game reloads, phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help/ending Credits access with dialog semantics, puzzle-polish checks for Notes/objectives/side-room clue recall/hint answer reveal/Auditor feedback/Mirror identity wording, security override route, deduction route, audit ending, ending keyboard/gamepad controls after reload, spent-folder selection clearing, canvas paint and accessibility checks, mid-game and late-game reloads, phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;

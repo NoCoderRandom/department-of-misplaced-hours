@@ -18,7 +18,7 @@ The game is built as a static web app with Phaser 3, TypeScript, and Vite. It ha
 - Optimized generated WebP background art for title, seven rooms, and ending.
 - Static boot screen, in-canvas loading progress, a readable no-JavaScript fallback, a readable asset-load failure screen with DOM alert text if a deployment is missing required images, and procedural audio fallback if optional UI sounds are unavailable.
 - Browser install/share metadata, PNG social preview card, crawler guidance, and a sitemap for the public GitHub Pages release.
-- In-game Credits panel reachable from the title screen, Help, and ending screen, with asset/license documentation pointers.
+- In-game Credits panel reachable from the title screen, Help, and ending screen, with asset/license documentation pointers and direct source-document buttons for the web build.
 - Static-host Content Security Policy and no-referrer policy are checked in release/live smoke.
 - GitHub Pages deployment workflow in `.github/workflows/deploy-pages.yml`.
 
@@ -111,7 +111,7 @@ This checks the public GitHub Pages build, verifies the deployed JS/CSS runtime 
 - Use **Sound**, **-**, and **+** for audio controls.
 - Keyboard: `M` Map, `N` Notes, `H` Hint, `F1` Help, `S` Sound, `[` / `]` volume.
 - Keyboard object mode: `Tab` / `Shift+Tab` cycles room objects and inventory; `Enter` / `Space` activates the focused target.
-- Controller: D-pad or left stick cycles title actions, room objects, inventory, and modal buttons; `A` selects; `B` cancels a selected item or closes panels; `Back/View` opens Map, `X` opens Notes, `Y` opens Hint, `Start/Menu` opens Help, and bumpers adjust volume.
+- Controller: D-pad or left stick cycles title actions, ending actions, room objects, inventory, and modal buttons; `A` selects; `B` cancels a selected item or closes panels; `Back/View` opens Map, `X` opens Notes, `Y` opens Hint, `Start/Menu` opens Help, and bumpers adjust volume.
 - The game canvas has an accessible name, screen-reader summary for its keyboard controls, and hidden live status updates for current targets/status.
 - Dialog panels expose visible titles and body text through `aria-labelledby` and `aria-describedby`.
 - Progress saves automatically after meaningful actions when browser storage is available. Audio, Large Text, and Reduced Motion preferences survive Reset Shift.
@@ -139,7 +139,7 @@ This checks the public GitHub Pages build, verifies the deployed JS/CSS runtime 
 - `scripts/smoke-release-archives.mjs` - extracts standard/store ZIPs, serves the playable web roots, and browser-smoke-tests launch, no-JavaScript fallback, and touch-phone portrait orientation gating.
 - `scripts/smoke-live.mjs` - browser-smoke-tests the deployed public GitHub Pages URL, including deployed runtime chunk manifest/size budgets, install metadata, normal play, no-JavaScript fallback, and touch-phone portrait orientation gating.
 - `scripts/state-tests.mjs` - fast save/load, repair-invariant, reset-preference, and storage-failure regression tests.
-- `scripts/qa-playthrough.mjs` - automated browser QA for ship checks.
+- `scripts/qa-playthrough.mjs` - automated browser QA for ship checks, including ending Credits/actions after reload and late-game spent-item cleanup.
 - `ASSETS.md` - asset provenance and license notes.
 - `THIRD_PARTY_NOTICES.md` - bundled runtime and audio license notices.
 - `docs/ASSET_PROVENANCE.md` - release image hashes and optimization settings.
