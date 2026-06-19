@@ -101,7 +101,11 @@ function runNpmPackDryRun() {
 
 async function referencedBuildAssets() {
   const html = await readFile("dist/index.html", "utf8");
-  return [...html.matchAll(/(?:src|href)="\.\/assets\/(index-[^"]+\.(?:js|css))"/g)].map((match) => `dist/assets/${match[1]}`);
+  return [
+    ...new Set(
+      [...html.matchAll(/(?:src|href)="\.\/assets\/([^"]+\.(?:js|css))"/g)].map((match) => `dist/assets/${match[1]}`)
+    )
+  ].sort();
 }
 
 async function sha256(path) {
@@ -297,14 +301,17 @@ if (missingDistFiles.length > 0) {
   throw new Error(`Release check failed: required dist files missing:\n${missingDistFiles.join("\n")}`);
 }
 
-const jsFiles = distFiles.filter((file) => /^dist\/assets\/index-.+\.js$/.test(file));
-const cssFiles = distFiles.filter((file) => /^dist\/assets\/index-.+\.css$/.test(file));
-if (jsFiles.length !== 1 || cssFiles.length !== 1) {
-  throw new Error(`Release check failed: expected one built JS and one built CSS file, found JS=${jsFiles.length}, CSS=${cssFiles.length}.`);
-}
 const referencedAssets = await referencedBuildAssets();
 const missingReferencedAssets = referencedAssets.filter((file) => !distFiles.includes(file));
-if (referencedAssets.length !== 2 || missingReferencedAssets.length > 0) {
+const entryJsFiles = referencedAssets.filter((file) => /^dist\/assets\/index-.+\.js$/.test(file));
+const vendorJsFiles = referencedAssets.filter((file) => /^dist\/assets\/phaser-.+\.js$/.test(file));
+const cssFiles = referencedAssets.filter((file) => /^dist\/assets\/index-.+\.css$/.test(file));
+if (entryJsFiles.length !== 1 || vendorJsFiles.length !== 1 || cssFiles.length !== 1) {
+  throw new Error(
+    `Release check failed: expected one entry JS, one Phaser vendor JS, and one CSS asset referenced by dist/index.html.\nReferenced:\n${referencedAssets.join("\n")}`
+  );
+}
+if (missingReferencedAssets.length > 0) {
   throw new Error(
     `Release check failed: dist/index.html does not reference the current built JS/CSS assets.\nReferenced:\n${referencedAssets.join("\n")}\nMissing:\n${missingReferencedAssets.join("\n")}`
   );

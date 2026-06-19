@@ -17,6 +17,13 @@ export default defineConfig(({ command }) => ({
   build: {
     outDir: "dist",
     sourcemap: false,
-    chunkSizeWarningLimit: 1500
+    chunkSizeWarningLimit: 1500,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          return id.includes("node_modules/phaser") ? "phaser" : undefined;
+        }
+      }
+    }
   }
 }));

@@ -88,7 +88,22 @@ const forbiddenArchivePatterns = [
 
 async function referencedBuildAssets() {
   const html = await readFile("dist/index.html", "utf8");
-  return [...html.matchAll(/(?:src|href)="\.\/assets\/(index-[^"]+\.(?:js|css))"/g)].map((match) => `dist/assets/${match[1]}`);
+  return [
+    ...new Set(
+      [...html.matchAll(/(?:src|href)="\.\/assets\/([^"]+\.(?:js|css))"/g)].map((match) => `dist/assets/${match[1]}`)
+    )
+  ].sort(comparePathNames);
+}
+
+function assertReferencedRuntimeAssets(label, referencedAssets) {
+  const entryJsFiles = referencedAssets.filter((file) => /^dist\/assets\/index-.+\.js$/.test(file));
+  const vendorJsFiles = referencedAssets.filter((file) => /^dist\/assets\/phaser-.+\.js$/.test(file));
+  const cssFiles = referencedAssets.filter((file) => /^dist\/assets\/index-.+\.css$/.test(file));
+  if (entryJsFiles.length !== 1 || vendorJsFiles.length !== 1 || cssFiles.length !== 1) {
+    throw new Error(
+      `${label} expected one entry JS, one Phaser vendor JS, and one CSS asset referenced by HTML.\nReferenced:\n${referencedAssets.join("\n")}`
+    );
+  }
 }
 
 function run(command, args, options = {}) {
@@ -568,6 +583,7 @@ if (!listing.includes("dist/index.html")) {
   throw new Error("Release archive is missing dist/index.html.");
 }
 const referencedAssets = await referencedBuildAssets();
+assertReferencedRuntimeAssets("Release archive", referencedAssets);
 const expectedStandardEntries = [
   ...expectedDistEntries(referencedAssets),
   "README.md",
@@ -579,7 +595,7 @@ const expectedStandardEntries = [
 ];
 assertExactEntries("Release archive", listing, expectedStandardEntries);
 const missingReferencedAssets = referencedAssets.filter((file) => !listing.includes(file));
-if (referencedAssets.length !== 2 || missingReferencedAssets.length > 0) {
+if (missingReferencedAssets.length > 0) {
   throw new Error(
     `Release archive does not contain the exact JS/CSS assets referenced by dist/index.html.\nReferenced:\n${referencedAssets.join("\n")}\nMissing:\n${missingReferencedAssets.join("\n")}`
   );
@@ -663,7 +679,7 @@ if (!storeListing.includes("index.html")) {
 const missingStoreReferencedAssets = referencedAssets
   .map((file) => file.replace(/^dist\//, ""))
   .filter((file) => !storeListing.includes(file));
-if (referencedAssets.length !== 2 || missingStoreReferencedAssets.length > 0) {
+if (missingStoreReferencedAssets.length > 0) {
   throw new Error(
     `Store archive does not contain the exact JS/CSS assets referenced by root index.html.\nReferenced:\n${referencedAssets
       .map((file) => file.replace(/^dist\//, ""))

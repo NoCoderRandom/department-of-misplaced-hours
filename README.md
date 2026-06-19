@@ -119,7 +119,7 @@ This checks the public GitHub Pages build, verifies the HTML fallback copy, stat
 
 ## Known Limitations
 
-- The game uses one Phaser bundle, so Vite reports a large JavaScript chunk because Phaser is included in the build.
+- Phaser is split into a separate vendor chunk for better repeat-load caching, though the engine still dominates total JavaScript size.
 - Procedural audio depends on browser Web Audio support and starts after the first user interaction.
 - The generated backgrounds are static WebP images, with animation and interaction layered in Phaser.
 - The game is designed desktop-first; small mobile screens fit the full canvas, but the experience is still best with a mouse or large touch screen.
