@@ -740,6 +740,13 @@ async function solveIntroAndClock(page, options = {}) {
   await page.getByText("Reception Memo: Regret knocks first.").waitFor({ state: "visible", timeout: 8_000 });
   await page.getByText("Personnel Calendar: Paperwork makes the building hungry.").waitFor({ state: "visible", timeout: 8_000 });
   await button(page, "Back");
+  await button(page, "Joy");
+  await page.getByText("Current order: JOY").waitFor({ state: "visible", timeout: 8_000 });
+  await button(page, "Undo");
+  await page.getByText("Current order: No entries yet.").waitFor({ state: "visible", timeout: 8_000 });
+  await button(page, "Joy");
+  await page.keyboard.press("Backspace");
+  await page.getByText("Current order: No entries yet.").waitFor({ state: "visible", timeout: 8_000 });
   for (const answer of ["Joy", "Regret", "Hunger", "Calm"]) {
     await button(page, answer);
   }
@@ -2459,7 +2466,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, touch first-tap hotspot preview, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, security override route, deduction route, audit ending, canvas paint and accessibility checks, mid-game reloads, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, touch first-tap hotspot preview, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;

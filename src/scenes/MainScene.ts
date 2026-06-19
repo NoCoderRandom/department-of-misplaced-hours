@@ -2402,9 +2402,22 @@ export class MainScene extends Phaser.Scene {
         }
       }));
       const reviewSpecs = this.puzzleReviewButtons(title, redraw);
+      const editSpecs: ButtonSpec[] =
+        this.lastPuzzleInput.length > 0
+          ? [
+              {
+                label: "Undo",
+                action: () => {
+                  this.lastPuzzleInput.pop();
+                  redraw();
+                }
+              }
+            ]
+          : [];
       this.showMessage(title, `${body}\n\nCurrent order: ${progress}`, [
         ...specs,
         ...reviewSpecs,
+        ...editSpecs,
         {
           label: "Reset",
           action: () => {
@@ -2414,8 +2427,28 @@ export class MainScene extends Phaser.Scene {
         },
         { label: "Leave", action: () => this.closeOverlay() }
       ]);
+      this.installSequenceUndoKey(redraw);
     };
     redraw();
+  }
+
+  private installSequenceUndoKey(redraw: () => void): void {
+    const overlay = this.domOverlay;
+    if (!overlay) {
+      return;
+    }
+    const undoWithKeyboard = (event: KeyboardEvent) => {
+      if (this.domOverlay !== overlay || !["Backspace", "Delete"].includes(event.key)) {
+        return;
+      }
+      event.preventDefault();
+      if (this.lastPuzzleInput.length === 0) {
+        return;
+      }
+      this.lastPuzzleInput.pop();
+      redraw();
+    };
+    overlay.addEventListener("keydown", undoWithKeyboard);
   }
 
   private showKeypadPuzzle(title: string, body: string, correct: string, onSolved: () => void, onFailed?: () => void): void {

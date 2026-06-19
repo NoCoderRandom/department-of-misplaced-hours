@@ -467,6 +467,7 @@ await writeFile(
     "- On touch screens, first tap names a room object and second tap activates it; selected inventory still uses immediately.",
     "- Click inventory items at the bottom, then click room objects to try using them.",
     "- Press Escape, right-click the game, or press controller B to put away a selected inventory item.",
+    "- Ordered-choice puzzles include Undo; Backspace and Delete remove the last entry while the panel is focused.",
     "- Keyboard object mode: Tab / Shift+Tab cycles room objects and inventory; Enter / Space activates the focused target.",
     "- Controller mode: D-pad or left stick cycles title actions, room objects, inventory, and modal buttons; A selects; B cancels selected items or closes panels.",
     "- Use Map, Notes, Hint, Help, Sound, - and + from the top bar.",
@@ -493,6 +494,7 @@ for (const required of [
   "B cancels selected items or closes panels",
   "Press Escape, right-click the game, or press controller B",
   "On touch screens, first tap names a room object and second tap activates it",
+  "Ordered-choice puzzles include Undo",
   "Keyboard shortcuts: M Map, N Notes, H Hint, F1 Help, S Sound, [ and ] volume"
 ]) {
   if (!stagedReadme.includes(required)) {
