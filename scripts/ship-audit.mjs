@@ -202,6 +202,7 @@ requireText("README.md", readme, [
   "normal play with controller-B Clock-In gating",
   "right-click panel close",
   "modal backdrop click shielding",
+  "final-choice ending matrix",
   "normal play with controller-B Clock-In gating and right-click panel close",
   "Press `Escape`, right-click, or controller `B` to close ordinary panels",
   "Controls",

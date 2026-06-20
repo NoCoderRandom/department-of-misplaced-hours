@@ -68,6 +68,7 @@ Expected results:
 - Keypad puzzles can be solved with number-row keys as well as button clicks.
 - The Phaser canvas is painted with varied room art on title, room, reload, map, and ending states; ending screens keep readable title, body, and action buttons.
 - Filed, Escaped, and Audit endings each save a distinct ending id.
+- Warrantless and warrant-authorized solved final-room saves each expose exactly their valid final choices, each chosen item saves the expected ending, and `Play Again` clears the ending save.
 - After final verification, the Red Intercom offers optional Auditor questions about the file, hour, and warrant choices, and Notes remember those answers.
 - Wrong Auditor answers give clue-specific feedback before retrying.
 - Wrong puzzle entries recover cleanly and allow another attempt.

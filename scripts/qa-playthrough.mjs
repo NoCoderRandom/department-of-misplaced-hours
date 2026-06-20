@@ -2831,6 +2831,112 @@ async function testAuditEndingFromLateSave(browser, issues) {
   await page.close();
 }
 
+function finalMatrixSave(withWarrant) {
+  return {
+    room: "mirror",
+    inventory: withWarrant ? ["selfFile", "memoryCup", "auditWarrant"] : ["selfFile", "memoryCup"],
+    flags: {
+      introSeen: true,
+      formStamped: true,
+      clockUnlocked: true,
+      clockSolved: true,
+      archiveSolved: true,
+      glassCaseCollected: true,
+      vendingSolved: true,
+      mirrorShardInstalled: true,
+      mirrorClueSeen: true,
+      fuseInstalled: true,
+      identityVerified: true,
+      hourPresented: true,
+      hourVerified: true,
+      serverSolved: true,
+      ...(withWarrant ? { evidenceSafeOpened: true, identityVerifiedByWarrant: true } : {})
+    },
+    audioVolume: 0.72,
+    muted: false
+  };
+}
+
+async function expectPlayAgainClearsEnding(page, label) {
+  await click(page, 510, 610);
+  await page.waitForTimeout(350);
+  await expectCanvasPainted(page, `title after Play Again ${label}`);
+  const rawSave = await page.evaluate((key) => localStorage.getItem(key), SAVE_KEY);
+  if (rawSave !== null) {
+    throw new Error(`Play Again did not clear ending save for ${label}: ${rawSave}`);
+  }
+}
+
+async function testFinalEndingMatrix(browser, issues) {
+  const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
+  watchPage(page, issues, "final-ending-matrix");
+
+  const scenarios = [
+    {
+      label: "warrantless",
+      withWarrant: false,
+      promptIncludes: ["two usable mechanisms", "audit seal stays dark without an Audit Warrant"],
+      promptExcludes: ["three mechanisms"],
+      endings: [
+        { item: "selfFile", ending: "filed" },
+        { item: "memoryCup", ending: "escaped" }
+      ]
+    },
+    {
+      label: "warrant-authorized",
+      withWarrant: true,
+      promptIncludes: ["three mechanisms", "audit seal waiting for official authority"],
+      promptExcludes: [],
+      endings: [
+        { item: "selfFile", ending: "filed" },
+        { item: "memoryCup", ending: "escaped" },
+        { item: "auditWarrant", ending: "audited" }
+      ]
+    }
+  ];
+
+  for (const scenario of scenarios) {
+    const routeState = await continueSaved(page, finalMatrixSave(scenario.withWarrant));
+    if (scenario.withWarrant) {
+      if (!routeState.inventory.includes("auditWarrant") || !routeState.flags.identityVerifiedByWarrant) {
+        throw new Error(`Final matrix ${scenario.label} did not preserve audit authority: ${JSON.stringify(routeState)}`);
+      }
+    } else if (routeState.inventory.includes("auditWarrant") || routeState.flags.identityVerifiedByWarrant) {
+      throw new Error(`Final matrix ${scenario.label} unexpectedly gained audit authority: ${JSON.stringify(routeState)}`);
+    }
+
+    await click(page, 1080, 386);
+    await page.getByRole("dialog", { name: "Exit Door" }).waitFor({ state: "visible", timeout: 8_000 });
+    const prompt = await page.locator(".game-modal-body").innerText();
+    for (const expected of scenario.promptIncludes) {
+      if (!prompt.includes(expected)) {
+        throw new Error(`Final matrix ${scenario.label} prompt missed ${expected}: ${prompt}`);
+      }
+    }
+    for (const forbidden of scenario.promptExcludes) {
+      if (prompt.includes(forbidden)) {
+        throw new Error(`Final matrix ${scenario.label} prompt exposed ${forbidden}: ${prompt}`);
+      }
+    }
+    await button(page, "Step Back");
+
+    for (const choice of scenario.endings) {
+      await continueSaved(page, finalMatrixSave(scenario.withWarrant));
+      await selectItem(page, choice.item);
+      await click(page, 1080, 386);
+      await page.waitForTimeout(350);
+      await expectCanvasPainted(page, `final matrix ${scenario.label} ${choice.ending}`);
+      const ended = await save(page);
+      if (ended.ending !== choice.ending) {
+        throw new Error(`Final matrix ${scenario.label} ${choice.item} saved ${ended.ending}: ${JSON.stringify(ended)}`);
+      }
+      await expectPlayAgainClearsEnding(page, `${scenario.label} ${choice.ending}`);
+    }
+  }
+
+  await page.close();
+}
+
 async function testEndingReloadControls(browser, issues) {
   const keyboardPage = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
   watchPage(keyboardPage, issues, "ending-reload-keyboard");
@@ -3748,6 +3854,7 @@ async function run() {
     await testKeyboardObjectInteraction(browser, issues);
     await testGamepadNavigation(browser, issues);
     await testAuditEndingFromLateSave(browser, issues);
+    await testFinalEndingMatrix(browser, issues);
     await testEndingReloadControls(browser, issues);
     await testSpentFolderClearsSelection(browser, issues);
     await testWrongItemFeedback(browser, issues);
@@ -3761,7 +3868,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro Clock-In gating and legacy badge recovery, title/help/ending Credits access with dialog semantics and safe source-document URL targets, puzzle-polish checks for Notes/objectives/side-room clue recall/hint answer reveal/route-aware Mirror hints/Auditor feedback/Mirror identity wording/route wording/rain-note opt-out, security override route, deduction route, audit ending, ending keyboard/gamepad controls after reload, title/ending focus live status, spent-folder selection clearing, spent paperwork and vending ingredient sources plus consumed ingredient selection clearing, post-success Escape HUD refresh, canvas paint and accessibility checks, mid-game and late-game reloads, non-spoiler phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts and required outside-system cup clue, all authored hand-cursor hotspot/live-status behavior plus inventory hover, touch first-tap hotspot preview and timeout clearing, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, right-click panel close, modal backdrop click shielding, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, repaired spent paperwork/key sources, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro Clock-In gating and legacy badge recovery, title/help/ending Credits access with dialog semantics and safe source-document URL targets, puzzle-polish checks for Notes/objectives/side-room clue recall/hint answer reveal/route-aware Mirror hints/Auditor feedback/Mirror identity wording/route wording/rain-note opt-out, security override route, deduction route, audit ending, final-choice ending matrix with Play Again reset, ending keyboard/gamepad controls after reload, title/ending focus live status, spent-folder selection clearing, spent paperwork and vending ingredient sources plus consumed ingredient selection clearing, post-success Escape HUD refresh, canvas paint and accessibility checks, mid-game and late-game reloads, non-spoiler phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts and required outside-system cup clue, all authored hand-cursor hotspot/live-status behavior plus inventory hover, touch first-tap hotspot preview and timeout clearing, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, right-click panel close, modal backdrop click shielding, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, repaired spent paperwork/key sources, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;
