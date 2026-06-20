@@ -2011,7 +2011,10 @@ export class MainScene extends Phaser.Scene {
 
   private vendingMachine(): void {
     if (this.state.flag("vendingSolved")) {
-      this.showMessage("Memory Vending", "The vending machine displays SOLD OUT OF TUESDAY, though no readable letters are lit.");
+      this.showMessage(
+        "Memory Vending",
+        "The vending machine displays SOLD OUT OF TUESDAY, though no readable letters are lit. The cup warning still matters: impossible hours survive only outside the filing system."
+      );
       return;
     }
     if (!this.state.has("timeToken")) {
@@ -3274,7 +3277,7 @@ export class MainScene extends Phaser.Scene {
       this.state.flag("glassCaseCollected") ? "Your file, mirror shard, and misfiled folder came from the glass case." : "",
       this.state.flag("selfFileReviewed") ? "Your file proves who the Department is correcting, even if the warrant authorizes the correction." : "",
       this.state.flag("vendingSolved")
-        ? "Memory Vending code solved: 7, 3, 1. The machine dispensed the missing hour and server fuse."
+        ? "Memory Vending code solved: 7, 3, 1. The machine dispensed the missing hour and server fuse. Cup warning: impossible hours survive only outside the filing system."
         : "",
       this.state.flag("fuseInstalled") ? "Server fuse installed." : "",
       this.state.flag("mirrorClueSeen") ? "Mirror sequence: Circle, Triangle, Eye, Square." : "",

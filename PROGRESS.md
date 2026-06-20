@@ -122,6 +122,7 @@
 - [x] The archive deduction route can now reach Mirror Office through the Missing-Person File without ever acquiring the Audit Warrant, and save repair preserves that warrantless route.
 - [x] Touch first-tap hotspot previews now expire cleanly instead of leaving stale focus/status, with browser QA coverage for timeout re-priming.
 - [x] Unmuted phone/tape clue recall now avoids handing out the exact vending code in Notes or Review Clue; exact digits remain available through rain, muted transcripts, or Hint answer, and the vending reward now positively clues the final outside-system answer.
+- [x] Solved Memory Vending and Notes now preserve the outside-system hour warning, with QA coverage so the final Auditor answer remains fair after the reward panel closes.
 - [x] Hotspot cursor QA now sweeps every authored room hotspot for hand cursor and live target status feedback.
 - [x] Release checks and live smoke now verify generated PNG icon/social-card dimensions so broken store/share artwork cannot ship silently.
 - [x] Release packaging now refuses extra top-level release artifacts and generated release notes name the exact version, ZIP, paired checksum file, and verification commands.

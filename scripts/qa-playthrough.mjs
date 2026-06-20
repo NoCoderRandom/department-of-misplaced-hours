@@ -904,8 +904,11 @@ async function testPuzzlePolish(browser, issues) {
   }
   await click(page, 638, 32);
   notesText = await page.locator(".game-modal-body").innerText();
-  if (!notesText.includes("Memory Vending code solved: 7, 3, 1.")) {
-    throw new Error(`Post-solve Notes did not retain solved vending code for final-act recall: ${notesText}`);
+  if (
+    !notesText.includes("Memory Vending code solved: 7, 3, 1.") ||
+    !notesText.includes("impossible hours survive only outside the filing system")
+  ) {
+    throw new Error(`Post-solve Notes did not retain solved vending code and final hour warning for final-act recall: ${notesText}`);
   }
   await button(page, "Close");
 
