@@ -572,7 +572,7 @@ await writeFile(
     "",
     "## Verification",
     "",
-    "This archive was produced by the release packager, which validates archive contents, smoke-tests pending archives in a browser including controller-B Clock-In gating, promotes artifacts transactionally, and verifies final checksums. The normal `npm run release` command runs TypeScript checks, a production build, automated browser QA, and visual readability QA before packaging.",
+    "This archive was produced by the release packager, which validates archive contents, smoke-tests pending archives in a browser, including controller-B Clock-In gating checks, promotes artifacts transactionally, and verifies final checksums. The normal `npm run release` command runs TypeScript checks, a production build, automated browser QA, and visual readability QA before packaging.",
     "",
     `Before distributing, verify \`${releaseName}.zip\` against the paired \`${releaseName}.sha256\` file in the generated release folder.`,
     `On macOS/Linux, run \`sha256sum -c ${releaseName}.sha256\`. On Windows PowerShell, run \`(Get-FileHash ${releaseName}.zip -Algorithm SHA256).Hash\` and compare it with the hash at the start of \`${releaseName}.sha256\`.`

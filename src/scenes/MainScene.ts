@@ -3264,7 +3264,7 @@ export class MainScene extends Phaser.Scene {
   private showHelp(): void {
     this.showMessage(
       "Help",
-      "Hand means usable. Selected item uses. Esc/B/right-click cancels panels/items. Clock In requires button. Tab/D-pad cycles. Enter/Space/A uses. Back/View Map, X Notes, Y Hint, Start/Menu Help, bumpers volume.",
+      "Hand marks targets. Selected item uses. Esc/B/right-click cancels item or panel. Clock In needs button. Tab/D-pad cycles; Enter/Space/A uses. Back/View Map, X Notes, Y Hint, Start/Menu Help, bumpers volume.",
       [
         { label: this.state.largeText ? "Normal Text" : "Large Text", action: () => this.toggleLargeText() },
         { label: this.state.reducedMotion ? "Full Motion" : "Reduced Motion", action: () => this.toggleReducedMotion() },
