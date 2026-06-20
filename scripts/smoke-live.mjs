@@ -221,6 +221,20 @@ async function assertCanvasPainted(page) {
   }
 }
 
+function compactText(text) {
+  return (text ?? "").replace(/\s+/g, " ").trim();
+}
+
+function assertControllerShortcutText(label, text) {
+  const normalized = compactText(text);
+  for (const required of ["Back/View", "X", "Notes", "Y", "Hint", "Start/Menu", "Help", "bumpers"]) {
+    if (!normalized.includes(required)) {
+      throw new Error(`Live ${label} is missing controller shortcut text ${required}: ${normalized}`);
+    }
+  }
+  return normalized;
+}
+
 async function assertCanvasAccessibility(page) {
   const attrs = await page.evaluate(() => {
     const canvas = document.querySelector("canvas");
@@ -447,6 +461,38 @@ async function smokeCredits(browser, url) {
   }
 }
 
+async function smokeTitleControls(browser, url) {
+  const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
+  const issues = [];
+  watchPage(page, issues, "live-controls");
+  try {
+    await page.goto(url, { waitUntil: "networkidle", timeout: 60_000 });
+    await page.locator("canvas").waitFor({ state: "visible", timeout: 30_000 });
+    await page.evaluate(
+      ({ save, preferences }) => {
+        localStorage.removeItem(save);
+        localStorage.removeItem(preferences);
+      },
+      { save: saveKey, preferences: preferencesKey }
+    );
+    await page.reload({ waitUntil: "networkidle", timeout: 60_000 });
+    await page.locator("canvas").waitFor({ state: "visible", timeout: 30_000 });
+    await page.waitForTimeout(900);
+    await assertCanvasPainted(page);
+    await gameClick(page, 600, 534);
+    const dialog = page.getByRole("dialog", { name: "Controls" });
+    await dialog.waitFor({ state: "visible", timeout: 30_000 });
+    const controlsText = assertControllerShortcutText("title Controls panel", await dialog.textContent());
+    await page.getByRole("button", { name: "Close" }).click({ timeout: 30_000 });
+    if (issues.length > 0) {
+      throw new Error(`Live Controls browser issues:\n${issues.join("\n")}`);
+    }
+    return { controlsText };
+  } finally {
+    await page.close().catch(() => {});
+  }
+}
+
 async function smokePlayable(browser, url) {
   const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
   const issues = [];
@@ -468,6 +514,11 @@ async function smokePlayable(browser, url) {
   await gameClick(page, 600, 390);
   await page.getByRole("button", { name: "Clock In" }).click({ timeout: 30_000 });
   await page.waitForFunction(() => !document.querySelector(".game-modal-panel"), null, { timeout: 30_000 });
+  await page.keyboard.press("F1");
+  const helpDialog = page.getByRole("dialog", { name: "Help" });
+  await helpDialog.waitFor({ state: "visible", timeout: 30_000 });
+  const helpText = assertControllerShortcutText("Help panel", await helpDialog.textContent());
+  await page.getByRole("button", { name: "Close" }).click({ timeout: 30_000 });
   const save = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)), saveKey);
   const title = await page.title();
   await page.close();
@@ -480,7 +531,7 @@ async function smokePlayable(browser, url) {
   if (issues.length > 0) {
     throw new Error(`Live browser issues:\n${issues.join("\n")}`);
   }
-  return { title, save };
+  return { title, save, helpText };
 }
 
 async function smokeNoScript(browser, url) {
@@ -561,10 +612,13 @@ for (let attempt = 1; attempt <= retries; attempt += 1) {
     await assertPublicMetadata(rawUrl);
     browser = await chromium.launch({ headless: true });
     const credits = await smokeCredits(browser, url);
+    const controls = await smokeTitleControls(browser, url);
     const playable = await smokePlayable(browser, url);
     const noScript = await smokeNoScript(browser, url);
     const orientation = await smokeOrientationGate(browser, url);
-    console.log(JSON.stringify({ ok: true, url: rawUrl, attempts: attempt, runtime, credits, playable, noScript, orientation }, null, 2));
+    console.log(
+      JSON.stringify({ ok: true, url: rawUrl, attempts: attempt, runtime, credits, controls, playable, noScript, orientation }, null, 2)
+    );
     await browser.close();
     passed = true;
     break;
