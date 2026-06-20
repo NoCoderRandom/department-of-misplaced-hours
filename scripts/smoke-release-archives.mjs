@@ -258,6 +258,59 @@ async function gameClick(page, x, y) {
   await page.waitForTimeout(150);
 }
 
+async function installQaGamepad(page) {
+  await page.addInitScript(() => {
+    const state = {
+      buttons: Array.from({ length: 16 }, () => ({ pressed: false, value: 0 })),
+      axes: [0, 0, 0, 0],
+      timestamp: 0
+    };
+    const pad = {
+      id: "Release Archive Smoke Standard Gamepad",
+      index: 0,
+      connected: true,
+      mapping: "standard",
+      buttons: state.buttons,
+      axes: state.axes,
+      timestamp: 0
+    };
+    Object.defineProperty(navigator, "getGamepads", {
+      configurable: true,
+      value: () => {
+        pad.timestamp = state.timestamp;
+        return [pad, null, null, null];
+      }
+    });
+    window.__archiveSmokeGamepad = state;
+  });
+}
+
+async function pressGamepadButton(page, index, hold = 120) {
+  await page.evaluate(
+    ({ buttonIndex }) => {
+      const pad = window.__archiveSmokeGamepad;
+      if (!pad) {
+        throw new Error("Release archive smoke gamepad was not installed.");
+      }
+      pad.buttons[buttonIndex].pressed = true;
+      pad.buttons[buttonIndex].value = 1;
+      pad.timestamp = performance.now();
+    },
+    { buttonIndex: index }
+  );
+  await page.waitForTimeout(hold);
+  await page.evaluate(
+    ({ buttonIndex }) => {
+      const pad = window.__archiveSmokeGamepad;
+      pad.buttons[buttonIndex].pressed = false;
+      pad.buttons[buttonIndex].value = 0;
+      pad.timestamp = performance.now();
+    },
+    { buttonIndex: index }
+  );
+  await page.waitForTimeout(160);
+}
+
 async function installWindowOpenCapture(page) {
   await page.evaluate(() => {
     window.__archiveSmokeOpenedUrls = [];
@@ -397,6 +450,7 @@ async function smokeExtractedArchive(target) {
     const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
     const issues = [];
     watchPage(page, issues);
+    await installQaGamepad(page);
 
     await page.goto(url, { waitUntil: "networkidle" });
     await page.evaluate(() => {
@@ -423,6 +477,16 @@ async function smokeExtractedArchive(target) {
     await page.getByRole("button", { name: "Close" }).click({ timeout: 8_000 });
 
     await gameClick(page, 600, 390);
+    await page.getByRole("button", { name: "Clock In" }).waitFor({ state: "visible", timeout: 8_000 });
+    await pressGamepadButton(page, 1);
+    await page.getByRole("button", { name: "Clock In" }).waitFor({ state: "visible", timeout: 8_000 });
+    const preClockInSave = await page.evaluate(() => {
+      const raw = localStorage.getItem("department-misplaced-hours-save-v1");
+      return raw ? JSON.parse(raw) : null;
+    });
+    if (preClockInSave?.inventory?.includes("visitorBadge") || preClockInSave?.flags?.introSeen) {
+      throw new Error(`${target.label} controller B granted intro rewards before Clock In: ${JSON.stringify(preClockInSave)}`);
+    }
     await page.getByRole("button", { name: "Clock In" }).click({ timeout: 8_000 });
     await page.waitForTimeout(300);
     const save = await page.evaluate(() => JSON.parse(localStorage.getItem("department-misplaced-hours-save-v1")));
@@ -443,6 +507,6 @@ async function smokeExtractedArchive(target) {
 for (const target of smokeTargets) {
   await smokeExtractedArchive(target);
   console.log(
-    `Release archive smoke passed: ${target.archivePath} served from ${target.webRootSubdir || "root"}, verified Credits document targets, started a new shift, passed touch-phone orientation gating, and showed the no-JavaScript fallback.`
+    `Release archive smoke passed: ${target.archivePath} served from ${target.webRootSubdir || "root"}, verified Credits document targets, controller-B Clock-In gating, started a new shift, passed touch-phone orientation gating, and showed the no-JavaScript fallback.`
   );
 }
