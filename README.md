@@ -147,5 +147,6 @@ This checks the public GitHub Pages build, verifies and reports the deployed JS/
 - `ASSETS.md` - asset provenance and license notes.
 - `THIRD_PARTY_NOTICES.md` - bundled runtime and audio license notices.
 - `docs/ASSET_PROVENANCE.md` - release image hashes and optimization settings.
+- `docs/PLAYER_WALKTHROUGH.md` - simple spoiler walkthrough with the reasoning behind each puzzle step.
 - `DESIGN_NOTES.md` - research summary and design rationale.
 - `PROGRESS.md` - implementation checkpoints.
