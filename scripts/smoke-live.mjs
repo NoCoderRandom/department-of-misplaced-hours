@@ -187,6 +187,59 @@ async function gameClick(page, x, y) {
   await page.mouse.click(point.x, point.y);
 }
 
+async function installQaGamepad(page) {
+  await page.addInitScript(() => {
+    const state = {
+      buttons: Array.from({ length: 16 }, () => ({ pressed: false, value: 0 })),
+      axes: [0, 0, 0, 0],
+      timestamp: 0
+    };
+    const pad = {
+      id: "Live Smoke Standard Gamepad",
+      index: 0,
+      connected: true,
+      mapping: "standard",
+      buttons: state.buttons,
+      axes: state.axes,
+      timestamp: 0
+    };
+    Object.defineProperty(navigator, "getGamepads", {
+      configurable: true,
+      value: () => {
+        pad.timestamp = state.timestamp;
+        return [pad, null, null, null];
+      }
+    });
+    window.__liveSmokeGamepad = state;
+  });
+}
+
+async function pressGamepadButton(page, index, hold = 120) {
+  await page.evaluate(
+    ({ buttonIndex }) => {
+      const pad = window.__liveSmokeGamepad;
+      if (!pad) {
+        throw new Error("Live smoke gamepad was not installed.");
+      }
+      pad.buttons[buttonIndex].pressed = true;
+      pad.buttons[buttonIndex].value = 1;
+      pad.timestamp = performance.now();
+    },
+    { buttonIndex: index }
+  );
+  await page.waitForTimeout(hold);
+  await page.evaluate(
+    ({ buttonIndex }) => {
+      const pad = window.__liveSmokeGamepad;
+      pad.buttons[buttonIndex].pressed = false;
+      pad.buttons[buttonIndex].value = 0;
+      pad.timestamp = performance.now();
+    },
+    { buttonIndex: index }
+  );
+  await page.waitForTimeout(160);
+}
+
 async function installWindowOpenCapture(page) {
   await page.evaluate(() => {
     window.__liveSmokeOpenedUrls = [];
@@ -538,6 +591,7 @@ async function smokePlayable(browser, url) {
   const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
   const issues = [];
   watchPage(page, issues, "live");
+  await installQaGamepad(page);
   await page.goto(url, { waitUntil: "networkidle", timeout: 60_000 });
   await page.locator("canvas").waitFor({ state: "visible", timeout: 30_000 });
   await page.evaluate(
@@ -553,6 +607,16 @@ async function smokePlayable(browser, url) {
   await assertCanvasAccessibility(page);
   await assertCanvasPainted(page);
   await gameClick(page, 600, 390);
+  await page.getByRole("button", { name: "Clock In" }).waitFor({ state: "visible", timeout: 30_000 });
+  await pressGamepadButton(page, 1);
+  await page.getByRole("button", { name: "Clock In" }).waitFor({ state: "visible", timeout: 30_000 });
+  const preClockInSave = await page.evaluate((key) => {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  }, saveKey);
+  if (preClockInSave?.inventory?.includes("visitorBadge") || preClockInSave?.flags?.introSeen) {
+    throw new Error(`Live controller B granted intro rewards before Clock In: ${JSON.stringify(preClockInSave)}`);
+  }
   await page.getByRole("button", { name: "Clock In" }).click({ timeout: 30_000 });
   await page.waitForFunction(() => !document.querySelector(".game-modal-panel"), null, { timeout: 30_000 });
   await page.keyboard.press("F1");
@@ -572,7 +636,7 @@ async function smokePlayable(browser, url) {
   if (issues.length > 0) {
     throw new Error(`Live browser issues:\n${issues.join("\n")}`);
   }
-  return { title, save, helpText };
+  return { title, save, helpText, controllerBKeptClockIn: true };
 }
 
 async function smokeNoScript(browser, url) {
