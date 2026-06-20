@@ -123,5 +123,8 @@
 - [x] Touch first-tap hotspot previews now expire cleanly instead of leaving stale focus/status, with browser QA coverage for timeout re-priming.
 - [x] Unmuted phone/tape clue recall now avoids handing out the exact vending code in Notes or Review Clue; exact digits remain available through rain, muted transcripts, or Hint answer, and the vending reward now positively clues the final outside-system answer.
 - [x] Hotspot cursor QA now sweeps every authored room hotspot for hand cursor and live target status feedback.
+- [x] Release checks and live smoke now verify generated PNG icon/social-card dimensions so broken store/share artwork cannot ship silently.
+- [x] Release packaging now refuses extra top-level release artifacts and generated release notes name the exact version, ZIP, paired checksum file, and verification commands.
+- [x] Live GitHub Pages smoke now reports validated manifest fields, app-icon/social-card dimensions, crawler files, and runtime chunk byte sizes in its success JSON.
 - [x] Deployment prepared with `.github/workflows/deploy-pages.yml`.
 - [x] Documentation written: `README.md`, `ASSETS.md`, `THIRD_PARTY_NOTICES.md`, `DESIGN_NOTES.md`, `PROGRESS.md`.

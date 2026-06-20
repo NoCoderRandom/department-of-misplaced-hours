@@ -348,6 +348,7 @@ async function assertPublicMetadata(rawUrl) {
   const baseUrl = new URL(rawUrl);
   const checks = [
     {
+      key: "manifest",
       label: "manifest",
       url: new URL("site.webmanifest", baseUrl),
       assert: async (response) => {
@@ -383,30 +384,42 @@ async function assertPublicMetadata(rawUrl) {
         ) {
           throw new Error(`Live manifest content is incomplete: ${JSON.stringify(manifest)}`);
         }
+        return {
+          name: manifest.name,
+          shortName: manifest.short_name,
+          display: manifest.display,
+          orientation: manifest.orientation,
+          categories: manifest.categories,
+          icons: manifest.icons.map(({ src, sizes, type, purpose }) => ({ src, sizes, type, purpose }))
+        };
       }
     },
     {
+      key: "icon192",
       label: "app icon 192",
       url: new URL("icon-192.png", baseUrl),
       assert: async (response) => {
-        await assertLivePng(response, "icon-192.png", 192, 192);
+        return assertLivePng(response, "icon-192.png", 192, 192);
       }
     },
     {
+      key: "icon512",
       label: "app icon 512",
       url: new URL("icon-512.png", baseUrl),
       assert: async (response) => {
-        await assertLivePng(response, "icon-512.png", 512, 512);
+        return assertLivePng(response, "icon-512.png", 512, 512);
       }
     },
     {
+      key: "socialCard",
       label: "social card",
       url: new URL("social-card.png", baseUrl),
       assert: async (response) => {
-        await assertLivePng(response, "social-card.png", 1200, 630, 50_000);
+        return assertLivePng(response, "social-card.png", 1200, 630, 50_000);
       }
     },
     {
+      key: "robots",
       label: "robots",
       url: new URL("robots.txt", baseUrl),
       assert: async (response) => {
@@ -418,9 +431,11 @@ async function assertPublicMetadata(rawUrl) {
         ) {
           throw new Error(`Live robots.txt content is incomplete: ${robots}`);
         }
+        return { bytes: new TextEncoder().encode(robots).byteLength, sitemap: "https://nocoderrandom.github.io/department-of-misplaced-hours/sitemap.xml" };
       }
     },
     {
+      key: "sitemap",
       label: "sitemap",
       url: new URL("sitemap.xml", baseUrl),
       assert: async (response) => {
@@ -428,18 +443,26 @@ async function assertPublicMetadata(rawUrl) {
         if (!sitemap.includes("<urlset") || !sitemap.includes("https://nocoderrandom.github.io/department-of-misplaced-hours/")) {
           throw new Error(`Live sitemap.xml content is incomplete: ${sitemap}`);
         }
+        return { bytes: new TextEncoder().encode(sitemap).byteLength, listedUrl: "https://nocoderrandom.github.io/department-of-misplaced-hours/" };
       }
     }
   ];
 
+  const metadata = {};
   for (const check of checks) {
     check.url.searchParams.set("live-smoke", `${Date.now()}`);
     const response = await fetch(check.url, { cache: "no-store" });
     if (!response.ok) {
       throw new Error(`Live ${check.label} returned HTTP ${response.status} for ${check.url}`);
     }
-    await check.assert(response);
+    const publicUrl = new URL(check.url);
+    publicUrl.search = "";
+    metadata[check.key] = {
+      url: publicUrl.toString(),
+      ...(await check.assert(response))
+    };
   }
+  return metadata;
 }
 
 async function smokeCredits(browser, url) {
@@ -627,7 +650,7 @@ for (let attempt = 1; attempt <= retries; attempt += 1) {
   let browser;
   try {
     const runtime = await assertLiveHtml(url);
-    await assertPublicMetadata(rawUrl);
+    const metadata = await assertPublicMetadata(rawUrl);
     browser = await chromium.launch({ headless: true });
     const credits = await smokeCredits(browser, url);
     const controls = await smokeTitleControls(browser, url);
@@ -635,7 +658,7 @@ for (let attempt = 1; attempt <= retries; attempt += 1) {
     const noScript = await smokeNoScript(browser, url);
     const orientation = await smokeOrientationGate(browser, url);
     console.log(
-      JSON.stringify({ ok: true, url: rawUrl, attempts: attempt, runtime, credits, controls, playable, noScript, orientation }, null, 2)
+      JSON.stringify({ ok: true, url: rawUrl, attempts: attempt, runtime, metadata, credits, controls, playable, noScript, orientation }, null, 2)
     );
     await browser.close();
     passed = true;
