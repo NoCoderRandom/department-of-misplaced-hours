@@ -258,6 +258,25 @@ async function gameClick(page, x, y) {
   await page.waitForTimeout(150);
 }
 
+async function gameRightClick(page, x, y) {
+  const point = await page.evaluate(
+    ({ gameX, gameY }) => {
+      const canvas = document.querySelector("canvas");
+      if (!canvas) {
+        throw new Error("Canvas not found for game right-click.");
+      }
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: rect.left + (gameX / 1200) * rect.width,
+        y: rect.top + (gameY / 800) * rect.height
+      };
+    },
+    { gameX: x, gameY: y }
+  );
+  await page.mouse.click(point.x, point.y, { button: "right" });
+  await page.waitForTimeout(150);
+}
+
 async function installQaGamepad(page) {
   await page.addInitScript(() => {
     const state = {
@@ -493,6 +512,10 @@ async function smokeExtractedArchive(target) {
     if (!save?.inventory?.includes("visitorBadge") || save.room !== "reception") {
       throw new Error(`${target.label} did not start a playable shift: ${JSON.stringify(save)}`);
     }
+    await page.keyboard.press("F1");
+    await page.getByRole("dialog", { name: "Help" }).waitFor({ state: "visible", timeout: 8_000 });
+    await gameRightClick(page, 600, 390);
+    await page.waitForFunction(() => !document.querySelector(".game-modal-panel"), null, { timeout: 8_000 });
     if (issues.length > 0) {
       throw new Error(`${target.label} smoke issues:\n${issues.join("\n")}`);
     }
@@ -507,6 +530,6 @@ async function smokeExtractedArchive(target) {
 for (const target of smokeTargets) {
   await smokeExtractedArchive(target);
   console.log(
-    `Release archive smoke passed: ${target.archivePath} served from ${target.webRootSubdir || "root"}, verified Credits document targets, controller-B Clock-In gating, started a new shift, passed touch-phone orientation gating, and showed the no-JavaScript fallback.`
+    `Release archive smoke passed: ${target.archivePath} served from ${target.webRootSubdir || "root"}, verified Credits document targets, controller-B Clock-In gating, right-click panel close, started a new shift, passed touch-phone orientation gating, and showed the no-JavaScript fallback.`
   );
 }

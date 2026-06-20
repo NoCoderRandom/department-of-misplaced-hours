@@ -187,6 +187,24 @@ async function gameClick(page, x, y) {
   await page.mouse.click(point.x, point.y);
 }
 
+async function gameRightClick(page, x, y) {
+  const point = await page.evaluate(
+    ({ gameX, gameY }) => {
+      const canvas = document.querySelector("canvas");
+      if (!canvas) {
+        throw new Error("Canvas not found for game right-click.");
+      }
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: rect.left + (gameX / 1200) * rect.width,
+        y: rect.top + (gameY / 800) * rect.height
+      };
+    },
+    { gameX: x, gameY: y }
+  );
+  await page.mouse.click(point.x, point.y, { button: "right" });
+}
+
 async function installQaGamepad(page) {
   await page.addInitScript(() => {
     const state = {
@@ -623,7 +641,8 @@ async function smokePlayable(browser, url) {
   const helpDialog = page.getByRole("dialog", { name: "Help" });
   await helpDialog.waitFor({ state: "visible", timeout: 30_000 });
   const helpText = assertControllerShortcutText("Help panel", await helpDialog.textContent());
-  await page.getByRole("button", { name: "Close" }).click({ timeout: 30_000 });
+  await gameRightClick(page, 600, 390);
+  await page.waitForFunction(() => !document.querySelector(".game-modal-panel"), null, { timeout: 30_000 });
   const save = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)), saveKey);
   const title = await page.title();
   await page.close();
@@ -636,7 +655,7 @@ async function smokePlayable(browser, url) {
   if (issues.length > 0) {
     throw new Error(`Live browser issues:\n${issues.join("\n")}`);
   }
-  return { title, save, helpText, controllerBKeptClockIn: true };
+  return { title, save, helpText, controllerBKeptClockIn: true, rightClickClosedHelp: true };
 }
 
 async function smokeNoScript(browser, url) {
