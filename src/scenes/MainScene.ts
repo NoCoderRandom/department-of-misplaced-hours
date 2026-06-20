@@ -1970,6 +1970,13 @@ export class MainScene extends Phaser.Scene {
   }
 
   private coinDrawer(): void {
+    if (this.state.flag("vendingSolved")) {
+      this.showMessage(
+        "Coin Drawer",
+        "The drawer refuses to mint another Time Token. One purchased hour is already more debt than the room can legally remember."
+      );
+      return;
+    }
     if (this.state.add("timeToken")) {
       this.audio.pickup();
       this.state.save();
@@ -1999,6 +2006,13 @@ export class MainScene extends Phaser.Scene {
   }
 
   private paperCups(): void {
+    if (this.state.flag("vendingSolved")) {
+      this.showMessage(
+        "Paper Cups",
+        "The remaining cups fold their rims inward. After watching one cup carry a missing hour, none of them volunteer."
+      );
+      return;
+    }
     if (this.state.add("paperCup")) {
       this.audio.pickup();
       this.state.save();
