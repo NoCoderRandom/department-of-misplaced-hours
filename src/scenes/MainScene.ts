@@ -3098,6 +3098,8 @@ export class MainScene extends Phaser.Scene {
     const mirrorMissing = this.missingMirrorRequirements();
     const lockSummary = canUseMirror
       ? "Mirror Office is cleared for travel."
+      : this.state.flag("archiveSolved") && !this.state.flag("glassCaseCollected")
+        ? "The Archive glass case is unlocked; collect the records inside."
       : this.hasMirrorOfficeAuthority()
         ? mirrorMissing.length > 0
           ? `Mirror Office still needs ${this.formatRequirementList(mirrorMissing)}.`
@@ -3304,7 +3306,7 @@ export class MainScene extends Phaser.Scene {
       if (!this.state.flag("archiveSolved")) {
         return "Explore the inner floor: Security can issue a warrant, and the Archive can reveal your case file.";
       }
-      return "Use the archive records or Security warrant to satisfy the Mirror Office lock.";
+      return "Open the archive glass case and collect the records inside.";
     }
     if (!this.state.flag("archiveSolved")) {
       return "Unlock the archive glass case with the table and break-room clues, or inspect Security evidence and use the Audit Warrant.";

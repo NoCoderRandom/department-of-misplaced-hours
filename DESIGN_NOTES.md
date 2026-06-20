@@ -96,6 +96,7 @@ The soundscape mixes procedural Web Audio ambience with CC0 Kenney UI/SFX files.
 - The required vending reward now labels the missing hour as unfileable, giving a positive clue for the final "Outside the system" Auditor answer before the quiz.
 - Optional side-room flavor can also clarify puzzle red herrings: the Handless Clock reminds players that grouped clues are counted, and the Microwave establishes that impossible hours cannot be filed there.
 - Notes avoid revealing clock-solution detail before the related documents are read, and objectives acknowledge the warrantless archive case-file route instead of forcing a single warrant-first reading.
+- After the archive drawers are solved, Notes and Map point directly to the unlocked glass case instead of implying the records are already usable.
 - Hints keep exact solutions behind an explicit Show Answer step, so stuck players can still recover without accidental spoilers.
 - Keypad puzzles accept typed number keys in addition to pointer/controller modal buttons.
 - If the player presents the missing hour at the red intercom but closes the Auditor prompt, the intercom resumes verification instead of asking for the same item again.

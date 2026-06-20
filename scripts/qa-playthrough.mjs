@@ -931,6 +931,40 @@ async function testPuzzlePolish(browser, issues) {
   await button(page, "Close");
 
   await continueSaved(page, {
+    room: "archive",
+    inventory: ["visitorBadge", "stampedForm"],
+    flags: {
+      introSeen: true,
+      formStamped: true,
+      clockUnlocked: true,
+      clockSolved: true,
+      archiveTableSeen: true,
+      breakBoardSeen: true,
+      archiveSolved: true
+    },
+    audioVolume: 0.72,
+    muted: false
+  });
+  await click(page, 638, 32);
+  notesText = await page.locator(".game-modal-body").innerText();
+  if (
+    !notesText.includes("Open the archive glass case and collect the records inside.") ||
+    notesText.includes("Use the archive records or Security warrant")
+  ) {
+    throw new Error(`Solved-archive Notes objective did not point to the unlocked glass case: ${notesText}`);
+  }
+  await button(page, "Close");
+  await click(page, 548, 32);
+  const mapText = await page.locator(".game-modal-body").innerText();
+  if (
+    !mapText.includes("The Archive glass case is unlocked; collect the records inside.") ||
+    mapText.includes("Security can issue the warrant, or the archive can produce your case file")
+  ) {
+    throw new Error(`Solved-archive Map guidance did not point to the unlocked glass case: ${mapText}`);
+  }
+  await button(page, "Close");
+
+  await continueSaved(page, {
     room: "interrogation",
     inventory: ["visitorBadge", "stampedForm"],
     flags: {
