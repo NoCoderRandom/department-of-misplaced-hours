@@ -1604,7 +1604,7 @@ export class MainScene extends Phaser.Scene {
       "Circle Door",
       this.state.has("stampedForm")
         ? "The circular seal sniffs the air. Select the Stamped Form, then present it to the door."
-        : "The circular seal on the door sniffs for red ink. A small security notice adds: MIRROR CONTACT REQUIRES AUDIT AUTHORITY."
+        : "The circular seal on the door sniffs for red ink. A small security notice adds: MIRROR CONTACT REQUIRES WARRANT OR CASE FILE."
     );
   }
 
@@ -1874,6 +1874,10 @@ export class MainScene extends Phaser.Scene {
               this.state.save();
               this.closeOverlayAndRefresh();
             }
+          },
+          {
+            label: "Leave Note",
+            action: () => this.closeOverlay()
           }
         ]
       );
@@ -1944,7 +1948,7 @@ export class MainScene extends Phaser.Scene {
       this.audio.fail();
       this.showMessage(
         "Index Drawers",
-        "The drawers refuse blind guesses. Find the archive table's symbol mapping and the break-room category order, or select the Audit Warrant after inspecting the Security Office monitors."
+        "The drawers refuse blind guesses. Find the archive table's symbol mapping and the break-room category order, or select the Audit Warrant after inspecting the Security Office monitors, incident board, or log."
       );
       return;
     }
@@ -2256,7 +2260,7 @@ export class MainScene extends Phaser.Scene {
     }
     if (!this.state.flag("identityVerified") || !this.state.flag("hourVerified")) {
       this.audio.fail();
-      this.showMessage("Server Console", "The console has power, but refuses instructions until the red intercom verifies both your file and your missing hour.");
+      this.showMessage("Server Console", "The console has power, but refuses instructions until the red intercom verifies your identity and your missing hour.");
       return;
     }
     if (!this.state.flag("mirrorClueSeen")) {

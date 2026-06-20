@@ -131,6 +131,7 @@
 - [x] Escape on post-success dialogs now refreshes the room HUD, with QA coverage against stale Server Fuse inventory hit zones after installation.
 - [x] Hotspot cursor QA now sweeps every authored room hotspot for hand cursor and live target status feedback.
 - [x] Release checks and live smoke now verify generated PNG icon/social-card dimensions so broken store/share artwork cannot ship silently.
+- [x] Route wording and modal shielding tightened: Circle Door/Server/Archive prompts now match the warrant-or-case-file design, Rain Window has a visible Leave Note opt-out, and browser QA guards modal backdrop click shielding.
 - [x] Release packaging now refuses extra top-level release artifacts and generated release notes name the exact version, ZIP, paired checksum file, and verification commands.
 - [x] Live GitHub Pages smoke now reports validated manifest fields, app-icon/social-card dimensions, crawler files, and runtime chunk byte sizes in its success JSON.
 - [x] Prompt-level ship audit added to `npm run verify`, covering static hosting, GitHub Pages workflow, source/docs, room/item/ending counts, documented puzzle scope, legal asset notices, and required QA/release scripts.

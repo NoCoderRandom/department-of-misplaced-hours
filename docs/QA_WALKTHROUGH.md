@@ -14,7 +14,7 @@ This is the intended complete path through the game.
 10. Use `Visitor Badge` or `Stamped Form` on Key Cabinet to take `Security Key`.
 11. Use `Security Key` on Evidence Safe to take `Audit Warrant`.
 12. Enter Interrogation Booth.
-13. Inspect the Rain Window to learn the visual/accessibility clue for `731`; `Keep Note` stores the optional `Rain Cipher` reminder in inventory.
+13. Inspect the Rain Window to learn the visual/accessibility clue for `731`; `Keep Note` stores the optional `Rain Cipher` reminder in inventory, while `Leave Note` keeps the clue seen without adding inventory.
 14. Inspect the Interview File for the missing-hour story beat.
 15. Enter Records Archive.
 16. Inspect Archive Table for symbol/category mapping.
@@ -78,9 +78,11 @@ Expected results:
 - Corrupt save data clears cleanly, removes stale Continue behavior from the title screen, and blocked browser storage still allows a new game.
 - Help > Recover Position repairs progress without deleting inventory or the save.
 - The vending code can be solved through either phone/tape audio or the rain cipher visual clue; unmuted phone/tape recall stays non-spoiler unless the player uses Hint > Show Answer.
+- Warrant and warrantless route wording stays consistent: Mirror access names warrant or case-file authority, server prompts ask for identity rather than only a file, and Security override prompts name monitors, incident board, or log as valid evidence.
 - Late-game Notes remain inside the panel and scroll when needed.
 - Ordinary panels close with `Escape`, right-click, or controller `B`; the required Clock In orientation remains until Clock In is pressed.
 - Modal button focus stays trapped inside panels, and `Escape` still closes ordinary panels if focus leaves the button.
+- Modal backdrops shield canvas clicks, so clicking over a room hotspot while a panel is open cannot activate the room behind it or mutate progress.
 - Canvas clicks still hit the intended game objects when the browser viewport scales or letterboxes the game, and the rendered mobile canvas stays fully visible at the correct aspect ratio.
 - The production build succeeds with `npm run build`.
 - The production verification gate succeeds with `npm run verify`, and the full release gate succeeds with `npm run release`.

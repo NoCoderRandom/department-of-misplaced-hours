@@ -1331,6 +1331,15 @@ async function solveIntroAndClock(page, options = {}) {
     }
     await button(page, "Close");
   }
+  await click(page, 360, 374);
+  const circleDoorNotice = await page.locator(".game-modal-body").innerText({ timeout: 8_000 });
+  if (
+    !circleDoorNotice.includes("MIRROR CONTACT REQUIRES WARRANT OR CASE FILE") ||
+    circleDoorNotice.includes("MIRROR CONTACT REQUIRES AUDIT AUTHORITY")
+  ) {
+    throw new Error(`Circle Door notice still implies a warrant-only Mirror route: ${circleDoorNotice}`);
+  }
+  await button(page, "Close");
   await click(page, 226, 650);
   await click(page, 590, 660);
   await click(page, 590, 660);
@@ -1409,6 +1418,16 @@ async function getRainAndVending(page, exerciseRewardEscape = false) {
   await mapTo(page, "Interrogation");
   await click(page, 292, 300);
   if (exerciseRewardEscape) {
+    await page.getByRole("button", { name: "Leave Note" }).waitFor({ state: "visible", timeout: 8_000 });
+    await button(page, "Leave Note");
+    const skippedRainData = await save(page);
+    if (skippedRainData.inventory.includes("rainCipher")) {
+      throw new Error("Rain Cipher inventory note was granted after Leave Note.");
+    }
+    if (!skippedRainData.flags.rainCipherSeen) {
+      throw new Error("Rain Window did not save seen state after Leave Note.");
+    }
+    await click(page, 292, 300);
     await page.keyboard.press("Escape");
     await page.waitForTimeout(200);
     const escapedRainData = await save(page);
@@ -1492,6 +1511,15 @@ async function finishFinalAct(page, identityItem, endingItem) {
   await selectItem(page, "serverFuse");
   await click(page, 858, 438);
   await button(page, "Continue");
+  await click(page, 858, 438);
+  const serverIdentityPrompt = await page.locator(".game-modal-body").innerText({ timeout: 8_000 });
+  if (
+    !serverIdentityPrompt.includes("verifies your identity and your missing hour") ||
+    serverIdentityPrompt.includes("both your file and your missing hour")
+  ) {
+    throw new Error(`Server Console prompt still implies the file-only identity route: ${serverIdentityPrompt}`);
+  }
+  await button(page, "Close");
 
   let checkpoint = await save(page);
   const hasAuditWarrantBeforeIdentity = checkpoint.inventory.includes("auditWarrant");
@@ -3450,6 +3478,7 @@ async function testSaveRepairAndArchiveGates(browser, issues) {
   });
   await click(page, 356, 420);
   await page.getByText("The drawers refuse blind guesses.").waitFor({ state: "visible", timeout: 8_000 });
+  await page.getByText("Security Office monitors, incident board, or log").waitFor({ state: "visible", timeout: 8_000 });
 
   await continueSaved(page, {
     room: "archive",
@@ -3508,6 +3537,18 @@ async function testPanelEscapeAndReset(browser, issues) {
 
   await click(page, 638, 32);
   await page.locator(".game-modal-panel").waitFor({ state: "visible", timeout: 8_000 });
+  const beforeBackdropClick = await save(page);
+  await click(page, 360, 374);
+  await page.getByRole("dialog", { name: "Notes" }).waitFor({ state: "visible", timeout: 8_000 });
+  if ((await page.getByRole("dialog", { name: "Circle Door" }).count()) !== 0) {
+    throw new Error("Backdrop click leaked through Notes and activated the Circle Door.");
+  }
+  const afterBackdropClick = await save(page);
+  if (JSON.stringify(afterBackdropClick) !== JSON.stringify(beforeBackdropClick)) {
+    throw new Error(
+      `Backdrop click mutated progress while Notes was open: before=${JSON.stringify(beforeBackdropClick)} after=${JSON.stringify(afterBackdropClick)}`
+    );
+  }
   await rightClick(page, 600, 390);
   await page.waitForTimeout(250);
   if ((await page.locator(".game-modal-panel").count()) !== 0) {
@@ -3720,7 +3761,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro Clock-In gating and legacy badge recovery, title/help/ending Credits access with dialog semantics and safe source-document URL targets, puzzle-polish checks for Notes/objectives/side-room clue recall/hint answer reveal/route-aware Mirror hints/Auditor feedback/Mirror identity wording, security override route, deduction route, audit ending, ending keyboard/gamepad controls after reload, title/ending focus live status, spent-folder selection clearing, spent paperwork and vending ingredient sources plus consumed ingredient selection clearing, post-success Escape HUD refresh, canvas paint and accessibility checks, mid-game and late-game reloads, non-spoiler phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts and required outside-system cup clue, all authored hand-cursor hotspot/live-status behavior plus inventory hover, touch first-tap hotspot preview and timeout clearing, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, right-click panel close, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, repaired spent paperwork/key sources, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro Clock-In gating and legacy badge recovery, title/help/ending Credits access with dialog semantics and safe source-document URL targets, puzzle-polish checks for Notes/objectives/side-room clue recall/hint answer reveal/route-aware Mirror hints/Auditor feedback/Mirror identity wording/route wording/rain-note opt-out, security override route, deduction route, audit ending, ending keyboard/gamepad controls after reload, title/ending focus live status, spent-folder selection clearing, spent paperwork and vending ingredient sources plus consumed ingredient selection clearing, post-success Escape HUD refresh, canvas paint and accessibility checks, mid-game and late-game reloads, non-spoiler phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts and required outside-system cup clue, all authored hand-cursor hotspot/live-status behavior plus inventory hover, touch first-tap hotspot preview and timeout clearing, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, right-click panel close, modal backdrop click shielding, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, repaired spent paperwork/key sources, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;
