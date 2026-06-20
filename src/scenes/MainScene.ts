@@ -458,18 +458,24 @@ export class MainScene extends Phaser.Scene {
 
   private handleGamepadCancel(): void {
     if (this.domOverlay) {
-      if (this.modalRequiresExplicitAction) {
-        return;
-      }
-      this.audio.click();
-      if (this.modalCancelRefreshesRoom) {
-        this.closeOverlayAndRefresh();
-      } else {
-        this.closeOverlay();
-      }
+      this.cancelOpenModal(true);
       return;
     }
     this.cancelSelectedItem();
+  }
+
+  private cancelOpenModal(playClick = false): void {
+    if (this.modalRequiresExplicitAction) {
+      return;
+    }
+    if (playClick) {
+      this.audio.click();
+    }
+    if (this.modalCancelRefreshesRoom) {
+      this.closeOverlayAndRefresh();
+    } else {
+      this.closeOverlay();
+    }
   }
 
   private handleGamepadPanelShortcut(action: () => void): void {
@@ -2861,9 +2867,22 @@ export class MainScene extends Phaser.Scene {
     const hasManyButtons = actualButtons.length > 6;
     const backdrop = document.createElement("div");
     backdrop.className = `game-modal-backdrop${documentStyle ? " game-modal-document" : ""}`;
-    backdrop.addEventListener("pointerdown", (event) => event.stopPropagation());
-    backdrop.addEventListener("pointerup", (event) => event.stopPropagation());
-    backdrop.addEventListener("click", (event) => event.stopPropagation());
+    const consumeBackdropPointer = (event: Event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    };
+    backdrop.addEventListener("pointerdown", consumeBackdropPointer);
+    backdrop.addEventListener("pointerup", consumeBackdropPointer);
+    backdrop.addEventListener("mousedown", consumeBackdropPointer);
+    backdrop.addEventListener("mouseup", consumeBackdropPointer);
+    backdrop.addEventListener("click", consumeBackdropPointer);
+    backdrop.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (this.domOverlay === backdrop) {
+        this.cancelOpenModal(true);
+      }
+    });
     const panel = document.createElement("section");
     panel.className = `game-modal-panel${actualButtons.length > 3 ? " game-modal-panel-grid" : ""}${hasSixButtons ? " game-modal-panel-six" : ""}${hasManyButtons ? " game-modal-panel-many" : ""}`;
     panel.setAttribute("role", "dialog");
@@ -2949,14 +2968,7 @@ export class MainScene extends Phaser.Scene {
       }
       if (event.key === "Escape") {
         event.preventDefault();
-        if (this.modalRequiresExplicitAction) {
-          return;
-        }
-        if (this.modalCancelRefreshesRoom) {
-          this.closeOverlayAndRefresh();
-        } else {
-          this.closeOverlay();
-        }
+        this.cancelOpenModal();
         return;
       }
       const active = document.activeElement;

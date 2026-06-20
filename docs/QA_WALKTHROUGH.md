@@ -79,7 +79,7 @@ Expected results:
 - Help > Recover Position repairs progress without deleting inventory or the save.
 - The vending code can be solved through either phone/tape audio or the rain cipher visual clue; unmuted phone/tape recall stays non-spoiler unless the player uses Hint > Show Answer.
 - Late-game Notes remain inside the panel and scroll when needed.
-- Ordinary panels close with `Escape`; the required Clock In orientation remains until Clock In is pressed.
+- Ordinary panels close with `Escape`, right-click, or controller `B`; the required Clock In orientation remains until Clock In is pressed.
 - Modal button focus stays trapped inside panels, and `Escape` still closes ordinary panels if focus leaves the button.
 - Canvas clicks still hit the intended game objects when the browser viewport scales or letterboxes the game, and the rendered mobile canvas stays fully visible at the correct aspect ratio.
 - The production build succeeds with `npm run build`.

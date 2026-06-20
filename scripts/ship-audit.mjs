@@ -200,6 +200,8 @@ requireText("README.md", readme, [
   "controller `B` cannot skip the required Clock In orientation",
   "controller-B Clock-In gating",
   "normal play with controller-B Clock-In gating",
+  "right-click panel close",
+  "Press `Escape`, right-click, or controller `B` to close ordinary panels",
   "Controls",
   "Known Limitations"
 ]);

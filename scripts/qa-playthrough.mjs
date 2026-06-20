@@ -729,6 +729,13 @@ async function testIntroBadgeRecovery(browser, issues) {
     throw new Error(`Controller B on intro granted badge or intro flag: ${JSON.stringify(gamepadCanceledIntro)}`);
   }
 
+  await rightClick(page, 600, 390);
+  await page.getByRole("button", { name: "Clock In" }).waitFor({ state: "visible", timeout: 8_000 });
+  const rightClickedIntro = await save(page);
+  if (rightClickedIntro?.inventory?.includes("visitorBadge") || rightClickedIntro?.flags?.introSeen) {
+    throw new Error(`Right-click on intro granted badge or intro flag: ${JSON.stringify(rightClickedIntro)}`);
+  }
+
   await page.reload({ waitUntil: "networkidle" });
   await page.locator("canvas").waitFor({ state: "visible", timeout: 8_000 });
   await page.waitForTimeout(650);
@@ -1424,7 +1431,10 @@ async function getPhoneAndVending(page, exerciseRewardEscape = false) {
 }
 
 async function solveVending(page, exerciseRewardEscape = false) {
-  await click(page, 398, 606);
+  const beforeCup = await save(page);
+  if (!beforeCup?.inventory?.includes("paperCup")) {
+    await click(page, 398, 606);
+  }
   await click(page, 854, 396);
   const clueState = await save(page);
   if (clueState.flags.heardPhone && !clueState.flags.rainCipherSeen) {
@@ -3498,6 +3508,14 @@ async function testPanelEscapeAndReset(browser, issues) {
 
   await click(page, 638, 32);
   await page.locator(".game-modal-panel").waitFor({ state: "visible", timeout: 8_000 });
+  await rightClick(page, 600, 390);
+  await page.waitForTimeout(250);
+  if ((await page.locator(".game-modal-panel").count()) !== 0) {
+    throw new Error("Right-click did not close the ordinary Notes panel.");
+  }
+
+  await click(page, 638, 32);
+  await page.locator(".game-modal-panel").waitFor({ state: "visible", timeout: 8_000 });
   await page.keyboard.press("Tab");
   const activeButton = await page.evaluate(() => document.activeElement?.textContent ?? "");
   if (!activeButton.includes("Close")) {
@@ -3702,7 +3720,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro Clock-In gating and legacy badge recovery, title/help/ending Credits access with dialog semantics and safe source-document URL targets, puzzle-polish checks for Notes/objectives/side-room clue recall/hint answer reveal/route-aware Mirror hints/Auditor feedback/Mirror identity wording, security override route, deduction route, audit ending, ending keyboard/gamepad controls after reload, title/ending focus live status, spent-folder selection clearing, spent paperwork and vending ingredient sources plus consumed ingredient selection clearing, post-success Escape HUD refresh, canvas paint and accessibility checks, mid-game and late-game reloads, non-spoiler phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts and required outside-system cup clue, all authored hand-cursor hotspot/live-status behavior plus inventory hover, touch first-tap hotspot preview and timeout clearing, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, repaired spent paperwork/key sources, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro Clock-In gating and legacy badge recovery, title/help/ending Credits access with dialog semantics and safe source-document URL targets, puzzle-polish checks for Notes/objectives/side-room clue recall/hint answer reveal/route-aware Mirror hints/Auditor feedback/Mirror identity wording, security override route, deduction route, audit ending, ending keyboard/gamepad controls after reload, title/ending focus live status, spent-folder selection clearing, spent paperwork and vending ingredient sources plus consumed ingredient selection clearing, post-success Escape HUD refresh, canvas paint and accessibility checks, mid-game and late-game reloads, non-spoiler phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts and required outside-system cup clue, all authored hand-cursor hotspot/live-status behavior plus inventory hover, touch first-tap hotspot preview and timeout clearing, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, right-click panel close, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, repaired spent paperwork/key sources, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;
