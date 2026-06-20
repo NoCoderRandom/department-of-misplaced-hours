@@ -2427,30 +2427,33 @@ export class MainScene extends Phaser.Scene {
       this.showMessage("Exit Door", "The exit opens onto an office behind you. The server ledger is still holding the hallway in place.");
       return;
     }
-    if (this.selectedItem === "selfFile") {
+    const hasAuditWarrant = this.state.has("auditWarrant");
+    if (this.selectedItem === "selfFile" && this.state.has("selfFile")) {
       this.finish("filed");
       return;
     }
-    if (this.selectedItem === "memoryCup") {
+    if (this.selectedItem === "memoryCup" && this.state.has("memoryCup")) {
       this.finish("escaped");
       return;
     }
-    if (this.selectedItem === "auditWarrant") {
+    if (this.selectedItem === "auditWarrant" && hasAuditWarrant) {
       this.finish("audited");
       return;
     }
     if (
       this.rejectSelectedItem(
         "Exit Door",
-        "the final mechanisms respond only to Your Missing-Person File, the Cup of Missing Hour, or the Audit Warrant.",
-        ["selfFile", "memoryCup", "auditWarrant"]
+        hasAuditWarrant
+          ? "the final mechanisms respond only to Your Missing-Person File, the Cup of Missing Hour, or the Audit Warrant."
+          : "the usable final mechanisms respond only to Your Missing-Person File or the Cup of Missing Hour. The audit seal needs an Audit Warrant.",
+        hasAuditWarrant ? ["selfFile", "memoryCup", "auditWarrant"] : ["selfFile", "memoryCup"]
       )
     ) {
       return;
     }
     this.showMessage(
       "Exit Door",
-      this.state.has("auditWarrant")
+      hasAuditWarrant
         ? "The exit splits into three mechanisms: a ledger slot that wants paperwork, a bright crack in the wall that drinks steam, and an audit seal waiting for official authority. Choose what you trust enough to place there."
         : "The exit splits into two usable mechanisms: a ledger slot that wants paperwork and a bright crack in the wall that drinks steam. The audit seal stays dark without an Audit Warrant.",
       [{ label: "Step Back", action: () => this.closeOverlay() }]

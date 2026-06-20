@@ -2756,8 +2756,38 @@ async function testWrongItemFeedback(browser, issues) {
 
   await continueSaved(page, {
     room: "mirror",
-    inventory: ["rainCipher"],
+    inventory: ["rainCipher", "memoryCup", "selfFile"],
     flags: { serverSolved: true },
+    audioVolume: 0.72,
+    muted: false
+  });
+  await selectItem(page, "rainCipher");
+  await click(page, 1080, 386);
+  const warrantlessExitFeedback = await page.locator(".game-modal-body").innerText({ timeout: 8_000 });
+  if (
+    !warrantlessExitFeedback.includes(
+      "Rain Cipher is selected, but the usable final mechanisms respond only to Your Missing-Person File or the Cup of Missing Hour."
+    ) ||
+    !warrantlessExitFeedback.includes("The audit seal needs an Audit Warrant.") ||
+    warrantlessExitFeedback.includes("or the Audit Warrant.")
+  ) {
+    throw new Error(`Warrantless wrong-item exit feedback mentioned the wrong route: ${warrantlessExitFeedback}`);
+  }
+  data = await save(page);
+  if (
+    data.ending ||
+    data.inventory.includes("auditWarrant") ||
+    data.flags.evidenceSafeOpened ||
+    data.flags.identityVerifiedByWarrant
+  ) {
+    throw new Error(`Warrantless wrong item triggered an ending or audit authority: ${JSON.stringify(data)}`);
+  }
+  await button(page, "Close");
+
+  await continueSaved(page, {
+    room: "mirror",
+    inventory: ["rainCipher", "memoryCup", "selfFile", "auditWarrant"],
+    flags: { serverSolved: true, evidenceSafeOpened: true, identityVerifiedByWarrant: true },
     audioVolume: 0.72,
     muted: false
   });
@@ -2769,7 +2799,10 @@ async function testWrongItemFeedback(browser, issues) {
   });
   data = await save(page);
   if (data.ending) {
-    throw new Error(`Wrong item triggered an ending: ${JSON.stringify(data)}`);
+    throw new Error(`Audit-route wrong item triggered an ending: ${JSON.stringify(data)}`);
+  }
+  if (!data.inventory.includes("auditWarrant")) {
+    throw new Error(`Audit-route final wrong-item setup lost the Audit Warrant: ${JSON.stringify(data)}`);
   }
 
   await page.close();
