@@ -845,12 +845,59 @@ async function testPuzzlePolish(browser, issues) {
   for (let hintPress = 0; hintPress < 3; hintPress += 1) {
     await click(page, 730, 32);
     await page.getByRole("dialog", { name: "Hint" }).waitFor({ state: "visible", timeout: 8_000 });
+    if (hintPress === 1) {
+      const hintText = await page.locator(".game-modal-body").innerText();
+      if (!hintText.includes("Use the file or Audit Warrant on the intercom")) {
+        throw new Error(`Audit-authority Mirror hint did not mention both identity routes: ${hintText}`);
+      }
+    }
     if (hintPress === 2) {
       await button(page, "Show Answer");
       await page.getByRole("dialog", { name: "Hint Answer" }).waitFor({ state: "visible", timeout: 8_000 });
       const hintAnswer = await page.locator(".game-modal-body").innerText();
-      if (!hintAnswer.includes("verify identity") || hintAnswer.includes("verify file")) {
-        throw new Error(`Mirror hint answer did not support both identity routes: ${hintAnswer}`);
+      if (!hintAnswer.includes("file, hour, and warrant each lead somewhere different") || hintAnswer.includes("audit seal needs")) {
+        throw new Error(`Audit-authority Mirror hint answer did not preserve the warrant ending: ${hintAnswer}`);
+      }
+    }
+    await button(page, "Close");
+  }
+
+  await continueSaved(page, {
+    room: "mirror",
+    inventory: ["memoryCup", "selfFile"],
+    flags: {
+      introSeen: true,
+      formStamped: true,
+      clockUnlocked: true,
+      clockSolved: true,
+      glassCaseCollected: true,
+      vendingSolved: true
+    },
+    audioVolume: 0.72,
+    muted: false
+  });
+  for (let hintPress = 0; hintPress < 3; hintPress += 1) {
+    await click(page, 730, 32);
+    await page.getByRole("dialog", { name: "Hint" }).waitFor({ state: "visible", timeout: 8_000 });
+    if (hintPress === 1) {
+      const hintText = await page.locator(".game-modal-body").innerText();
+      if (
+        !hintText.includes("Use your Missing-Person File on the intercom") ||
+        hintText.includes("file or Audit Warrant")
+      ) {
+        throw new Error(`Warrantless Mirror hint still implied a warrant identity route: ${hintText}`);
+      }
+    }
+    if (hintPress === 2) {
+      await button(page, "Show Answer");
+      await page.getByRole("dialog", { name: "Hint Answer" }).waitFor({ state: "visible", timeout: 8_000 });
+      const hintAnswer = await page.locator(".game-modal-body").innerText();
+      if (
+        !hintAnswer.includes("choose between your file and the hour") ||
+        !hintAnswer.includes("audit seal needs an Audit Warrant") ||
+        hintAnswer.includes("file, hour, and warrant each lead somewhere different")
+      ) {
+        throw new Error(`Warrantless Mirror hint answer still implied a warrant ending: ${hintAnswer}`);
       }
     }
     await button(page, "Close");
@@ -3395,7 +3442,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help/ending Credits access with dialog semantics and safe source-document URL targets, puzzle-polish checks for Notes/objectives/side-room clue recall/hint answer reveal/Auditor feedback/Mirror identity wording, security override route, deduction route, audit ending, ending keyboard/gamepad controls after reload, title/ending focus live status, spent-folder selection clearing, canvas paint and accessibility checks, mid-game and late-game reloads, non-spoiler phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts and required outside-system cup clue, all authored hand-cursor hotspot/live-status behavior plus inventory hover, touch first-tap hotspot preview and timeout clearing, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help/ending Credits access with dialog semantics and safe source-document URL targets, puzzle-polish checks for Notes/objectives/side-room clue recall/hint answer reveal/route-aware Mirror hints/Auditor feedback/Mirror identity wording, security override route, deduction route, audit ending, ending keyboard/gamepad controls after reload, title/ending focus live status, spent-folder selection clearing, canvas paint and accessibility checks, mid-game and late-game reloads, non-spoiler phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts and required outside-system cup clue, all authored hand-cursor hotspot/live-status behavior plus inventory hover, touch first-tap hotspot preview and timeout clearing, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;

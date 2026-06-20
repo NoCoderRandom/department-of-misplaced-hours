@@ -3109,6 +3109,13 @@ export class MainScene extends Phaser.Scene {
   }
 
   private showHint(): void {
+    const hasAuditWarrant = this.state.has("auditWarrant");
+    const mirrorIdentityHint = hasAuditWarrant
+      ? "Use the shard on the black mirror and the fuse on the server console. Use the file or Audit Warrant on the intercom, then the Cup of Missing Hour."
+      : "Use the shard on the black mirror and the fuse on the server console. Use your Missing-Person File on the intercom, then the Cup of Missing Hour.";
+    const mirrorAnswer = hasAuditWarrant
+      ? "Final order: install fuse, verify identity, verify hour, read mirror, run console. At the exit, file, hour, and warrant each lead somewhere different."
+      : "Final order: install fuse, verify identity with your file, verify the missing hour, read mirror, and run the console. At the exit, choose between your file and the hour; the audit seal needs an Audit Warrant.";
     const hints: Record<RoomId, HintStep[]> = {
       reception: [
         "The circular door wants official red ink.",
@@ -3154,11 +3161,10 @@ export class MainScene extends Phaser.Scene {
       ],
       mirror: [
         "You need authorization, power, identity, the missing hour, and the reflected sequence.",
-        "Use the shard on the black mirror and the fuse on the server console. Use the file or Audit Warrant on the intercom, then the Cup of Missing Hour.",
+        mirrorIdentityHint,
         {
           nudge: "The final office is physical: repair what is broken, prove who you are, prove what was missing, then run the reflected sequence.",
-          answer:
-            "Final order: install fuse, verify identity, verify hour, read mirror, run console. At the exit, file, hour, and warrant each lead somewhere different."
+          answer: mirrorAnswer
         }
       ]
     };
