@@ -405,7 +405,7 @@ async function expectCanvasAccessibility(page, label) {
     !attrs.summaryText.includes("ending actions") ||
     !attrs.summaryText.includes("Enter or Space") ||
     !attrs.summaryText.includes("Arrow keys move between modal buttons") ||
-    !attrs.summaryText.includes("Escape closes panels or puts away a selected inventory item") ||
+    !attrs.summaryText.includes("Escape closes ordinary panels or puts away a selected inventory item") ||
     !attrs.summaryText.includes("F1 opens Help") ||
     !attrs.summaryText.includes("[ / ] adjust volume") ||
     attrs.liveStatusRole !== "status" ||
