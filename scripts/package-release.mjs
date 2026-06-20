@@ -555,7 +555,7 @@ await writeFile(
     "- Ordered-choice puzzles include Undo; Backspace and Delete remove the last entry while the panel is focused.",
     "- Keyboard focus: Tab / Shift+Tab cycles title actions, ending actions, room objects, and inventory when those targets are present; Enter / Space activates the focused target.",
     "- Screen readers receive hidden live status updates when keyboard focus moves between room objects, inventory, title actions, and ending actions.",
-    "- Controller mode: D-pad or left stick cycles title actions, ending actions, room objects, inventory, and modal buttons; A selects; B cancels selected items or closes panels; Back/View opens Map, X opens Notes, Y opens Hint, Start/Menu opens Help, and bumpers adjust volume.",
+    "- Controller mode: D-pad or left stick cycles title actions, ending actions, room objects, inventory, and modal buttons; A selects; B cancels selected items or closes ordinary panels; the required Clock In orientation waits for its button; Back/View opens Map, X opens Notes, Y opens Hint, Start/Menu opens Help, and bumpers adjust volume.",
     "- Use Map, Notes, Hint, Help, Sound, - and + from the top bar.",
     "- Help includes Large Text for bigger dialogue, document, and puzzle panels, Reduced Motion for static atmosphere, Recover Position for save repair, and Reset Shift behind a confirmation prompt. Browser/OS reduced-motion settings are honored on first launch.",
     "- Credits are available from the title screen, Help, and ending screen, with source-document buttons for asset and license details.",
@@ -581,7 +581,8 @@ await writeFile(
 
 const stagedReadme = await readFile(join(tempStageDir, "README.md"), "utf8");
 for (const required of [
-  "B cancels selected items or closes panels",
+  "B cancels selected items or closes ordinary panels",
+  "the required Clock In orientation waits for its button",
   "Press Escape, right-click the game, or press controller B",
   "Do not double-click `dist/index.html` from `file://`",
   "On touch screens, first tap names a room object and second tap activates it; the preview clears after a short pause",
@@ -700,7 +701,7 @@ await writeFile(
     "- Ordered-choice puzzles include Undo; Backspace and Delete remove the last entry while the panel is focused.",
     "- Keyboard focus: Tab / Shift+Tab cycles title actions, ending actions, room objects, and inventory when those targets are present; Enter / Space activates the focused target.",
     "- Screen readers receive hidden live status updates when keyboard focus moves between room objects, inventory, title actions, and ending actions.",
-    "- Controller mode: D-pad or left stick cycles title actions, ending actions, room objects, inventory, and modal buttons; A selects; B cancels selected items or closes panels; Back/View opens Map, X opens Notes, Y opens Hint, Start/Menu opens Help, and bumpers adjust volume.",
+    "- Controller mode: D-pad or left stick cycles title actions, ending actions, room objects, inventory, and modal buttons; A selects; B cancels selected items or closes ordinary panels; the required Clock In orientation waits for its button; Back/View opens Map, X opens Notes, Y opens Hint, Start/Menu opens Help, and bumpers adjust volume.",
     "- Keyboard shortcuts: M Map, N Notes, H Hint, F1 Help, S Sound, [ and ] volume.",
     "- Help includes Large Text, Reduced Motion, Recover Position, and Reset Shift.",
     "- Progress saves in browser localStorage when available. Audio, Large Text, and Reduced Motion preferences survive Reset Shift.",

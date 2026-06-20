@@ -90,6 +90,8 @@ export class MainScene extends Phaser.Scene {
   private titleFocusTargets: TitleFocusTarget[] = [];
   private titleFocusIndex = -1;
   private modalEscapeHandler?: ModalEscapeHandler;
+  private modalRequiresExplicitAction = false;
+  private modalCancelRefreshesRoom = false;
   private modalSerial = 0;
   private lastShortcutKey = "";
   private lastShortcutAt = 0;
@@ -456,8 +458,15 @@ export class MainScene extends Phaser.Scene {
 
   private handleGamepadCancel(): void {
     if (this.domOverlay) {
+      if (this.modalRequiresExplicitAction) {
+        return;
+      }
       this.audio.click();
-      this.closeOverlay();
+      if (this.modalCancelRefreshesRoom) {
+        this.closeOverlayAndRefresh();
+      } else {
+        this.closeOverlay();
+      }
       return;
     }
     this.cancelSelectedItem();
@@ -661,7 +670,7 @@ export class MainScene extends Phaser.Scene {
         action: () => {
           this.showMessage(
             "Controls",
-            "Move the cursor around the room. When it becomes a hand and the status line names something, click to inspect it. Touch once to name an object, then tap again to inspect it. Select an inventory item first to try using it on the room. Right-click, Escape, or controller B puts the item away.\n\nKeyboard: Tab cycles targets, Enter or Space activates. Controller: D-pad or stick cycles focus, A selects, B cancels selected items or closes panels. Back/View opens Map, X opens Notes, Y opens Hint, Start/Menu opens Help, and bumpers adjust volume.",
+            "Move the cursor around the room. When it becomes a hand and the status line names something, click to inspect it. Touch once to name an object, then tap again to inspect it. Select an inventory item first to try using it on the room. Right-click, Escape, or controller B puts the item away.\n\nKeyboard: Tab cycles targets, Enter or Space activates. Controller: D-pad or stick cycles focus, A selects, B cancels selected items or closes ordinary panels. The required Clock In orientation waits for its button. Back/View opens Map, X opens Notes, Y opens Hint, Start/Menu opens Help, and bumpers adjust volume.",
             [{ label: "Close", action: () => this.closeOverlay() }]
           );
         }
@@ -2932,17 +2941,18 @@ export class MainScene extends Phaser.Scene {
       !this.endingActive &&
       Boolean(this.roomTitle) &&
       actualButtons.some((button) => refreshOnEscapeLabels.has(button.label));
-    const ignoreEscape = actualButtons.length === 1 && actualButtons[0]?.label === "Clock In";
+    this.modalRequiresExplicitAction = actualButtons.length === 1 && actualButtons[0]?.label === "Clock In";
+    this.modalCancelRefreshesRoom = refreshOnEscape;
     this.modalEscapeHandler = (event: KeyboardEvent) => {
       if (this.domOverlay !== backdrop) {
         return;
       }
       if (event.key === "Escape") {
         event.preventDefault();
-        if (ignoreEscape) {
+        if (this.modalRequiresExplicitAction) {
           return;
         }
-        if (refreshOnEscape) {
+        if (this.modalCancelRefreshesRoom) {
           this.closeOverlayAndRefresh();
         } else {
           this.closeOverlay();
@@ -3021,6 +3031,8 @@ export class MainScene extends Phaser.Scene {
       document.removeEventListener("keydown", this.modalEscapeHandler, true);
       this.modalEscapeHandler = undefined;
     }
+    this.modalRequiresExplicitAction = false;
+    this.modalCancelRefreshesRoom = false;
     this.domOverlay?.remove();
     this.domOverlay = undefined;
     this.resetGameCursor();
@@ -3252,7 +3264,7 @@ export class MainScene extends Phaser.Scene {
   private showHelp(): void {
     this.showMessage(
       "Help",
-      "Hand = usable. Touch: tap once to name, twice inspect; selected item uses. Esc/right-click/B cancels. Tab/D-pad cycles; Enter/Space/A uses. Back/View Map, X Notes, Y Hint, Start/Menu Help, bumpers volume.",
+      "Hand means usable. Selected item uses. Esc/B/right-click cancels panels/items. Clock In requires button. Tab/D-pad cycles. Enter/Space/A uses. Back/View Map, X Notes, Y Hint, Start/Menu Help, bumpers volume.",
       [
         { label: this.state.largeText ? "Normal Text" : "Large Text", action: () => this.toggleLargeText() },
         { label: this.state.reducedMotion ? "Full Motion" : "Reduced Motion", action: () => this.toggleReducedMotion() },

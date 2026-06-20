@@ -695,6 +695,7 @@ async function startNew(page) {
 async function testIntroBadgeRecovery(browser, issues) {
   const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
   watchPage(page, issues, "intro-clock-in-gating");
+  await installQaGamepad(page);
   await page.goto(APP_URL, { waitUntil: "networkidle" });
   await clearGameStorage(page);
   await page.reload({ waitUntil: "networkidle" });
@@ -718,6 +719,14 @@ async function testIntroBadgeRecovery(browser, issues) {
   const escapedIntro = await save(page);
   if (escapedIntro?.inventory?.includes("visitorBadge") || escapedIntro?.flags?.introSeen) {
     throw new Error(`Escaping intro granted badge or intro flag: ${JSON.stringify(escapedIntro)}`);
+  }
+
+  await pressGamepadButton(page, 1);
+  await page.waitForTimeout(250);
+  await page.getByRole("button", { name: "Clock In" }).waitFor({ state: "visible", timeout: 8_000 });
+  const gamepadCanceledIntro = await save(page);
+  if (gamepadCanceledIntro?.inventory?.includes("visitorBadge") || gamepadCanceledIntro?.flags?.introSeen) {
+    throw new Error(`Controller B on intro granted badge or intro flag: ${JSON.stringify(gamepadCanceledIntro)}`);
   }
 
   await page.reload({ waitUntil: "networkidle" });

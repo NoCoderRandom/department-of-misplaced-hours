@@ -114,7 +114,7 @@ This checks the public GitHub Pages build, verifies and reports the deployed JS/
 - Use **Sound**, **-**, and **+** for audio controls.
 - Keyboard: `M` Map, `N` Notes, `H` Hint, `F1` Help, `S` Sound, `[` / `]` volume.
 - Keyboard focus: `Tab` / `Shift+Tab` cycles title actions, ending actions, room objects, and inventory when those targets are present; `Enter` / `Space` activates the focused target.
-- Controller: D-pad or left stick cycles title actions, ending actions, room objects, inventory, and modal buttons; `A` selects; `B` cancels a selected item or closes panels; `Back/View` opens Map, `X` opens Notes, `Y` opens Hint, `Start/Menu` opens Help, and bumpers adjust volume.
+- Controller: D-pad or left stick cycles title actions, ending actions, room objects, inventory, and modal buttons; `A` selects; `B` cancels a selected item or closes ordinary panels; the required Clock In orientation waits for its button; `Back/View` opens Map, `X` opens Notes, `Y` opens Hint, `Start/Menu` opens Help, and bumpers adjust volume.
 - The game canvas has an accessible name, screen-reader summary for its keyboard controls, and hidden live status updates for current targets/status.
 - Dialog panels expose visible titles and body text through `aria-labelledby` and `aria-describedby`.
 - Progress saves automatically after meaningful actions when browser storage is available. Audio, Large Text, and Reduced Motion preferences survive Reset Shift.
