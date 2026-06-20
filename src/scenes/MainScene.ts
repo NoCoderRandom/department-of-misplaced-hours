@@ -3315,7 +3315,9 @@ export class MainScene extends Phaser.Scene {
     if (!this.state.flag("serverSolved")) {
       return "Run the server sequence reflected in the black mirror.";
     }
-    return "Choose what to trust at the exit: your file, the missing hour, or the Audit Warrant.";
+    return this.state.has("auditWarrant")
+      ? "Choose what to trust at the exit: your file, the missing hour, or the Audit Warrant."
+      : "Choose what to trust at the exit: your file or the missing hour. The audit seal is dark without an Audit Warrant.";
   }
 
   private toggleMute(): void {

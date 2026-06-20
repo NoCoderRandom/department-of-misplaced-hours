@@ -100,7 +100,7 @@ The soundscape mixes procedural Web Audio ambience with CC0 Kenney UI/SFX files.
 - Keypad puzzles accept typed number keys in addition to pointer/controller modal buttons.
 - If the player presents the missing hour at the red intercom but closes the Auditor prompt, the intercom resumes verification instead of asking for the same item again.
 - After final identity/hour verification, the Auditor can be questioned about the file and hour endings, plus the warrant ending when the player actually has audit authority; warrantless routes instead explain why the audit seal remains locked.
-- The final exit prompt and wrong-item feedback mirror that route state: warrant routes name three mechanisms, while warrantless routes name only the file/hour mechanisms and explicitly mark the audit seal dark.
+- The final exit prompt, Notes objective, and wrong-item feedback mirror that route state: warrant routes name three mechanisms, while warrantless routes name only the file/hour mechanisms and explicitly mark the audit seal dark.
 - Wrong Auditor answers now point back to the relevant file, phone/rain, or system clue instead of repeating generic failure text.
 - Dense puzzle panels use compact mobile button grids with a short-screen layout, and visual audit fails on too-small story/modal text, hidden body text, overflowing Credits copy, overflowing button labels, ending-screen readability regressions, focus trap failures, or Escape regressions in normal and Large Text modes.
 - Generated art is optimized to 1200x800 WebP files under `public/assets/images/` so the static build can copy it directly.

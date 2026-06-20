@@ -1307,10 +1307,27 @@ async function finishFinalAct(page, identityItem, endingItem) {
     throw new Error(`Reload after server ledger restored installed items: ${JSON.stringify(checkpoint)}`);
   }
 
+  const hasAuditWarrant = checkpoint.inventory.includes("auditWarrant");
+  await click(page, 638, 32);
+  await page.getByRole("dialog", { name: "Notes" }).waitFor({ state: "visible", timeout: 8_000 });
+  const finalNotesText = await page.locator(".game-modal-body").innerText();
+  if (hasAuditWarrant) {
+    if (!finalNotesText.includes("Choose what to trust at the exit: your file, the missing hour, or the Audit Warrant.")) {
+      throw new Error(`Audit-authority final objective did not mention all three exit options: ${finalNotesText}`);
+    }
+  } else if (
+    !finalNotesText.includes(
+      "Choose what to trust at the exit: your file or the missing hour. The audit seal is dark without an Audit Warrant."
+    ) ||
+    finalNotesText.includes("your file, the missing hour, or the Audit Warrant.")
+  ) {
+    throw new Error(`Warrantless final objective still implied a warrant ending: ${finalNotesText}`);
+  }
+  await button(page, "Close");
+
   await click(page, 1080, 386);
   await page.getByRole("dialog", { name: "Exit Door" }).waitFor({ state: "visible", timeout: 8_000 });
   const exitPrompt = await page.locator(".game-modal-body").innerText();
-  const hasAuditWarrant = checkpoint.inventory.includes("auditWarrant");
   if (hasAuditWarrant) {
     if (!exitPrompt.includes("three mechanisms") || !exitPrompt.includes("audit seal waiting for official authority")) {
       throw new Error(`Audit-authority final prompt did not present three mechanisms: ${exitPrompt}`);
