@@ -661,7 +661,7 @@ export class MainScene extends Phaser.Scene {
         action: () => {
           this.showMessage(
             "Controls",
-            "Move the cursor around the room. When it becomes a hand and the status line names something, click to inspect it. Touch once to name an object, then tap again to inspect it. Select an inventory item first to try using it on the room. Right-click, Escape, or controller B puts the item away.\n\nKeyboard: Tab cycles targets, Enter or Space activates. Controller: D-pad or stick cycles focus, A selects, B cancels selected items or closes panels.",
+            "Move the cursor around the room. When it becomes a hand and the status line names something, click to inspect it. Touch once to name an object, then tap again to inspect it. Select an inventory item first to try using it on the room. Right-click, Escape, or controller B puts the item away.\n\nKeyboard: Tab cycles targets, Enter or Space activates. Controller: D-pad or stick cycles focus, A selects, B cancels selected items or closes panels. Back/View opens Map, X opens Notes, Y opens Hint, Start/Menu opens Help, and bumpers adjust volume.",
             [{ label: "Close", action: () => this.closeOverlay() }]
           );
         }
@@ -3191,7 +3191,7 @@ export class MainScene extends Phaser.Scene {
   private showHelp(): void {
     this.showMessage(
       "Help",
-      "Hand = usable. Touch: tap once to name, twice inspect; selected item uses. Esc/right-click/B cancels. Tab/D-pad cycles; Enter/Space/A uses.",
+      "Hand = usable. Touch: tap once to name, twice inspect; selected item uses. Esc/right-click/B cancels. Tab/D-pad cycles; Enter/Space/A uses. Back/View Map, X Notes, Y Hint, Start/Menu Help, bumpers volume.",
       [
         { label: this.state.largeText ? "Normal Text" : "Large Text", action: () => this.toggleLargeText() },
         { label: this.state.reducedMotion ? "Full Motion" : "Reduced Motion", action: () => this.toggleReducedMotion() },

@@ -2180,6 +2180,10 @@ async function testKeyboardShortcuts(browser, issues) {
 
   await page.keyboard.press("F1");
   await page.getByRole("dialog", { name: "Help" }).waitFor({ state: "visible", timeout: 8_000 });
+  const helpText = ((await page.getByRole("dialog", { name: "Help" }).textContent()) ?? "").replace(/\s+/g, " ").trim();
+  if (!helpText.includes("Back/View Map") || !helpText.includes("Start/Menu Help") || !helpText.includes("bumpers volume")) {
+    throw new Error(`Help panel does not document controller shortcuts: ${helpText}`);
+  }
   const beforeHelpReset = await save(page);
   await page.waitForFunction(() => document.activeElement?.textContent?.trim() === "Large Text", null, { timeout: 8_000 });
   for (let i = 0; i < 3; i += 1) {
@@ -2516,6 +2520,16 @@ async function testGamepadNavigation(browser, issues) {
   await moveGamepadAxis(page, 0, 1);
   await pressGamepadButton(page, 0);
   await page.getByRole("dialog", { name: "Controls" }).waitFor({ state: "visible", timeout: 8_000 });
+  const controlsText = ((await page.getByRole("dialog", { name: "Controls" }).textContent()) ?? "").replace(/\s+/g, " ").trim();
+  if (
+    !controlsText.includes("Back/View opens Map") ||
+    !controlsText.includes("X opens Notes") ||
+    !controlsText.includes("Y opens Hint") ||
+    !controlsText.includes("Start/Menu opens Help") ||
+    !controlsText.includes("bumpers adjust volume")
+  ) {
+    throw new Error(`Title Controls panel does not document controller shortcuts: ${controlsText}`);
+  }
   await pressGamepadButton(page, 1);
   await page.locator(".game-modal-panel").waitFor({ state: "detached", timeout: 8_000 });
   await moveGamepadAxis(page, 0, -1);
