@@ -743,23 +743,7 @@ export class MainScene extends Phaser.Scene {
     this.audio.setMuted(this.state.muted);
     this.applyAccessibilityPreferences();
     if (!fromSave) {
-      this.showRoom("reception");
-      this.showMessage(
-        "Midnight Orientation",
-        "The badge drawer opens before you touch it. A visitor badge slides out with your photograph, though the picture was taken tomorrow. Somewhere behind the desk, a phone begins counting its own teeth.",
-        [
-          {
-            label: "Clock In",
-            action: () => {
-              this.state.add("visitorBadge");
-              this.state.setFlag("introSeen", true);
-              this.audio.pickup();
-              this.state.save();
-              this.closeOverlayAndRefresh();
-            }
-          }
-        ]
-      );
+      this.showIntroOrientation();
       return;
     }
 
@@ -767,8 +751,36 @@ export class MainScene extends Phaser.Scene {
       this.showEnding(this.state.ending, true);
       return;
     }
+    if (this.shouldShowIntroOrientation()) {
+      this.showIntroOrientation();
+      return;
+    }
     this.state.room = this.validLoadedRoom(this.state.room);
     this.showRoom(this.state.room);
+  }
+
+  private showIntroOrientation(): void {
+    this.showRoom("reception");
+    this.showMessage(
+      "Midnight Orientation",
+      "The badge drawer opens before you touch it. A visitor badge slides out with your photograph, though the picture was taken tomorrow. Somewhere behind the desk, a phone begins counting its own teeth.",
+      [
+        {
+          label: "Clock In",
+          action: () => {
+            this.state.add("visitorBadge");
+            this.state.setFlag("introSeen", true);
+            this.audio.pickup();
+            this.state.save();
+            this.closeOverlayAndRefresh();
+          }
+        }
+      ]
+    );
+  }
+
+  private shouldShowIntroOrientation(): boolean {
+    return !this.state.flag("introSeen") && this.state.inventory.size === 0 && Object.keys(this.state.flags).length === 0;
   }
 
   private validLoadedRoom(roomId: RoomId): RoomId {
@@ -1837,10 +1849,10 @@ export class MainScene extends Phaser.Scene {
     if (!this.state.has("rainCipher")) {
       this.showMessage(
         "Rain Window",
-        "Rain crawls down the observation glass in three unnatural groups: seven thin trails, three heavy trails, and one drop that refuses company. You copy the pattern as a Rain Cipher.",
+        "Rain crawls down the observation glass in three unnatural groups: seven thin trails, three heavy trails, and one drop that refuses company. You can use that pattern now; keep a Rain Cipher note only if you want it in inventory.",
         [
           {
-            label: "Take Note",
+            label: "Keep Note",
             action: () => {
               this.state.add("rainCipher");
               this.audio.paper();
@@ -2084,7 +2096,7 @@ export class MainScene extends Phaser.Scene {
     const cluePath = this.state.has("rainCipher")
       ? "Use the Rain Cipher or the phone clicks. Both point to the same three digits."
       : this.state.flag("rainCipherSeen")
-        ? "You remember the rain cipher: seven, three, one. Taking the note keeps it in inventory, but the clue is already known."
+        ? "You recall the rain pattern: seven, three, one. Keeping a note only adds that clue to inventory."
         : this.state.muted
         ? "You have engaged with the audio clue. Accessibility transcript: the groups count seven, three, one."
         : this.state.flag("vendingFailed")
@@ -2795,7 +2807,7 @@ export class MainScene extends Phaser.Scene {
       if (this.state.has("rainCipher")) {
         body = "Rain Cipher: seven thin trails, three heavy trails, one lonely drop.";
       } else if (this.state.flag("rainCipherSeen")) {
-        body = "Rain memory: seven thin trails, three heavy trails, one lonely drop. Taking the note only keeps the clue in inventory.";
+        body = "Rain memory: seven thin trails, three heavy trails, one lonely drop. Keeping a note only adds the clue to inventory.";
       } else if (this.state.muted && this.state.flag("heardPhone")) {
         body = "Accessibility transcript: the phone/tape clue clicks in groups of seven, three, and one.";
       } else if (this.state.flag("vendingFailed")) {
@@ -2920,12 +2932,16 @@ export class MainScene extends Phaser.Scene {
       !this.endingActive &&
       Boolean(this.roomTitle) &&
       actualButtons.some((button) => refreshOnEscapeLabels.has(button.label));
+    const ignoreEscape = actualButtons.length === 1 && actualButtons[0]?.label === "Clock In";
     this.modalEscapeHandler = (event: KeyboardEvent) => {
       if (this.domOverlay !== backdrop) {
         return;
       }
       if (event.key === "Escape") {
         event.preventDefault();
+        if (ignoreEscape) {
+          return;
+        }
         if (refreshOnEscape) {
           this.closeOverlayAndRefresh();
         } else {

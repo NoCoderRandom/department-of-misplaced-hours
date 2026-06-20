@@ -59,8 +59,8 @@
 - [x] Visual readability audit now screenshots and checks desktop/mobile ending screens so final text and buttons cannot silently disappear or become unreadable.
 - [x] Release checks now reject unexpected `dist/` files, and package promotion includes expanded release folders in the same rollback transaction as ZIP/checksum files.
 - [x] Visual readability audit now covers short mobile dense keypad panels and verifies focus wrapping plus Escape-close behavior.
-- [x] Badge Drawer now gives explicit feedback when recovering the Visitor Badge after the intro modal is dismissed, with QA coverage for that edge case.
-- [x] Rain Cipher collection now waits for the explicit `Take Note` action, and QA verifies Escape cannot grant it early.
+- [x] Midnight Orientation now gates Clock In through Escape and reloads, while Badge Drawer still recovers legacy saves that are missing the Visitor Badge.
+- [x] Rain Cipher inventory collection now waits for the explicit `Keep Note` action, while inspecting the rain remains a valid visual clue path for the vending code.
 - [x] Title-screen Start New now confirms before overwriting an existing save; invalid room IDs repair to Reception without wiping inventory/flags; Mood Clocks now require the Reception Memo and Personnel Calendar.
 - [x] Title-screen Enter-to-start now uses the same Start New confirmation as the pointer button when a save exists, with QA guarding against keyboard save wipes.
 - [x] Destructive confirmation dialogs now focus safe defaults first (`Continue` for Start New, `Cancel` for Reset), and QA verifies default Enter cannot wipe progress.

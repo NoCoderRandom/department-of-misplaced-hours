@@ -331,8 +331,10 @@ try {
   const desktop = await openStartedPage({ width: 1536, height: 1000 });
   await desktop.screenshot({ path: join(OUT_DIR, "desktop-welcome-modal.png"), fullPage: true });
   await recordModal(desktop, "desktop welcome");
-  await desktop.keyboard.press("Escape");
+  await desktop.getByRole("button", { name: "Clock In" }).click();
   await desktop.locator(".game-modal-panel").waitFor({ state: "detached", timeout: 5000 });
+  await desktop.waitForTimeout(450);
+  await moveGame(desktop, 30, 120);
   await moveGame(desktop, 590, 660);
   await desktop.waitForTimeout(250);
   const hoverCursor = await desktop.locator("canvas").evaluate((canvas) => getComputedStyle(canvas).cursor);
@@ -372,8 +374,9 @@ try {
   const mobile = await openStartedPage({ width: 390, height: 844 });
   await mobile.screenshot({ path: join(OUT_DIR, "mobile-welcome-modal.png"), fullPage: true });
   await recordModal(mobile, "mobile welcome");
-  await mobile.keyboard.press("Escape");
+  await mobile.getByRole("button", { name: "Clock In" }).click();
   await mobile.locator(".game-modal-panel").waitFor({ state: "detached", timeout: 5000 });
+  await mobile.waitForTimeout(450);
   await clickGame(mobile, 875, 635);
   await mobile.locator(".game-modal-panel").waitFor({ state: "visible", timeout: 5000 });
   await mobile.screenshot({ path: join(OUT_DIR, "mobile-future-phone-modal.png"), fullPage: true });

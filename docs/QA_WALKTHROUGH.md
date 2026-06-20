@@ -14,7 +14,7 @@ This is the intended complete path through the game.
 10. Use `Visitor Badge` or `Stamped Form` on Key Cabinet to take `Security Key`.
 11. Use `Security Key` on Evidence Safe to take `Audit Warrant`.
 12. Enter Interrogation Booth.
-13. Inspect the Rain Window to take the `Rain Cipher`. This is the visual/accessibility clue path for `731`.
+13. Inspect the Rain Window to learn the visual/accessibility clue for `731`; `Keep Note` stores the optional `Rain Cipher` reminder in inventory.
 14. Inspect the Interview File for the missing-hour story beat.
 15. Enter Records Archive.
 16. Inspect Archive Table for symbol/category mapping.
@@ -56,7 +56,7 @@ Expected results:
 - Pressing `Enter` on the title starts a new shift, so the first action is not mouse-only.
 - Credits can be opened from the title screen and from Help before finishing the game, and the Credits panel remains readable in normal and Large Text layouts.
 - Early Notes keep clock clues generic until relevant evidence is read, and mid-game objectives can point toward the archive deduction route as well as Security.
-- Final hints give a non-spoiler nudge first; exact answers appear only after pressing Show Answer.
+- Final sequence/code/ending hints give a non-spoiler nudge first; exact answers appear only after pressing Show Answer.
 - `Tab` / `Shift+Tab` keyboard focus can cycle title actions, ending actions, room objects, and inventory, and `Enter` / `Space` can activate them; QA uses this path to solve the opening form/stamp/door chain and ending reload actions.
 - Standard controller input can start from the title, cycle room objects/inventory with D-pad or left stick, select with `A`, close panels with `B`, and move focus between modal buttons.
 - Progress persists after reload through `localStorage`.
@@ -79,8 +79,8 @@ Expected results:
 - Help > Recover Position repairs progress without deleting inventory or the save.
 - The vending code can be solved through either phone/tape audio or the rain cipher visual clue; unmuted phone/tape recall stays non-spoiler unless the player uses Hint > Show Answer.
 - Late-game Notes remain inside the panel and scroll when needed.
-- Panels close with `Escape`.
-- Modal button focus stays trapped inside panels, and `Escape` still closes panels if focus leaves the button.
+- Ordinary panels close with `Escape`; the required Clock In orientation remains until Clock In is pressed.
+- Modal button focus stays trapped inside panels, and `Escape` still closes ordinary panels if focus leaves the button.
 - Canvas clicks still hit the intended game objects when the browser viewport scales or letterboxes the game, and the rendered mobile canvas stays fully visible at the correct aspect ratio.
 - The production build succeeds with `npm run build`.
 - The production verification gate succeeds with `npm run verify`, and the full release gate succeeds with `npm run release`.

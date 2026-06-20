@@ -694,12 +694,12 @@ async function startNew(page) {
 
 async function testIntroBadgeRecovery(browser, issues) {
   const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
-  watchPage(page, issues, "intro-badge-recovery");
+  watchPage(page, issues, "intro-clock-in-gating");
   await page.goto(APP_URL, { waitUntil: "networkidle" });
   await clearGameStorage(page);
   await page.reload({ waitUntil: "networkidle" });
   await page.locator("canvas").waitFor({ state: "visible", timeout: 8_000 });
-  await expectCanvasPainted(page, "intro badge recovery title");
+  await expectCanvasPainted(page, "intro Clock-In gating title");
   for (let attempt = 0; attempt < 5; attempt += 1) {
     await click(page, 600, 390, 300);
     if (await page.getByRole("button", { name: "Clock In" }).count()) {
@@ -713,12 +713,35 @@ async function testIntroBadgeRecovery(browser, issues) {
   }
 
   await page.keyboard.press("Escape");
-  await page.waitForFunction(() => !document.querySelector(".game-modal-panel"), null, { timeout: 8_000 });
+  await page.waitForTimeout(250);
+  await page.getByRole("button", { name: "Clock In" }).waitFor({ state: "visible", timeout: 8_000 });
   const escapedIntro = await save(page);
   if (escapedIntro?.inventory?.includes("visitorBadge") || escapedIntro?.flags?.introSeen) {
     throw new Error(`Escaping intro granted badge or intro flag: ${JSON.stringify(escapedIntro)}`);
   }
 
+  await page.reload({ waitUntil: "networkidle" });
+  await page.locator("canvas").waitFor({ state: "visible", timeout: 8_000 });
+  await page.waitForTimeout(650);
+  await click(page, 600, 462);
+  await page.getByRole("button", { name: "Clock In" }).waitFor({ state: "visible", timeout: 8_000 });
+  const reloadedIntro = await save(page);
+  if (reloadedIntro?.inventory?.includes("visitorBadge") || reloadedIntro?.flags?.introSeen) {
+    throw new Error(`Pre-Clock-In reload granted badge or intro flag: ${JSON.stringify(reloadedIntro)}`);
+  }
+  await button(page, "Clock In");
+  const clockedInIntro = await save(page);
+  if (!clockedInIntro?.inventory?.includes("visitorBadge") || !clockedInIntro?.flags?.introSeen) {
+    throw new Error(`Clock In did not grant the Visitor Badge and intro flag: ${JSON.stringify(clockedInIntro)}`);
+  }
+
+  await continueSaved(page, {
+    room: "reception",
+    inventory: [],
+    flags: { introSeen: true },
+    audioVolume: 0.72,
+    muted: false
+  });
   await click(page, 456, 430);
   await page.getByText("second chance").waitFor({ state: "visible", timeout: 8_000 });
   const recoveredBadge = await save(page);
@@ -1374,14 +1397,14 @@ async function getRainAndVending(page, exerciseRewardEscape = false) {
     await page.waitForTimeout(200);
     const escapedRainData = await save(page);
     if (escapedRainData.inventory.includes("rainCipher")) {
-      throw new Error("Rain Cipher was granted before Take Note.");
+      throw new Error("Rain Cipher inventory note was granted before Keep Note.");
     }
     if (!escapedRainData.flags.rainCipherSeen) {
-      throw new Error("Rain Window did not save seen state before Take Note.");
+      throw new Error("Rain Window did not save seen state before Keep Note.");
     }
     await click(page, 292, 300);
   }
-  await button(page, "Take Note");
+  await button(page, "Keep Note");
   await mapTo(page, "Break Room");
   await solveVending(page);
 }
@@ -2280,14 +2303,14 @@ async function testAudioControlsAndMutedClue(browser, issues) {
     muted: false
   });
   await click(seenRainClue, 854, 396);
-  await seenRainClue.getByText("You remember the rain cipher: seven, three, one.").waitFor({ state: "visible", timeout: 8_000 });
+  await seenRainClue.getByText("You recall the rain pattern: seven, three, one.").waitFor({ state: "visible", timeout: 8_000 });
   for (const digit of ["7", "3", "1"]) {
     await button(seenRainClue, digit);
   }
   await button(seenRainClue, "Take Them");
   data = await save(seenRainClue);
   if (!data.flags.vendingSolved || !data.inventory.includes("memoryCup") || data.inventory.includes("rainCipher")) {
-    throw new Error(`Rain-seen clue route failed without Take Note: ${JSON.stringify(data)}`);
+    throw new Error(`Rain-seen clue route failed without keeping a note: ${JSON.stringify(data)}`);
   }
   await seenRainClue.close();
 }
@@ -3670,7 +3693,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help/ending Credits access with dialog semantics and safe source-document URL targets, puzzle-polish checks for Notes/objectives/side-room clue recall/hint answer reveal/route-aware Mirror hints/Auditor feedback/Mirror identity wording, security override route, deduction route, audit ending, ending keyboard/gamepad controls after reload, title/ending focus live status, spent-folder selection clearing, spent paperwork and vending ingredient sources plus consumed ingredient selection clearing, post-success Escape HUD refresh, canvas paint and accessibility checks, mid-game and late-game reloads, non-spoiler phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts and required outside-system cup clue, all authored hand-cursor hotspot/live-status behavior plus inventory hover, touch first-tap hotspot preview and timeout clearing, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, repaired spent paperwork/key sources, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro Clock-In gating and legacy badge recovery, title/help/ending Credits access with dialog semantics and safe source-document URL targets, puzzle-polish checks for Notes/objectives/side-room clue recall/hint answer reveal/route-aware Mirror hints/Auditor feedback/Mirror identity wording, security override route, deduction route, audit ending, ending keyboard/gamepad controls after reload, title/ending focus live status, spent-folder selection clearing, spent paperwork and vending ingredient sources plus consumed ingredient selection clearing, post-success Escape HUD refresh, canvas paint and accessibility checks, mid-game and late-game reloads, non-spoiler phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts and required outside-system cup clue, all authored hand-cursor hotspot/live-status behavior plus inventory hover, touch first-tap hotspot preview and timeout clearing, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, repaired spent paperwork/key sources, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;
