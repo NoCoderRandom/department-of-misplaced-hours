@@ -70,6 +70,34 @@ async function assertLiveAssetBudget(label, url, maxBytes, kind) {
   return bytes.byteLength;
 }
 
+function pngDimensions(bytes) {
+  const view = new DataView(bytes);
+  const signature = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+  if (
+    bytes.byteLength < 24 ||
+    !signature.every((byte, index) => view.getUint8(index) === byte) ||
+    String.fromCharCode(view.getUint8(12), view.getUint8(13), view.getUint8(14), view.getUint8(15)) !== "IHDR"
+  ) {
+    throw new Error("not a PNG with a readable IHDR chunk");
+  }
+  return { width: view.getUint32(16), height: view.getUint32(20) };
+}
+
+async function assertLivePng(response, label, expectedWidth, expectedHeight, minBytes = 0) {
+  if (!response.headers.get("content-type")?.includes("image/png")) {
+    throw new Error(`Live ${label} did not serve as PNG.`);
+  }
+  const bytes = await response.arrayBuffer();
+  if (bytes.byteLength < minBytes) {
+    throw new Error(`Live ${label} is unexpectedly small: ${bytes.byteLength} bytes.`);
+  }
+  const actual = pngDimensions(bytes);
+  if (actual.width !== expectedWidth || actual.height !== expectedHeight) {
+    throw new Error(`Live ${label} dimensions expected ${expectedWidth}x${expectedHeight}, got ${actual.width}x${actual.height}.`);
+  }
+  return { bytes: bytes.byteLength, ...actual };
+}
+
 async function assertLiveRuntimeAssets(rawUrl, html) {
   const assets = runtimeAssetsFromHtml(html);
   const { entryJs, phaserVendorJs, css, runtimeHelpers } = splitRuntimeAssets(assets);
@@ -361,31 +389,21 @@ async function assertPublicMetadata(rawUrl) {
       label: "app icon 192",
       url: new URL("icon-192.png", baseUrl),
       assert: async (response) => {
-        if (!response.headers.get("content-type")?.includes("image/png")) {
-          throw new Error("Live icon-192.png did not serve as PNG.");
-        }
+        await assertLivePng(response, "icon-192.png", 192, 192);
       }
     },
     {
       label: "app icon 512",
       url: new URL("icon-512.png", baseUrl),
       assert: async (response) => {
-        if (!response.headers.get("content-type")?.includes("image/png")) {
-          throw new Error("Live icon-512.png did not serve as PNG.");
-        }
+        await assertLivePng(response, "icon-512.png", 512, 512);
       }
     },
     {
       label: "social card",
       url: new URL("social-card.png", baseUrl),
       assert: async (response) => {
-        if (!response.headers.get("content-type")?.includes("image/png")) {
-          throw new Error("Live social-card.png did not serve as PNG.");
-        }
-        const bytes = await response.arrayBuffer();
-        if (bytes.byteLength < 50_000) {
-          throw new Error(`Live social-card.png is unexpectedly small: ${bytes.byteLength} bytes.`);
-        }
+        await assertLivePng(response, "social-card.png", 1200, 630, 50_000);
       }
     },
     {

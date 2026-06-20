@@ -125,6 +125,33 @@ async function assertAssetBudget(label, path, maxBytes) {
   }
 }
 
+function pngDimensions(bytes) {
+  if (
+    bytes.length < 24 ||
+    bytes[0] !== 0x89 ||
+    bytes[1] !== 0x50 ||
+    bytes[2] !== 0x4e ||
+    bytes[3] !== 0x47 ||
+    bytes[4] !== 0x0d ||
+    bytes[5] !== 0x0a ||
+    bytes[6] !== 0x1a ||
+    bytes[7] !== 0x0a ||
+    bytes.subarray(12, 16).toString("ascii") !== "IHDR"
+  ) {
+    throw new Error("not a PNG with a readable IHDR chunk");
+  }
+  return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) };
+}
+
+async function assertPngDimensions(path, expectedWidth, expectedHeight) {
+  const actual = pngDimensions(await readFile(path));
+  if (actual.width !== expectedWidth || actual.height !== expectedHeight) {
+    throw new Error(
+      `Release check failed: ${path} dimensions expected ${expectedWidth}x${expectedHeight}, got ${actual.width}x${actual.height}.`
+    );
+  }
+}
+
 async function assertStaticSiteMetadata() {
   const html = await readFile("dist/index.html", "utf8");
   const normalizedHtml = html.replace(/\s+/g, " ");
@@ -339,6 +366,9 @@ await assertAssetBudget("entry CSS", cssFiles[0], maxCssBytes);
 for (const runtimeHelper of runtimeHelperFiles) {
   await assertAssetBudget("runtime helper JavaScript", runtimeHelper, maxRuntimeHelperBytes);
 }
+await assertPngDimensions("dist/icon-192.png", 192, 192);
+await assertPngDimensions("dist/icon-512.png", 512, 512);
+await assertPngDimensions("dist/social-card.png", 1200, 630);
 await assertStaticSiteMetadata();
 await assertImageProvenance();
 
