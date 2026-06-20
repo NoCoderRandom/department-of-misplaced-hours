@@ -377,6 +377,35 @@ async function assertPromotedArchive(archiveFile, shaFile, expectedHash, expecte
   }
 }
 
+async function assertCleanReleaseDirectory() {
+  const expectedEntries = new Map([
+    [releaseName, "directory"],
+    [storeName, "directory"],
+    [`${releaseName}.zip`, "file"],
+    [`${releaseName}.sha256`, "file"],
+    [`${storeName}.zip`, "file"],
+    [`${storeName}.sha256`, "file"]
+  ]);
+  const entries = await readdir(releaseDir, { withFileTypes: true });
+  const actualNames = entries.map((entry) => entry.name).sort(comparePathNames);
+  const expectedNames = [...expectedEntries.keys()].sort(comparePathNames);
+  const missing = expectedNames.filter((name) => !actualNames.includes(name));
+  const unexpected = actualNames.filter((name) => !expectedEntries.has(name));
+  const wrongTypes = entries
+    .filter((entry) => expectedEntries.has(entry.name))
+    .filter((entry) => {
+      const expectedType = expectedEntries.get(entry.name);
+      return expectedType === "directory" ? !entry.isDirectory() : !entry.isFile();
+    })
+    .map((entry) => `${entry.name} expected ${expectedEntries.get(entry.name)}`);
+
+  if (missing.length > 0 || unexpected.length > 0 || wrongTypes.length > 0) {
+    throw new Error(
+      `Release directory contains an unexpected artifact set.\nMissing:\n${missing.join("\n")}\nUnexpected:\n${unexpected.join("\n")}\nWrong types:\n${wrongTypes.join("\n")}`
+    );
+  }
+}
+
 function assertExactEntries(label, actualEntries, expectedEntries) {
   const actual = new Set(actualEntries);
   const expected = new Set(expectedEntries);
@@ -782,6 +811,8 @@ try {
   await rm(tempStoreArchivePath, { force: true });
   await rm(tempStoreShaPath, { force: true });
 }
+
+await assertCleanReleaseDirectory();
 
 console.log(`Packaged ${archivePath}`);
 console.log(`SHA-256 ${hash}`);
