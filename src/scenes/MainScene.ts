@@ -2231,6 +2231,7 @@ export class MainScene extends Phaser.Scene {
 
   private redIntercom(): void {
     if (!this.state.flag("identityVerified")) {
+      const hasAuditWarrant = this.state.has("auditWarrant");
       if (this.selectedItem === "selfFile" && this.state.has("selfFile")) {
         this.state.setFlag("identityVerified");
         this.selectedItem = undefined;
@@ -2243,7 +2244,7 @@ export class MainScene extends Phaser.Scene {
         );
         return;
       }
-      if (this.selectedItem === "auditWarrant" && this.state.has("auditWarrant")) {
+      if (this.selectedItem === "auditWarrant" && hasAuditWarrant) {
         this.state.setFlag("identityVerified");
         this.state.setFlag("identityVerifiedByWarrant");
         this.selectedItem = undefined;
@@ -2257,15 +2258,23 @@ export class MainScene extends Phaser.Scene {
         return;
       }
       if (
-        this.rejectSelectedItem("Red Intercom", "the Auditor accepts a Missing-Person File or the Audit Warrant for identity.", [
-          "selfFile",
-          "auditWarrant"
-        ])
+        this.rejectSelectedItem(
+          "Red Intercom",
+          hasAuditWarrant
+            ? "the Auditor accepts a Missing-Person File or the Audit Warrant for identity."
+            : "the Auditor accepts your Missing-Person File for identity. You do not have an Audit Warrant for this route.",
+          hasAuditWarrant ? ["selfFile", "auditWarrant"] : ["selfFile"]
+        )
       ) {
         return;
       }
       this.audio.fail();
-      this.showMessage("Red Intercom", "The intercom asks for proof that you are allowed to correct the person being processed. Use your Missing-Person File or the Audit Warrant here.");
+      this.showMessage(
+        "Red Intercom",
+        hasAuditWarrant
+          ? "The intercom asks for proof that you are allowed to correct the person being processed. Use your Missing-Person File or the Audit Warrant here."
+          : "The intercom asks for proof that you are allowed to correct the person being processed. Use your Missing-Person File here; no Audit Warrant is active on this route."
+      );
       return;
     }
     if (!this.state.flag("hourVerified")) {
@@ -3307,7 +3316,9 @@ export class MainScene extends Phaser.Scene {
       return "Power the server console with the fuse.";
     }
     if (!this.state.flag("identityVerified")) {
-      return "Verify identity at the red intercom with your file or audit warrant.";
+      return this.state.has("auditWarrant")
+        ? "Verify identity at the red intercom with your file or Audit Warrant."
+        : "Verify identity at the red intercom with your Missing-Person File.";
     }
     if (!this.state.flag("hourVerified")) {
       return "Present the missing hour to the red intercom and answer the Auditor.";

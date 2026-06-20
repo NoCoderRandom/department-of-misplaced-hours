@@ -1232,6 +1232,38 @@ async function finishFinalAct(page, identityItem, endingItem) {
   await selectItem(page, "serverFuse");
   await click(page, 858, 438);
   await button(page, "Continue");
+
+  let checkpoint = await save(page);
+  const hasAuditWarrantBeforeIdentity = checkpoint.inventory.includes("auditWarrant");
+  await click(page, 638, 32);
+  await page.getByRole("dialog", { name: "Notes" }).waitFor({ state: "visible", timeout: 8_000 });
+  const identityNotesText = await page.locator(".game-modal-body").innerText();
+  if (hasAuditWarrantBeforeIdentity) {
+    if (!identityNotesText.includes("Verify identity at the red intercom with your file or Audit Warrant.")) {
+      throw new Error(`Audit-authority identity objective did not mention the warrant option: ${identityNotesText}`);
+    }
+  } else if (
+    !identityNotesText.includes("Verify identity at the red intercom with your Missing-Person File.") ||
+    identityNotesText.includes("with your file or Audit Warrant")
+  ) {
+    throw new Error(`Warrantless identity objective still implied a warrant option: ${identityNotesText}`);
+  }
+  await button(page, "Close");
+
+  await click(page, 612, 596);
+  const identityPrompt = await page.locator(".game-modal-body").innerText({ timeout: 8_000 });
+  if (hasAuditWarrantBeforeIdentity) {
+    if (!identityPrompt.includes("Use your Missing-Person File or the Audit Warrant here.")) {
+      throw new Error(`Audit-authority intercom prompt did not mention both identity options: ${identityPrompt}`);
+    }
+  } else if (
+    !identityPrompt.includes("Use your Missing-Person File here; no Audit Warrant is active on this route.") ||
+    identityPrompt.includes("or the Audit Warrant here")
+  ) {
+    throw new Error(`Warrantless intercom prompt still implied a warrant option: ${identityPrompt}`);
+  }
+  await button(page, "Close");
+
   await selectItem(page, identityItem);
   await click(page, 612, 596);
   await button(page, "Continue");
@@ -1264,7 +1296,7 @@ async function finishFinalAct(page, identityItem, endingItem) {
   await button(page, "Outside the system.");
   await button(page, "Proceed");
 
-  let checkpoint = await reloadAndContinue(page, "after auditor verification");
+  checkpoint = await reloadAndContinue(page, "after auditor verification");
   if (
     checkpoint.room !== "mirror" ||
     !checkpoint.flags.identityVerified ||
@@ -2735,8 +2767,31 @@ async function testWrongItemFeedback(browser, issues) {
 
   await continueSaved(page, {
     room: "mirror",
-    inventory: ["memoryCup"],
+    inventory: ["memoryCup", "selfFile"],
     flags: { mirrorShardInstalled: true },
+    audioVolume: 0.72,
+    muted: false
+  });
+  await selectItem(page, "memoryCup");
+  await click(page, 612, 596);
+  await page
+    .getByText(
+      "Cup of Missing Hour is selected, but the Auditor accepts your Missing-Person File for identity. You do not have an Audit Warrant for this route."
+    )
+    .waitFor({
+      state: "visible",
+      timeout: 8_000
+    });
+  data = await save(page);
+  if (data.flags.identityVerified || data.inventory.includes("auditWarrant") || data.flags.evidenceSafeOpened) {
+    throw new Error(`Warrantless wrong item verified identity or created warrant authority: ${JSON.stringify(data)}`);
+  }
+  await button(page, "Close");
+
+  await continueSaved(page, {
+    room: "mirror",
+    inventory: ["memoryCup", "selfFile", "auditWarrant"],
+    flags: { mirrorShardInstalled: true, evidenceSafeOpened: true },
     audioVolume: 0.72,
     muted: false
   });
@@ -2748,7 +2803,10 @@ async function testWrongItemFeedback(browser, issues) {
   });
   data = await save(page);
   if (data.flags.identityVerified) {
-    throw new Error(`Wrong item verified identity at the intercom: ${JSON.stringify(data)}`);
+    throw new Error(`Audit-route wrong item verified identity at the intercom: ${JSON.stringify(data)}`);
+  }
+  if (!data.inventory.includes("auditWarrant")) {
+    throw new Error(`Audit-route identity wrong-item setup lost the Audit Warrant: ${JSON.stringify(data)}`);
   }
   await button(page, "Close");
 
