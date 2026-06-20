@@ -1,6 +1,6 @@
 import { createServer } from "node:http";
 import { createReadStream, promises as fs } from "node:fs";
-import { extname, join, normalize, resolve, sep } from "node:path";
+import { extname, isAbsolute, join, normalize, relative, resolve } from "node:path";
 import { chromium } from "playwright";
 
 const GAME_W = 1200;
@@ -23,12 +23,41 @@ const mimeTypes = new Map([
 await fs.rm(OUT_DIR, { recursive: true, force: true });
 await fs.mkdir(OUT_DIR, { recursive: true });
 
+const isPathInside = (root, candidate) => {
+  const pathFromRoot = relative(root, candidate);
+  return pathFromRoot === "" || (!pathFromRoot.startsWith("..") && !isAbsolute(pathFromRoot));
+};
+
+const fileForRequest = (urlPath) => {
+  const decoded = decodeURIComponent(urlPath);
+  const relativePath = normalize(decoded === "/" ? "index.html" : decoded.replace(/^\/+/, ""));
+  if (relativePath.startsWith("..") || relativePath.split(/[\\/]+/).includes("..") || relativePath === ".") {
+    return undefined;
+  }
+  const filePath = resolve(DIST_ROOT, relativePath);
+  return isPathInside(DIST_ROOT, filePath) ? filePath : undefined;
+};
+
+const assertStaticServerPathGuards = () => {
+  const indexPath = fileForRequest("/");
+  if (!indexPath?.endsWith("index.html") || !isPathInside(DIST_ROOT, indexPath)) {
+    throw new Error(`Visual audit path guard rejected index.html: ${indexPath ?? "(none)"}`);
+  }
+
+  for (const unsafe of ["/../package.json", "/%2e%2e/package.json", "/assets/../../package.json", "/."]) {
+    if (fileForRequest(unsafe)) {
+      throw new Error(`Visual audit path guard accepted unsafe request path: ${unsafe}`);
+    }
+  }
+};
+
+assertStaticServerPathGuards();
+
 const server = createServer(async (request, response) => {
   try {
     const requestUrl = new URL(request.url ?? "/", "http://127.0.0.1");
-    const pathname = requestUrl.pathname === "/" ? "/index.html" : decodeURIComponent(requestUrl.pathname);
-    const filePath = normalize(join(DIST_ROOT, pathname));
-    if (filePath !== DIST_ROOT && !filePath.startsWith(`${DIST_ROOT}${sep}`)) {
+    const filePath = fileForRequest(requestUrl.pathname);
+    if (!filePath) {
       response.writeHead(403);
       response.end("Forbidden");
       return;

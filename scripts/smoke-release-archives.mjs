@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import { createHash } from "node:crypto";
 import { createReadStream } from "node:fs";
 import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
-import { dirname, extname, join, normalize, resolve, sep } from "node:path";
+import { dirname, extname, isAbsolute, join, normalize, relative, resolve } from "node:path";
 import { inflateRawSync } from "node:zlib";
 import { chromium } from "playwright";
 
@@ -57,6 +57,11 @@ const mime = new Map([
   [".md", "text/markdown; charset=utf-8"]
 ]);
 
+function isPathInside(root, candidate) {
+  const pathFromRoot = relative(root, candidate);
+  return pathFromRoot === "" || (!pathFromRoot.startsWith("..") && !isAbsolute(pathFromRoot));
+}
+
 async function sha256(path) {
   const hash = createHash("sha256");
   await new Promise((resolvePromise, reject) => {
@@ -108,15 +113,37 @@ function zipEntries(archive, target) {
 
 function safeDestination(target, name) {
   const normalized = normalize(name.replaceAll("\\", "/"));
-  if (normalized.startsWith("..") || normalized.includes(`${sep}..${sep}`) || normalized === "..") {
+  if (normalized.startsWith("..") || normalized.split(/[\\/]+/).includes("..") || normalized === ".") {
     throw new Error(`${target.label} contains unsafe path: ${name}`);
   }
   const destination = resolve(target.extractRoot, normalized);
-  if (!destination.startsWith(`${target.extractRoot}${sep}`)) {
+  if (!isPathInside(target.extractRoot, destination) || destination === target.extractRoot) {
     throw new Error(`${target.label} path escapes smoke directory: ${name}`);
   }
   return destination;
 }
+
+function assertPathGuards() {
+  const target = { label: "archive path guard self-test", extractRoot: resolve("tmp", "path-guard-root") };
+  const safe = safeDestination(target, "nested/file.txt");
+  if (!isPathInside(target.extractRoot, safe)) {
+    throw new Error(`Archive path guard rejected a safe nested file: ${safe}`);
+  }
+
+  for (const unsafe of ["../outside.txt", "nested/../../outside.txt", "/absolute.txt", "."]) {
+    let rejected = false;
+    try {
+      safeDestination(target, unsafe);
+    } catch {
+      rejected = true;
+    }
+    if (!rejected) {
+      throw new Error(`Archive path guard accepted unsafe ZIP entry: ${unsafe}`);
+    }
+  }
+}
+
+assertPathGuards();
 
 async function extractArchive(target) {
   const archive = await readFile(target.archivePath);
@@ -161,7 +188,7 @@ async function extractArchive(target) {
 function fileForRequest(webRoot, urlPath) {
   const decoded = decodeURIComponent(urlPath.split("?")[0]);
   const relativePath = normalize(decoded === "/" ? "index.html" : decoded.replace(/^\/+/, ""));
-  if (relativePath.startsWith("..") || relativePath.includes(`${sep}..${sep}`)) {
+  if (relativePath.startsWith("..") || relativePath.split(/[\\/]+/).includes("..") || relativePath === ".") {
     return undefined;
   }
   return resolve(webRoot, relativePath);
@@ -171,7 +198,7 @@ function createStaticServer(webRoot) {
   return createServer(async (request, response) => {
     try {
       const filePath = fileForRequest(webRoot, request.url ?? "/");
-      if (!filePath || !filePath.startsWith(`${webRoot}${sep}`)) {
+      if (!filePath || !isPathInside(webRoot, filePath)) {
         response.writeHead(403).end("Forbidden");
         return;
       }
