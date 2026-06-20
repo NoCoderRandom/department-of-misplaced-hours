@@ -22,13 +22,13 @@ Reference links:
 
 **The Department of Misplaced Hours** stayed close to the prompt because it is immediately playable as a surreal office mystery. The setting also supports puzzle logic naturally: stamps, forms, clocks, filing systems, intercom verification, and vending-machine codes all feel diegetic.
 
-## Rejected Directions
+## Rejected Concepts
 
 - A haunted mansion mystery was rejected as too familiar.
 - A pure horror escape room was rejected because the prompt favored weird mystery over jump scares.
 - A combat or stealth game was rejected because puzzle content mattered more than mechanical complexity.
 
-## Core Loop
+## Core Gameplay Loop
 
 1. Explore a strange office room.
 2. Sweep the room with the cursor until the hand/status feedback reveals useful objects.
@@ -76,6 +76,7 @@ The soundscape mixes procedural Web Audio ambience with CC0 Kenney UI/SFX files.
 - Web Audio keeps the audio legally clean and lightweight.
 - Selected Kenney CC0 OGG files improve tactile feedback without licensing friction.
 - `scripts/state-tests.mjs` runs before build/browser QA to catch save/load normalization, repair-invariant, reset-preference, and storage-failure regressions quickly.
+- `scripts/ship-audit.mjs` runs at the start of `npm run verify` and checks prompt-level deliverables that are easy to accidentally drift: static-host configuration, GitHub Pages workflow, room/item/ending counts, documented puzzle scope, required source/docs, legal asset notices, install/share metadata hooks, and required release/QA scripts.
 - `scripts/qa-playthrough.mjs` can run quick development QA or production-preview QA; the release gate verifies the built `dist/` through asset-load failure recovery with DOM alert text, optional audio fallback, intro badge recovery, title/help Credits access, dialog title/body accessibility semantics, live keyboard target status, phone portrait rotate gating, puzzle-polish checks for Notes/objectives/side-room clue recall/hint answer reveal/Auditor feedback, both main routes plus the third audit ending, canvas paint checks, rendered mobile canvas fit/aspect checks, mid-game reloads, late-game reloads after Auditor verification and server unlock, non-spoiler phone clue recall in Notes and puzzle clue review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts, hand-cursor hotspot/inventory behavior, touch first-tap hotspot preview with immediate selected-item use, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, selected-item cancel by Escape/right-click/controller B, keyboard title start, protected Start New behavior, controller title/stick/object/modal navigation with hint and bumper controls, clue-gated Mood Clocks, large-text and reduced-motion preference persistence/layout/reset survival, system reduced-motion migration for legacy saves, keyboard object/inventory interaction, early and late-game wrong-item feedback, Auditor consultation notes and hour-presentation recovery, failed-puzzle recovery, reward Escape checks for rain/glass/vending take prompts plus vending reward reload recovery, save repair, invalid-room save recovery, corrupt/unavailable storage recovery with player warning, Recover Position, archive gates, pre-file vending story gate, malformed save normalization, scaled desktop/mobile interaction, modal focus/Escape behavior, reset behavior, late-game Notes scrolling, answer-order anti-spoiler checks, downstream save repair, and desktop/mobile visual readability screenshots including Credits panels, Future Phone story panels, and ending screens.
 - `scripts/check-release.mjs` validates the exact expected build asset manifest, including the entry CSS/JS, Phaser vendor chunk, any tiny Vite/Rolldown runtime helper referenced by production HTML, and runtime chunk size budgets, app/social icons and install metadata, production CSP hardening, no-JavaScript fallback copy, image provenance hashes, blocks extra `dist/` files, sourcemaps, unapproved payload regressions, oversized `dist/`, and accidental package contents such as source, temp files, backups, prompts, or duplicate public assets.
 - `scripts/smoke-release-archives.mjs` extracts both pending ZIP formats, serves the actual web roots, verifies Credits source-document targets, starts a new shift, verifies the no-JavaScript fallback, and verifies touch-phone portrait orientation gating before release artifacts are promoted.

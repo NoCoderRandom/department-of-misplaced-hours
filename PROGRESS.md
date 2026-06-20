@@ -126,5 +126,6 @@
 - [x] Release checks and live smoke now verify generated PNG icon/social-card dimensions so broken store/share artwork cannot ship silently.
 - [x] Release packaging now refuses extra top-level release artifacts and generated release notes name the exact version, ZIP, paired checksum file, and verification commands.
 - [x] Live GitHub Pages smoke now reports validated manifest fields, app-icon/social-card dimensions, crawler files, and runtime chunk byte sizes in its success JSON.
+- [x] Prompt-level ship audit added to `npm run verify`, covering static hosting, GitHub Pages workflow, source/docs, room/item/ending counts, documented puzzle scope, legal asset notices, and required QA/release scripts.
 - [x] Deployment prepared with `.github/workflows/deploy-pages.yml`.
 - [x] Documentation written: `README.md`, `ASSETS.md`, `THIRD_PARTY_NOTICES.md`, `DESIGN_NOTES.md`, `PROGRESS.md`.
