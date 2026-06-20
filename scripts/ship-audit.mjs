@@ -197,6 +197,8 @@ requireText("README.md", readme, [
   "npm run build",
   "npm run release",
   "npm run smoke:live",
+  "controller `B` cannot skip the required Clock In orientation",
+  "normal play with controller-B Clock-In gating",
   "Controls",
   "Known Limitations"
 ]);
