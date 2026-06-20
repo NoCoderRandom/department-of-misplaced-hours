@@ -234,6 +234,67 @@ async function pressGamepadButton(page, index, hold = 120) {
   await page.waitForTimeout(170);
 }
 
+async function focusedModalButtonText(page) {
+  return page.evaluate(() =>
+    document.activeElement instanceof HTMLButtonElement && document.activeElement.classList.contains("game-modal-button")
+      ? document.activeElement.textContent?.trim() || ""
+      : ""
+  );
+}
+
+async function waitForFocusedModalButton(page, label, context) {
+  await page
+    .waitForFunction(
+      (expected) =>
+        document.activeElement instanceof HTMLButtonElement &&
+        document.activeElement.classList.contains("game-modal-button") &&
+        document.activeElement.textContent?.trim() === expected,
+      label,
+      { timeout: 8_000 }
+    )
+    .catch(async () => {
+      const focused = await focusedModalButtonText(page);
+      throw new Error(`${context} expected focused modal button ${label}, got ${focused || "nothing"}.`);
+    });
+}
+
+async function pressKeyboardModalButton(page, label, context, maxTabs = 20) {
+  await page.waitForFunction(
+    () => document.activeElement instanceof HTMLButtonElement && document.activeElement.classList.contains("game-modal-button"),
+    null,
+    { timeout: 8_000 }
+  );
+  for (let attempt = 0; attempt <= maxTabs; attempt += 1) {
+    if ((await focusedModalButtonText(page)) === label) {
+      await page.keyboard.press("Enter");
+      await page.waitForTimeout(140);
+      return;
+    }
+    await page.keyboard.press("Tab");
+    await page.waitForTimeout(90);
+  }
+  const focused = await focusedModalButtonText(page);
+  throw new Error(`${context} could not focus ${label} with Tab; ended on ${focused || "nothing"}.`);
+}
+
+async function pressGamepadModalButton(page, label, context, maxMoves = 20) {
+  await page.waitForFunction(
+    () => document.activeElement instanceof HTMLButtonElement && document.activeElement.classList.contains("game-modal-button"),
+    null,
+    { timeout: 8_000 }
+  );
+  for (let attempt = 0; attempt <= maxMoves; attempt += 1) {
+    if ((await focusedModalButtonText(page)) === label) {
+      await pressGamepadButton(page, 0);
+      await page.waitForTimeout(160);
+      return;
+    }
+    await pressGamepadButton(page, 15);
+  }
+  const focused = await focusedModalButtonText(page);
+  throw new Error(`${context} could not focus ${label} with gamepad navigation; ended on ${focused || "nothing"}.`);
+}
+
 async function moveGamepadAxis(page, axisIndex, value, hold = 90) {
   await page.evaluate(
     ({ axis, nextValue }) => {
@@ -2712,6 +2773,74 @@ async function testKeyboardObjectInteraction(browser, issues) {
   await page.close();
 }
 
+async function testPuzzleModalKeyboardAndGamepad(browser, issues) {
+  const keyboardPage = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
+  watchPage(keyboardPage, issues, "puzzle-modal-keyboard");
+  await continueSaved(keyboardPage, {
+    room: "clock",
+    inventory: ["visitorBadge", "stampedForm"],
+    flags: {
+      introSeen: true,
+      formStamped: true,
+      clockUnlocked: true,
+      receptionMemoSeen: true,
+      calendarSeen: true
+    },
+    audioVolume: 0.72,
+    muted: false
+  });
+  await click(keyboardPage, 610, 274);
+  await keyboardPage.getByRole("dialog", { name: "Mood Clocks" }).waitFor({ state: "visible", timeout: 8_000 });
+  await waitForFocusedModalButton(keyboardPage, "Calm", "keyboard Mood Clocks initial focus");
+  for (const label of ["Regret", "Hunger", "Calm", "Joy", "Continue"]) {
+    await pressKeyboardModalButton(keyboardPage, label, "keyboard Mood Clocks");
+  }
+  const keyboardData = await save(keyboardPage);
+  if (!keyboardData.flags.clockSolved) {
+    throw new Error(`Keyboard did not solve Mood Clocks through modal focus: ${JSON.stringify(keyboardData)}`);
+  }
+  await keyboardPage.close();
+
+  const gamepadPage = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
+  watchPage(gamepadPage, issues, "puzzle-modal-gamepad");
+  await installQaGamepad(gamepadPage);
+  await continueSaved(gamepadPage, {
+    room: "break",
+    inventory: ["timeToken", "paperCup", "selfFile"],
+    flags: {
+      introSeen: true,
+      formStamped: true,
+      clockUnlocked: true,
+      clockSolved: true,
+      archiveSolved: true,
+      glassCaseCollected: true,
+      heardPhone: true
+    },
+    audioVolume: 0.72,
+    muted: false
+  });
+  await click(gamepadPage, 854, 396);
+  await gamepadPage.getByRole("dialog", { name: "Memory Vending" }).waitFor({ state: "visible", timeout: 8_000 });
+  await waitForFocusedModalButton(gamepadPage, "1", "gamepad Memory Vending initial focus");
+  for (const label of ["7", "3", "1"]) {
+    await pressGamepadModalButton(gamepadPage, label, "gamepad Memory Vending");
+  }
+  await gamepadPage.getByRole("dialog", { name: "Memory Dispensed" }).waitFor({ state: "visible", timeout: 8_000 });
+  await waitForFocusedModalButton(gamepadPage, "Take Them", "gamepad Memory Vending reward focus");
+  await pressGamepadModalButton(gamepadPage, "Take Them", "gamepad Memory Vending reward");
+  const gamepadData = await save(gamepadPage);
+  if (
+    !gamepadData.flags.vendingSolved ||
+    !gamepadData.inventory.includes("memoryCup") ||
+    !gamepadData.inventory.includes("serverFuse") ||
+    gamepadData.inventory.includes("timeToken") ||
+    gamepadData.inventory.includes("paperCup")
+  ) {
+    throw new Error(`Gamepad did not solve Memory Vending through modal focus: ${JSON.stringify(gamepadData)}`);
+  }
+  await gamepadPage.close();
+}
+
 async function testGamepadNavigation(browser, issues) {
   const page = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
   watchPage(page, issues, "gamepad-navigation");
@@ -3852,6 +3981,7 @@ async function run() {
     await testLargeTextPreference(browser, issues);
     await testSystemReducedMotionDefault(browser, issues);
     await testKeyboardObjectInteraction(browser, issues);
+    await testPuzzleModalKeyboardAndGamepad(browser, issues);
     await testGamepadNavigation(browser, issues);
     await testAuditEndingFromLateSave(browser, issues);
     await testFinalEndingMatrix(browser, issues);
@@ -3868,7 +3998,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro Clock-In gating and legacy badge recovery, title/help/ending Credits access with dialog semantics and safe source-document URL targets, puzzle-polish checks for Notes/objectives/side-room clue recall/hint answer reveal/route-aware Mirror hints/Auditor feedback/Mirror identity wording/route wording/rain-note opt-out, security override route, deduction route, audit ending, final-choice ending matrix with Play Again reset, ending keyboard/gamepad controls after reload, title/ending focus live status, spent-folder selection clearing, spent paperwork and vending ingredient sources plus consumed ingredient selection clearing, post-success Escape HUD refresh, canvas paint and accessibility checks, mid-game and late-game reloads, non-spoiler phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts and required outside-system cup clue, all authored hand-cursor hotspot/live-status behavior plus inventory hover, touch first-tap hotspot preview and timeout clearing, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, right-click panel close, modal backdrop click shielding, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, repaired spent paperwork/key sources, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro Clock-In gating and legacy badge recovery, title/help/ending Credits access with dialog semantics and safe source-document URL targets, puzzle-polish checks for Notes/objectives/side-room clue recall/hint answer reveal/route-aware Mirror hints/Auditor feedback/Mirror identity wording/route wording/rain-note opt-out, security override route, deduction route, audit ending, final-choice ending matrix with Play Again reset, ending keyboard/gamepad controls after reload, title/ending focus live status, spent-folder selection clearing, spent paperwork and vending ingredient sources plus consumed ingredient selection clearing, post-success Escape HUD refresh, canvas paint and accessibility checks, mid-game and late-game reloads, non-spoiler phone clue recall/review, typed and clicked vending keypad paths, keyboard/gamepad puzzle-modal solving, phone/rain/muted clue paths with immediate muted phone/tape transcripts and required outside-system cup clue, all authored hand-cursor hotspot/live-status behavior plus inventory hover, touch first-tap hotspot preview and timeout clearing, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, right-click panel close, modal backdrop click shielding, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, repaired spent paperwork/key sources, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;

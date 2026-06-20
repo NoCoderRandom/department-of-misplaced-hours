@@ -59,6 +59,7 @@ Expected results:
 - Final sequence/code/ending hints give a non-spoiler nudge first; exact answers appear only after pressing Show Answer.
 - `Tab` / `Shift+Tab` keyboard focus can cycle title actions, ending actions, room objects, and inventory, and `Enter` / `Space` can activate them; QA uses this path to solve the opening form/stamp/door chain and ending reload actions.
 - Standard controller input can start from the title, cycle room objects/inventory with D-pad or left stick, select with `A`, close panels with `B`, and move focus between modal buttons.
+- Dense puzzle panels remain solvable without pointer input: QA solves Mood Clocks through keyboard modal focus and Memory Vending through gamepad modal focus.
 - Progress persists after reload through `localStorage`.
 - Mid-game and late-game reloads continue from the current route without losing key rewards, final verification, or server unlock progress.
 - Map fast travel lists unlocked rooms and does not overlap Notes.
