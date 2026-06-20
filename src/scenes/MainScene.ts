@@ -1086,6 +1086,9 @@ export class MainScene extends Phaser.Scene {
   }
 
   private isSpentItem(itemId: ItemId): boolean {
+    if (itemId === "blankForm" || itemId === "rubberStamp") {
+      return this.state.flag("formStamped");
+    }
     if (itemId === "visitorBadge") {
       return this.state.has("securityKey");
     }
@@ -1440,6 +1443,13 @@ export class MainScene extends Phaser.Scene {
   }
 
   private receptionForms(): void {
+    if (this.state.flag("formStamped")) {
+      this.showMessage(
+        "In-Tray",
+        "The remaining forms have noticed you already carry an official answer. They flatten themselves and refuse extra paperwork."
+      );
+      return;
+    }
     if (this.selectedItem === "rubberStamp" && this.state.has("blankForm")) {
       this.makeStampedForm();
       return;
@@ -1458,6 +1468,13 @@ export class MainScene extends Phaser.Scene {
   }
 
   private receptionStamp(): void {
+    if (this.state.flag("formStamped")) {
+      this.showMessage(
+        "Rubber Stamp",
+        "The stamp has spent its authority on Form 11-H. It clicks once for the archive, then stays put."
+      );
+      return;
+    }
     if (!this.state.has("rubberStamp")) {
       this.state.add("rubberStamp");
       this.audio.pickup();
