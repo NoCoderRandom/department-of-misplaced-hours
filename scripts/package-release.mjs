@@ -534,6 +534,10 @@ await writeFile(
     "",
     "This is the release archive for the static browser game.",
     "",
+    `Version: ${version}`,
+    `Archive: \`${releaseName}.zip\``,
+    `Paired checksum: \`${releaseName}.sha256\``,
+    "",
     "## Play",
     "",
     "Serve the `dist/` folder as the web root with any static web server, then open the served URL in a desktop browser. Do not upload the outer ZIP folder as the web root; upload or serve the contents of `dist/`.",
@@ -568,7 +572,10 @@ await writeFile(
     "",
     "## Verification",
     "",
-    "This archive was produced by the release packager, which validates archive contents, smoke-tests pending archives in a browser, promotes artifacts transactionally, and verifies final checksums. The normal `npm run release` command runs TypeScript checks, a production build, automated browser QA, and visual readability QA before packaging."
+    "This archive was produced by the release packager, which validates archive contents, smoke-tests pending archives in a browser, promotes artifacts transactionally, and verifies final checksums. The normal `npm run release` command runs TypeScript checks, a production build, automated browser QA, and visual readability QA before packaging.",
+    "",
+    `Before distributing, verify \`${releaseName}.zip\` against the paired \`${releaseName}.sha256\` file in the generated release folder.`,
+    `On macOS/Linux, run \`sha256sum -c ${releaseName}.sha256\`. On Windows PowerShell, run \`(Get-FileHash ${releaseName}.zip -Algorithm SHA256).Hash\` and compare it with the hash at the start of \`${releaseName}.sha256\`.`
   ].join("\n")
 );
 
@@ -585,7 +592,12 @@ for (const required of [
   "Back/View opens Map, X opens Notes, Y opens Hint, Start/Menu opens Help, and bumpers adjust volume",
   "Ordered-choice puzzles include Undo",
   "Credits are available from the title screen, Help, and ending screen, with source-document buttons",
-  "Keyboard shortcuts: M Map, N Notes, H Hint, F1 Help, S Sound, [ and ] volume"
+  "Keyboard shortcuts: M Map, N Notes, H Hint, F1 Help, S Sound, [ and ] volume",
+  `Version: ${version}`,
+  `Archive: \`${releaseName}.zip\``,
+  `Paired checksum: \`${releaseName}.sha256\``,
+  `sha256sum -c ${releaseName}.sha256`,
+  `Get-FileHash ${releaseName}.zip -Algorithm SHA256`
 ]) {
   if (!stagedReadme.includes(required)) {
     throw new Error(`Generated release README is missing required controls text: ${required}`);
@@ -597,10 +609,15 @@ await writeFile(
   [
     "The Department of Misplaced Hours",
     "",
+    `Version: ${version}`,
+    `Archive: ${releaseName}.zip`,
+    `Paired checksum: ${releaseName}.sha256`,
+    "",
     "Serve the dist folder as a static web root, then open the served URL in a desktop browser.",
     "Do not double-click dist/index.html from file://; browsers can block module and asset loading outside a static server.",
     "Deploying the dist folder to GitHub Pages, Netlify, or similar static hosting is supported.",
     "For itch.io or stores that expect index.html at the ZIP root, upload the separate store ZIP instead.",
+    "Before distributing, verify the ZIP against the paired .sha256 file in the generated release folder.",
     "",
     "This release archive intentionally contains the built game and release documentation only."
   ].join("\n")
@@ -667,8 +684,13 @@ await writeFile(
     "",
     "This is the store-ready static HTML build. Upload this ZIP directly to itch.io or another HTML game host that expects index.html at the archive root.",
     "",
+    `Version: ${version}`,
+    `Archive: ${storeName}.zip`,
+    `Paired checksum: ${storeName}.sha256`,
+    "",
     "Serve the extracted folder or upload this ZIP through a static web host. The build has no backend, and browser localStorage stores progress and preferences.",
     "For local testing, serve the extracted folder instead of double-clicking index.html from file://; browsers can block module and asset loading from local files.",
+    "Before uploading to a store or host, verify this ZIP against the paired .sha256 file in the generated release folder.",
     "",
     "Basic controls:",
     "- Move the cursor around the room. It changes to a hand and the status line names usable objects.",
@@ -707,7 +729,11 @@ for (const required of [
   "Credits are available from the title screen, Help, and ending screen",
   "source repository docs",
   "legal/ folder",
-  "serve the extracted folder instead of double-clicking index.html from file://"
+  "serve the extracted folder instead of double-clicking index.html from file://",
+  `Version: ${version}`,
+  `Archive: ${storeName}.zip`,
+  `Paired checksum: ${storeName}.sha256`,
+  "verify this ZIP against the paired .sha256 file"
 ]) {
   if (!stagedStoreReadme.includes(required)) {
     throw new Error(`Generated store README is missing required release text: ${required}`);
@@ -718,9 +744,14 @@ await writeFile(
   [
     "The Department of Misplaced Hours",
     "",
+    `Version: ${version}`,
+    `Archive: ${storeName}.zip`,
+    `Paired checksum: ${storeName}.sha256`,
+    "",
     "Upload this ZIP as an HTML/static web game, or serve this folder as a static web root.",
     "The playable entry point is index.html at the archive root.",
-    "For local testing, use a static server instead of file:// double-click launch."
+    "For local testing, use a static server instead of file:// double-click launch.",
+    "Before uploading, verify the ZIP against the paired .sha256 file in the generated release folder."
   ].join("\n")
 );
 await assertLfOnlyFiles(

@@ -71,7 +71,7 @@ npm run preview
 npm run release
 ```
 
-This runs the full release gate, builds pending release archives, smoke-tests those pending archives in a browser for playable launch, no-JavaScript fallback, and touch-phone portrait gating, then transactionally promotes the ZIPs, checksum files, and expanded release folders only after smoke passes. The packager verifies the promoted ZIP checksums before reporting success. The standard archive contains the verified `dist/` build and release documentation only.
+This runs the full release gate, builds pending release archives, smoke-tests those pending archives in a browser for playable launch, no-JavaScript fallback, and touch-phone portrait gating, then transactionally promotes the ZIPs, checksum files, and expanded release folders only after smoke passes. The packager verifies the promoted ZIP checksums before reporting success and the generated release notes name the exact version, ZIP, paired checksum file, and verification commands. The standard archive contains the verified `dist/` build and release documentation only.
 
 It also writes `release/department-of-misplaced-hours-<version>-store.zip`, a store-ready archive with `index.html` at the ZIP root for itch.io or other HTML game hosts that expect the playable build at archive root. If pending archive smoke fails, the final release ZIP names are left untouched.
 
