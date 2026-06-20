@@ -268,6 +268,7 @@ export class GameState {
 
     const ensureAuditWarrant = () => {
       ensureInnerFloorAccess();
+      this.inventory.add("securityKey");
       this.inventory.add("auditWarrant");
       this.flags.evidenceSafeOpened = true;
     };
@@ -319,7 +320,7 @@ export class GameState {
     const hasAny = (...items: ItemId[]) => items.some((item) => this.inventory.has(item));
     const endingReached = this.ending !== undefined;
 
-    if (this.flag("formStamped") || this.flag("clockUnlocked")) {
+    if (this.flag("formStamped") || this.flag("clockUnlocked") || this.has("stampedForm")) {
       ensureStampedForm();
     }
 

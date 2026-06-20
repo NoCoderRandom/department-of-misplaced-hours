@@ -969,6 +969,84 @@ async function testPuzzlePolish(browser, issues) {
   await button(page, "Close");
 
   await continueSaved(page, {
+    room: "break",
+    inventory: ["timeToken", "paperCup", "selfFile"],
+    flags: {
+      introSeen: true,
+      formStamped: true,
+      clockUnlocked: true,
+      clockSolved: true,
+      archiveSolved: true,
+      glassCaseCollected: true,
+      heardPhone: true
+    },
+    audioVolume: 0.72,
+    muted: false
+  });
+  await selectItem(page, "timeToken");
+  await click(page, 854, 396);
+  for (const digit of ["7", "3", "1"]) {
+    await page.keyboard.press(digit);
+    await page.waitForTimeout(120);
+  }
+  await page.getByText("IMPOSSIBLE HOURS SURVIVE ONLY OUTSIDE THE SYSTEM").waitFor({ state: "visible", timeout: 8_000 });
+  await button(page, "Take Them");
+  await page.waitForTimeout(300);
+  const selectedVendingData = await save(page);
+  if (
+    selectedVendingData.inventory.includes("timeToken") ||
+    selectedVendingData.inventory.includes("paperCup") ||
+    !selectedVendingData.inventory.includes("memoryCup") ||
+    !selectedVendingData.inventory.includes("serverFuse")
+  ) {
+    throw new Error(`Selected-ingredient vending reward did not consume/reward cleanly: ${JSON.stringify(selectedVendingData)}`);
+  }
+  await move(page, 30, 120);
+  await move(page, 854, 396);
+  await expectLiveStatus(page, "Memory Vending", "selected consumed ingredient cleared");
+  const selectedIngredientStatus = ((await page.locator("#game-live-status").textContent()) ?? "").replace(/\s+/g, " ").trim();
+  if (selectedIngredientStatus.includes("with Time Token") || selectedIngredientStatus.includes("with Paper Cup")) {
+    throw new Error(`Consumed vending ingredient stayed selected after reward pickup: ${selectedIngredientStatus}`);
+  }
+
+  await continueSaved(page, {
+    room: "mirror",
+    inventory: ["mirrorShard", "serverFuse", "selfFile", "memoryCup"],
+    flags: {
+      introSeen: true,
+      formStamped: true,
+      clockUnlocked: true,
+      clockSolved: true,
+      archiveSolved: true,
+      glassCaseCollected: true,
+      vendingSolved: true
+    },
+    audioVolume: 0.72,
+    muted: false
+  });
+  await selectItem(page, "serverFuse");
+  await click(page, 858, 438);
+  await page.getByText("The console wakes").waitFor({ state: "visible", timeout: 8_000 });
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(300);
+  const escapedFuseData = await save(page);
+  if (!escapedFuseData.flags.fuseInstalled || escapedFuseData.inventory.includes("serverFuse")) {
+    throw new Error(`Escape after fuse install left inconsistent state: ${JSON.stringify(escapedFuseData)}`);
+  }
+  await move(page, 212, 752);
+  await page.waitForTimeout(120);
+  let escapedFuseStatus = ((await page.locator("#game-live-status").textContent()) ?? "").replace(/\s+/g, " ").trim();
+  if (escapedFuseStatus.includes("Server Fuse")) {
+    throw new Error(`Escape after fuse install left stale Server Fuse inventory target: ${escapedFuseStatus}`);
+  }
+  await move(page, 612, 596);
+  await page.waitForTimeout(120);
+  escapedFuseStatus = ((await page.locator("#game-live-status").textContent()) ?? "").replace(/\s+/g, " ").trim();
+  if (escapedFuseStatus.includes("with Server Fuse")) {
+    throw new Error(`Escape after fuse install left Server Fuse selected: ${escapedFuseStatus}`);
+  }
+
+  await continueSaved(page, {
     room: "archive",
     inventory: ["visitorBadge", "stampedForm"],
     flags: {
@@ -3209,7 +3287,50 @@ async function testSaveRepairAndArchiveGates(browser, issues) {
   if (repaired.room !== "mirror") {
     throw new Error(`Repairable mirror save did not stay in Mirror Office: ${JSON.stringify(repaired)}`);
   }
-  expectInventory(repaired, ["stampedForm", "auditWarrant", "misfiledFolder", "mirrorShard", "selfFile", "memoryCup", "serverFuse"], "repaired save");
+  expectInventory(
+    repaired,
+    ["stampedForm", "securityKey", "auditWarrant", "misfiledFolder", "mirrorShard", "selfFile", "memoryCup", "serverFuse"],
+    "repaired save"
+  );
+
+  const repairedPaperwork = await continueSaved(page, {
+    room: "reception",
+    inventory: ["stampedForm"],
+    flags: { introSeen: true },
+    audioVolume: 0.72,
+    muted: false
+  });
+  if (!repairedPaperwork.flags.formStamped) {
+    throw new Error(`Stamped-form save did not repair formStamped flag: ${JSON.stringify(repairedPaperwork)}`);
+  }
+  await click(page, 226, 650);
+  await page.getByText("refuse extra paperwork").waitFor({ state: "visible", timeout: 8_000 });
+  let repairedData = await save(page);
+  if (repairedData.inventory.includes("blankForm")) {
+    throw new Error(`Repaired stamped-form save let In-Tray reissue blank form: ${JSON.stringify(repairedData)}`);
+  }
+  await button(page, "Close");
+  await click(page, 590, 660);
+  await page.getByText("spent its authority on Form 11-H").waitFor({ state: "visible", timeout: 8_000 });
+  repairedData = await save(page);
+  if (repairedData.inventory.includes("rubberStamp")) {
+    throw new Error(`Repaired stamped-form save let Rubber Stamp reissue stamp: ${JSON.stringify(repairedData)}`);
+  }
+  await button(page, "Close");
+
+  const repairedWarrant = await continueSaved(page, {
+    room: "security",
+    inventory: ["stampedForm", "auditWarrant"],
+    flags: { introSeen: true },
+    audioVolume: 0.72,
+    muted: false
+  });
+  if (!repairedWarrant.inventory.includes("securityKey") || !repairedWarrant.flags.evidenceSafeOpened) {
+    throw new Error(`Audit-warrant save did not repair spent security key/safe state: ${JSON.stringify(repairedWarrant)}`);
+  }
+  await click(page, 696, 352);
+  await page.getByText("Only blank hooks remain.").waitFor({ state: "visible", timeout: 8_000 });
+  await button(page, "Close");
 
   const repairedGlassCase = await continueSaved(page, {
     room: "archive",
@@ -3262,7 +3383,7 @@ async function testSaveRepairAndArchiveGates(browser, issues) {
   if (repairedServer.room !== "mirror") {
     throw new Error(`Server downstream save did not remain in Mirror Office: ${JSON.stringify(repairedServer)}`);
   }
-  expectInventory(repairedServer, ["stampedForm", "auditWarrant", "misfiledFolder", "selfFile", "memoryCup"], "repaired server save");
+  expectInventory(repairedServer, ["stampedForm", "securityKey", "auditWarrant", "misfiledFolder", "selfFile", "memoryCup"], "repaired server save");
   if (repairedServer.inventory.includes("serverFuse") || repairedServer.inventory.includes("mirrorShard")) {
     throw new Error(`Installed late-game items were not removed from repaired server save: ${JSON.stringify(repairedServer)}`);
   }
@@ -3549,7 +3670,7 @@ async function run() {
       throw new Error(`Browser issues detected:\n${issues.join("\n")}`);
     }
     const mode = PREVIEW_MODE ? "production preview" : "development server";
-    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help/ending Credits access with dialog semantics and safe source-document URL targets, puzzle-polish checks for Notes/objectives/side-room clue recall/hint answer reveal/route-aware Mirror hints/Auditor feedback/Mirror identity wording, security override route, deduction route, audit ending, ending keyboard/gamepad controls after reload, title/ending focus live status, spent-folder selection clearing, spent paperwork and vending ingredient sources, canvas paint and accessibility checks, mid-game and late-game reloads, non-spoiler phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts and required outside-system cup clue, all authored hand-cursor hotspot/live-status behavior plus inventory hover, touch first-tap hotspot preview and timeout clearing, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
+    console.log(`QA passed on ${mode}: asset-load failure recovery with alert text, optional audio fallback, no-JavaScript static-host fallback, intro badge recovery, title/help/ending Credits access with dialog semantics and safe source-document URL targets, puzzle-polish checks for Notes/objectives/side-room clue recall/hint answer reveal/route-aware Mirror hints/Auditor feedback/Mirror identity wording, security override route, deduction route, audit ending, ending keyboard/gamepad controls after reload, title/ending focus live status, spent-folder selection clearing, spent paperwork and vending ingredient sources plus consumed ingredient selection clearing, post-success Escape HUD refresh, canvas paint and accessibility checks, mid-game and late-game reloads, non-spoiler phone clue recall/review, typed and clicked vending keypad paths, phone/rain/muted clue paths with immediate muted phone/tape transcripts and required outside-system cup clue, all authored hand-cursor hotspot/live-status behavior plus inventory hover, touch first-tap hotspot preview and timeout clearing, sequence puzzle undo/backspace recovery, selection-safe audio controls, keyboard shortcuts, keyboard title start, controller title/stick/object/modal navigation with hint and bumper controls, selected-item cancel by Escape/right-click/B, protected Start New, clue-gated Mood Clocks, large-text and reduced-motion preference/reset survival, system reduced-motion default and legacy migration, keyboard object/inventory interaction, wrong-item feedback, Auditor consultation notes and hour-presentation recovery, answer-order anti-spoiler checks, failed-puzzle recovery, rain/glass/vending reward Escape checks with vending reward reload recovery, repaired spent paperwork/key sources, downstream save repair, invalid-room save recovery, corrupt/unavailable storage recovery with save warning, recover position, archive gates, pre-file vending gate, scaled interaction, malformed save, mobile fit, modal focus/Escape, reset, and late-game Notes scroll.`);
   } catch (error) {
     failed = true;
     throw error;

@@ -113,11 +113,50 @@ const { GameState } = await loadGameState();
   for (const flag of ["clockUnlocked", "clockSolved", "evidenceSafeOpened", "serverSolved", "fuseInstalled", "identityVerified", "hourVerified", "mirrorClueSeen"]) {
     assert.equal(state.flags[flag], true, `repair restores ${flag}`);
   }
-  for (const item of ["stampedForm", "auditWarrant", "misfiledFolder", "selfFile", "memoryCup"]) {
+  for (const item of ["stampedForm", "securityKey", "auditWarrant", "misfiledFolder", "selfFile", "memoryCup"]) {
     assert.equal(state.inventory.has(item), true, `repair restores ${item}`);
   }
   assert.equal(state.inventory.has("serverFuse"), false, "installed fuse is removed from inventory");
   assert.equal(state.inventory.has("mirrorShard"), false, "installed shard is removed from inventory");
+}
+
+{
+  const storage = createStorage();
+  installWindow(storage);
+  seed(storage, SAVE_KEY, {
+    room: "reception",
+    inventory: ["blankForm", "rubberStamp", "stampedForm"],
+    flags: { introSeen: true },
+    audioVolume: 0.72,
+    muted: false,
+    largeText: false,
+    reducedMotion: false
+  });
+  const state = new GameState();
+  assert.equal(state.load(), true, "load accepts stamped-form legacy save");
+  assert.equal(state.flags.formStamped, true, "stamped form repairs formStamped flag");
+  assert.equal(state.inventory.has("stampedForm"), true, "stamped form stays in inventory");
+  assert.equal(state.inventory.has("blankForm"), false, "stamped form repair removes spent blank form");
+  assert.equal(state.inventory.has("rubberStamp"), false, "stamped form repair removes spent rubber stamp");
+}
+
+{
+  const storage = createStorage();
+  installWindow(storage);
+  seed(storage, SAVE_KEY, {
+    room: "security",
+    inventory: ["stampedForm", "auditWarrant"],
+    flags: { introSeen: true },
+    audioVolume: 0.72,
+    muted: false,
+    largeText: false,
+    reducedMotion: false
+  });
+  const state = new GameState();
+  assert.equal(state.load(), true, "load accepts audit-warrant legacy save");
+  assert.equal(state.flags.evidenceSafeOpened, true, "audit warrant repairs safe-opened flag");
+  assert.equal(state.inventory.has("securityKey"), true, "audit warrant repair restores spent security key");
+  assert.equal(state.inventory.has("auditWarrant"), true, "audit warrant stays in inventory");
 }
 
 {

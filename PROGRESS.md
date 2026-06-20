@@ -125,6 +125,9 @@
 - [x] Solved Memory Vending and Notes now preserve the outside-system hour warning, with QA coverage so the final Auditor answer remains fair after the reward panel closes.
 - [x] The In-Tray and Rubber Stamp now stop reissuing spent paperwork tools after Form 11-H is stamped, with QA coverage against early-game inventory clutter.
 - [x] Paper Cups and Coin Drawer now stop reissuing spent vending ingredients after Memory Vending is solved, with QA coverage against late-game inventory clutter.
+- [x] Memory Vending reward pickup now clears selected consumed ingredients, with QA coverage so the live status cannot show a ghost Time Token or Paper Cup after reward collection.
+- [x] Save repair now treats Stamped Form and Audit Warrant as proof of exhausted one-shot sources, preventing repaired saves from reissuing blank paperwork or the Security Key.
+- [x] Escape on post-success dialogs now refreshes the room HUD, with QA coverage against stale Server Fuse inventory hit zones after installation.
 - [x] Hotspot cursor QA now sweeps every authored room hotspot for hand cursor and live target status feedback.
 - [x] Release checks and live smoke now verify generated PNG icon/social-card dimensions so broken store/share artwork cannot ship silently.
 - [x] Release packaging now refuses extra top-level release artifacts and generated release notes name the exact version, ZIP, paired checksum file, and verification commands.

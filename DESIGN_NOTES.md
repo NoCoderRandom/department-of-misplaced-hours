@@ -73,6 +73,7 @@ The soundscape mixes procedural Web Audio ambience with CC0 Kenney UI/SFX files.
 - TypeScript keeps state and puzzle code maintainable.
 - Vite builds relative static assets through `base: "./"` for GitHub Pages compatibility.
 - `localStorage` stores room, inventory, flags, and ending in the progress save, with volume, mute, Large Text, and Reduced Motion mirrored to a separate preferences key so Reset Shift does not erase player settings.
+- Save repair infers spent one-shot sources from downstream proof: a Stamped Form restores the paperwork-solved flag and removes blank tools, while an Audit Warrant restores the spent Security Key so solved cabinets stay exhausted.
 - Web Audio keeps the audio legally clean and lightweight.
 - Selected Kenney CC0 OGG files improve tactile feedback without licensing friction.
 - `scripts/state-tests.mjs` runs before build/browser QA to catch save/load normalization, repair-invariant, reset-preference, and storage-failure regressions quickly.
@@ -98,6 +99,8 @@ The soundscape mixes procedural Web Audio ambience with CC0 Kenney UI/SFX files.
 - Optional side-room flavor can also clarify puzzle red herrings: the Handless Clock reminds players that grouped clues are counted, and the Microwave establishes that impossible hours cannot be filed there.
 - Spent paperwork sources are state-aware: after Form 11-H is stamped, the in-tray and rubber stamp become flavor-only responses instead of reissuing confusing early-game tools.
 - Spent ingredient sources are state-aware: after Memory Vending consumes the Time Token and Paper Cup, the coin drawer and cup stack become flavor-only responses instead of reissuing confusing late-game clutter.
+- Reward pickup clears consumed vending ingredients from the active selection so hover/status feedback cannot claim the player is still holding a spent Time Token or Paper Cup.
+- Escape on post-success progress dialogs refreshes the playable room, preventing removed inventory hit zones or stale selected-item text from surviving when players dismiss a Continue-style panel.
 - Notes avoid revealing clock-solution detail before the related documents are read, and objectives acknowledge the warrantless archive case-file route instead of forcing a single warrant-first reading.
 - After the archive drawers are solved, Notes and Map point directly to the unlocked glass case instead of implying the records are already usable.
 - Hints keep exact solutions behind an explicit Show Answer step, so stuck players can still recover without accidental spoilers.

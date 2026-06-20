@@ -2108,6 +2108,7 @@ export class MainScene extends Phaser.Scene {
           action: () => {
             this.state.setFlag("vendingSolved");
             this.state.setFlag("vendingDispensed", false);
+            this.selectedItem = undefined;
             this.state.remove("timeToken");
             this.state.remove("paperCup");
             this.state.add("memoryCup");
@@ -2913,13 +2914,23 @@ export class MainScene extends Phaser.Scene {
     document.body.append(backdrop);
     updateMessageScrollFocus();
     this.domOverlay = backdrop;
+    const refreshOnEscapeLabels = new Set(["Accept", "Answer", "Continue", "Proceed"]);
+    const refreshOnEscape =
+      !this.titleActive &&
+      !this.endingActive &&
+      Boolean(this.roomTitle) &&
+      actualButtons.some((button) => refreshOnEscapeLabels.has(button.label));
     this.modalEscapeHandler = (event: KeyboardEvent) => {
       if (this.domOverlay !== backdrop) {
         return;
       }
       if (event.key === "Escape") {
         event.preventDefault();
-        this.closeOverlay();
+        if (refreshOnEscape) {
+          this.closeOverlayAndRefresh();
+        } else {
+          this.closeOverlay();
+        }
         return;
       }
       const active = document.activeElement;
